@@ -1,5 +1,4 @@
 <?php
-//  $Id: functions.inc 128 2015-05-21 22:47:15Z root $
 /**
 *   Public API functions for the Membership plugin for glFusion.
 *
@@ -1014,7 +1013,7 @@ function MEMBERSHIP_debug($msg)
 */
 function plugin_user_create_membership($uid)
 {
-    global $_TABLES, $LANG_MEMBERSHIP, $_CONF;
+    global $LANG_MEMBERSHIP;
 
     $uid = (int)$uid;
     if ($uid < 3) return;
@@ -1024,11 +1023,6 @@ function plugin_user_create_membership($uid)
             'persist' => true,
             'use_sess_id' => false,
         ) );
-    LGLIB_storeMessage(array(
-            'message' => $LANG_MEMBERSHIP['new_acct_msg'],
-            'persist' => true,
-        ) );
-     LGLIB_setGlobal('redirect', $_CONF['site_url']);
 }
 
 

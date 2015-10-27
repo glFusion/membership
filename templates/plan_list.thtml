@@ -28,12 +28,12 @@
   </div>
   <div class="pluginMembershipButtons">
     {purchase_btn}
-    <div id="pluginMembershipPrice">
+  </div>
+  <div id="pluginMembershipPrice">
     {lang_price}: {price} {currency}
     {!if fee}
     <br />({price_actual} + {fee} {$LANG_MEMBERSHIP['processing_fee']})
     {!endif}
-    </div>
   </div>
 </div>
 <div style="clear:both;">

@@ -1,5 +1,4 @@
 <?php
-//  $Id: position.class.php 126 2015-03-16 21:45:09Z root $
 /**
 *   Class to handle board and committee possitions.
 *
@@ -241,43 +240,32 @@ class MemPosition
     /**
     *   Creates the edit form.
     *
-    *   @param  integer $id Attributeal ID, current record used if zero
     *   @return string      HTML for edit form
     */
     public function Edit()
     {
-        global $_TABLES, $LANG_MEMBERSHIP, $LANG_ACCESS;
+        global $_TABLES;
 
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file(array('editform' => 'position_form.thtml'));
-
-        $id = $this->id;
-
-        // If we have a nonzero category ID, then we edit the existing record.
-        // Otherwise, we're creating a new item.  Also set the $not and $items
-        // values to be used in the parent category selection accordingly.
-/*        if ($id > 0) {
-            $retval = COM_startBlock($LANG_PP['edit'] . ': ' . $this->attr_value);
-            $T->set_var('attr_id', $id);
-        } else {
-            $retval = COM_startBlock($LANG_PP['new_option']);
-            $T->set_var('attr_id', '');
-        }
-*/
-        $selection = COM_optionList($_TABLES['users'], 'uid,fullname', $this->uid, 1);
 
         $T->set_var(array(
             'action_url'    => MEMBERSHIP_ADMIN_URL,
             'id'            => $this->id,
             'description'   => $this->descr,
-            'option_user_select' => $selection,
+            'option_user_select' => COM_optionList(
+                        $_TABLES['users'],
+                        'uid,fullname',
+                        $this->uid, 1
+                ),
             'orderby'       => $this->orderby,
             'show_vacant_chk'   => $this->show_vacant ? 'checked="checked"' : '',
             'ena_chk'       => $this->enabled ? 'checked="checked"' : '',
             'position_type_select' => COM_optionList(
                         $_TABLES['membership_positions'], 
                         'DISTINCT type,type',
-                        $this->type, 0),
+                        $this->type, 0
+                ),
             'contact'       => $this->contact,
             'grp_select'    => COM_optionList($_TABLES['groups'],
                             'grp_id,grp_name', $this->grp_id, 1),
@@ -288,7 +276,6 @@ class MemPosition
 
         $retval .= $T->parse('output', 'editform');
 
-        //$retval .= COM_endBlock();
         return $retval;
 
     }   // function Edit()

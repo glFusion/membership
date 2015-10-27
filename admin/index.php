@@ -1,7 +1,6 @@
 <?php
-//  $Id: index.php 134 2015-10-26 22:29:56Z root $
 /**
-*   Entry point to administration functions for the Forms plugin.
+*   Entry point to administration functions for the Membership plugin.
 *
 *   @author     Lee Garner <lee@leegarner.com>
 *   @copyright  Copyright (c) 2012-2013 Lee Garner <lee@leegarner.com>
