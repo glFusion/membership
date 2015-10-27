@@ -37,6 +37,7 @@ Some core changes are needed to enable full functionality:
 -  public_html/users.php starting around line 392. The $redir value is a url
     if set by the membership plugin, or false if none set. This is used for
     workflow.
+````
         $redir = function_exists('LGLIB_getGlobal') ? LGLIB_getGlobal('redirect', true) : false;
         if ($mailresult == false) {
             $retval = COM_refresh ("{$_CONF['site_url']}/index.php?msg=85");
@@ -49,4 +50,4 @@ Some core changes are needed to enable full functionality:
                 $retval = $redir ? COM_refresh($redir) : COM_refresh ("{$_CONF['site_url']}/index.php?msg=1");
             }
         }
-
+````
