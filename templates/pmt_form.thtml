@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>{$LANG_MEMBERSHIP['pmt_form']}</title>
+</head>
+<body style="direction: ltr;">
+{# begin {templatelocation} #}
+<h1>{site_name}</h1>
+{!if ena_checkpay}
+<h2>{$LANG_MEMBERSHIP['pmt_form']}</h2>
+<table border="0" cellspacing="5">
+  <tr>
+    <td>{$LANG_MEMBERSHIP['member_name']}:</td>
+    <td>{member_name} ({member_username})</td>
+  </tr>
+  <tr>
+    <td>{$LANG_MEMBERSHIP['plan']}:</td>
+    <td>{plan_name}</td>
+  </tr>
+  <tr>
+    <td>{$LANG_MEMBERSHIP['membership_fee']}:</td>
+    <td>{price_total} {currency}
+    {!if pmt_fee}
+    <br />({price_actual} + {pmt_fee} {$LANG_MEMBERSHIP['processing_fee']})
+    {!endif}
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"><i>{make_payable}:</i></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>{remit_to}</td>
+  </tr>
+</table>
+<i>{pmt_instructions}</i>
+<p><input type="button" onclick="window.print()" value="{$LANG_MEMBERSHIP['print']}" /></p>
+{!else}
+<h2><i>Only online payments are accepted</i></h2>
+{!endif}
+{# end {templatelocation} #}
+</body>
+</html>

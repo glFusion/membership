@@ -1,0 +1,6 @@
+{# begin {templatelocation} #}
+<span style="font-size:125%">
+  <b>{header}</b>
+</span>
+&nbsp;&nbsp;{$LANG_MEMBERSHIP['version']}&nbsp;&nbsp;{version}
+{# end {templatelocation} #}

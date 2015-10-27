@@ -1,0 +1,32 @@
+<div class="grouplist">
+{!if title}
+<h1>{title}</h1>
+{!endif}
+<table border="0" width="80%" class="center">
+<tr>
+<th></th>
+<th class="center">{$LANG_MEMBERSHIP['position']}</th>
+<th class="center">{$LANG_MEMBERSHIP['name']}</th>
+<th class="center">{$LANG_MEMBERSHIP['contact_info']}</th>
+</tr>
+<!-- BEGIN userRow -->
+<tr>
+  <td class="userimage">{user_img}</td>
+  <td class="position">{position}</td>
+  {!if user_name}
+  <td class="username">
+  {user_name}
+    {!if comment}
+    <br />{comment}
+    {!endif}
+  </td>
+  {!elseif show_vacant}
+  <td class="vacant">{$LANG_MEMBERSHIP['vacant']}</td>
+  {!else}
+  <td></td>
+  {!endif}
+  <td><a href="{site_url}/profiles.php?uid={uid}">{user_email}</a></td>
+</tr>
+<!-- END userRow -->
+</table>
+</div>

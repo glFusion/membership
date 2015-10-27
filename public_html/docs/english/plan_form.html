@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- $Id: paypal.html 20 2009-10-26 22:01:37Z root $ -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1" />
+  <link href="../../../docs/docstyle.css" type="text/css" rel="stylesheet" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Membership Plugin - glFusion CMS</title>
+</head>
+
+<body style="direction: ltr;">
+<div id="gl_container_fluid">
+  <div id="gl_header"><span style="color: rgb(255, 255, 255); float: left; padding-left: 10px; padding-top: 5px; vertical-align: middle;">glFusion Documentation Project
+  </span><a style="float: right; padding-right: 10px; padding-top: 5px; vertical-align: middle;" href="http://www.glfusion.org/wiki/doku.php">glFusion Wiki</a>
+</div>
+<div id="gl_wrapper">
+<div class="body-container">
+<h1><a name="advt_plugin" id="advt_plugin">Membership Plugin</a></h1>
+
+<style type="text/css">
+td { vertical-align: top; }
+</style>
+
+<div class="level1">
+
+<table class="inline">
+  <tbody>
+    <tr>
+      <th class="col0 leftalign" colspan="2">Product Edit Form</th>
+    </tr>
+
+    <tr class="row0">
+      <th class="col0 leftalign">Option </th>
+      <th class="col1 leftalign">Description </th>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_plan_id"></a>Plan ID
+      </td>
+      <td class="col1 leftalign">
+        Enter the plan ID.  This is required and should not normally be changed.<br />This value will be displayed in several places, so it should be human-readable.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_short_name"></a>Short Name
+      </td>
+      <td class="col1 leftalign">
+        Enter a short name for this plan. This is required.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_description"></a>Description</td>
+      <td class="col1 leftalign">
+        Enter a description for this plan. This will be shown on the main
+membership selection page.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_enabled"></a>Enabled
+      </td>
+      <td class="col1 leftalign">
+        Check this box to enable this plan for purchase; uncheck to disable.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_upd_links"></a>Update Linked Accounts?
+      </td>
+      <td class="col1 leftalign">
+        When a plan is purchased, all accounts that are linked to the purchaser can be updated.  If this plan should update linked accounts, check this box.
+<br /><br />
+For example, a &quot;Family&quot; membership may update all linked accounts (family members) while a &quot;Single&quot; membership may only update the purchaser's account.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_access"></a>Purchase Allowed by...
+      </td>
+      <td class="col1 leftalign">
+        Select whether this type of membership can be purchased by anyone, or only by administrators. For special plans, such as free honorary memberships, you may not want the public to be able to purchase them.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_period_start"></a>Period Start
+      </td>
+      <td class="col1 leftalign">
+        This is the starting month of the membership year. If memberships may be purchased at any time, this will indicate &quot;Rolling&quot;. This field is for information only; the value is changed in the global plugin configuration.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_fee_schedule"></a>Fee Schedule
+      </td>
+      <td class="col1 leftalign">
+        Enter the fees for this membership plan in this table.  If the Period Start is &quot;Rolling&quot; (selected in the main plugin configuration), then only a &quot;New&quot; and &quot;Renewal&quot; price needs to be entered.
+<br /><br />
+If the Period Start is a specific month, you may wish to pro-rate the membership fee by entering different values for each month.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_fixed_fee"></a>Fixed Fee
+      </td>
+      <td class="col1 leftalign">
+        Enter an optional fixed fee to be added to all membership purchases. This may be the Paypal processing fee if you elect not to include it in the membership fees.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign">
+        <a name="desc_transfer_plan"></a>Transfer Plan
+      </td>
+      <td class="col1 leftalign">
+        If you need to transfer all members from the current plan to another plan, select the new plan here. This is required before you can delete a plan that has members.
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+<p></p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

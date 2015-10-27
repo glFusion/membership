@@ -1,0 +1,110 @@
+{# begin {templatelocation} #}
+<form action="{action_url}/index.php" method="post"
+   class="pluginMembershipPlanForm">
+  <input type="hidden" name="id" value="{id}" />
+  <input type="hidden" name="old_grp_id" value="{old_grp_id}" />
+  <input type="hidden" name="old_uid" value="{old_uid}" />
+  <fieldset>
+
+  <p>
+    <label>{$LANG_MEMBERSHIP['position']}:
+      <a href="#" onclick="popupWindow('{doc_url}#desc_position', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" 
+            alt="{$LANG_MEMBERSHIP['clk_help']}" />
+      </a>
+    </label>
+    <input type="text" name="descr" value="{description}" />
+  </p>
+
+  <p>
+    <label>{$LANG_MEMBERSHIP['position_type']}:
+      <a href="#" onclick="popupWindow('{doc_url}#desc_type', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" 
+            alt="{$LANG_MEMBERSHIP['clk_help']}" />
+      </a>
+    </label>
+    <select name="position_type_sel">
+      {position_type_select}
+    </select>
+    &nbsp;&nbsp;Or create:
+    <input type="text" name="position_type" value="" 
+        size="32" maxlength="32" />
+  </p>
+
+  <p>
+    <label>{$LANG_MEMBERSHIP['current_user']}:
+      <a href="#" onclick="popupWindow('{doc_url}#desc_current_user', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" 
+            alt="{$LANG_MEMBERSHIP['clk_help']}" />
+      </a>
+    </label>
+    <select name="uid">
+      <option value="0">--- {$LANG_MEMBERSHIP['vacant']} ---</option>
+      {option_user_select}
+    </select>
+  </p>
+
+  <p>
+    <label>{$LANG_MEMBERSHIP['contact_info']}:
+      <a href="#" onclick="popupWindow('{doc_url}#desc_contact', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" 
+            alt="{$LANG_MEMBERSHIP['clk_help']}" />
+      </a>
+    </label>
+    <textarea name="contact">{contact}</textarea>
+  </p>
+
+  <p>
+    <label>{$LANG_MEMBERSHIP['order']}:
+      <a href="#" onclick="popupWindow('{doc_url}#desc_orderby', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" 
+            alt="{$LANG_MEMBERSHIP['clk_help']}" />
+      </a>
+    </label>
+    <input type="text" name="orderby" value="{orderby}" 
+        size="6" maxlength="6" />
+  </p>
+
+  <p>
+    <label>{$LANG_MEMBERSHIP['enabled']}?
+      <a href="#" onclick="popupWindow('{doc_url}#desc_enabled', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" 
+            alt="{$LANG_MEMBERSHIP['clk_help']}" />
+      </a>
+    </label>
+    <input type="checkbox" name="enabled" value="1" {ena_chk} />
+  </p>
+
+  <p>
+    <label>{$LANG_MEMBERSHIP['show_vacant']}:
+      <a href="#" onclick="popupWindow('{doc_url}#desc_show_vacant', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" 
+            alt="{$LANG_MEMBERSHIP['clk_help']}" />
+      </a>
+    </label>
+    <input type="checkbox" name="show_vacant" value="1" {show_vacant_chk} />
+  </p>
+
+  <p>
+    <label for="group">
+      {$LANG_ACCESS['group']}
+      <a href="#" onclick="popupWindow('{doc_url}#desc_group', 'Help', 640, 480, 1);return false;" class="toolbar">
+        <img src="{layout_url}/images/button_help.png" alt="Help" />
+      </a>
+    </label>
+    <select name="grp_id">
+      <option value="0">-- None --</option>
+      {grp_select}
+    </select>
+  </p>
+
+  <div align="center">
+    <input type="submit" class="lgButton green" name="saveposition" value="{$LANG_ADMIN['save']}" />
+    <input type="reset" class="lgButton blue"/>
+    <input type="submit" class="lgButton red" name="deleteposition" value="{$LANG_ADMIN['delete']}"
+        onclick="return confirm('{$LANG_MEMBERSHIP['q_del_item']}');" />
+    <input type="submit" class="lgButton grey" name="positions" value="{$LANG_ADMIN['cancel']}" />
+  </div>
+
+</form>
+{# end {templatelocation} #}

@@ -1,0 +1,14 @@
+<p>Hello, {username};</p>
+<p>Your membership will be expiring shortly.</p>
+<p>{product} - {short_description}</p>
+<p>Log into <a href="{site_url}">{site_url}</a> to update your application and renew.</p>
+{!if buy_button}
+<p>Or, renew now by clicking here:
+<table border="0" width="85%" align="center">
+<tr><td>{short_description}</td><td>{buy_button}</td></tr>
+</table>
+</p>
+{!endif}
+<p>Sincerely,<br />
+{site_name}
+</p>

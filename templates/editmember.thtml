@@ -1,0 +1,341 @@
+{# begin {templatelocation} #}
+<script type="text/javascript">
+function MEMgetXmlHttpObject()
+{
+  var objXMLHttp=null
+  if (window.XMLHttpRequest)
+  {
+    objXMLHttp=new XMLHttpRequest()
+  }
+  else if (window.ActiveXObject)
+  {
+    objXMLHttp=new ActiveXObject("Microsoft.XMLHTTP")
+  }
+  return objXMLHttp
+}
+function MEMremoveElement(uid, uname)
+{
+  var xmlHttp;
+
+  xmlHttp=MEMgetXmlHttpObject();
+  if (xmlHttp==null) {
+    alert("Browser does not support HTTP Request");
+    return;
+  }
+  var url="{site_admin_url}/plugins/membership/ajax.php?action=remlinkuser&uid1={my_uid}&uid2=" + uid;
+  xmlHttp.open("GET",url,true);
+  xmlHttp.send(null);
+
+  el = document.getElementById("link"+uid);
+  el.parentNode.removeChild(el);
+  sel = document.getElementById("linkselect");
+  optnew = document.createElement('option');
+  optnew.text = uname;
+  optnew.value = uid;
+  try {
+    sel.add(optnew, null);
+  } catch (ex) {
+    sel.add(optnew);
+  }
+}
+function MEMaddElement(selid)
+{
+  var xmlHttp;
+
+  var uid = selid.options[selid.selectedIndex].value;
+  var uname = selid.options[selid.selectedIndex].text;
+  var lst = document.getElementById('linklist');
+  var new_elem = document.createElement('li');
+  var str = "<a href=\"{site_url}/users.php?mode=profile&uid=" + uid +
+        "\">" + uname + " (" + uid + ")</a>";
+  str = str + "&nbsp;&nbsp;<a href=\"#\" onclick='MEMremoveElement(" +
+        uid + ",\"" + uname + "\")'>" +
+        "<img src=\"{layout_url}/images/admin/delete.png\" " +
+        "title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"gl_mootip\" /></a>";
+
+  new_elem.innerHTML = str;
+  new_elem.id = "link"+uid;
+  lst.appendChild(new_elem);
+  
+  xmlHttp=MEMgetXmlHttpObject();
+  if (xmlHttp==null) {
+    alert("Browser does not support HTTP Request");
+    return;
+  }
+  var url="{site_admin_url}/plugins/membership/ajax.php?action=addlinkuser&uid1={my_uid}&uid2=" + uid
+  xmlHttp.open("GET",url,true);
+  xmlHttp.send(null);
+
+  selid.remove(selid.selectedIndex);
+}
+</script>
+
+{!if standalone}
+<form action="{action_url}" method="post">
+<input type="hidden" name="mem_uid" value="{my_uid}" />
+{!else}
+<div id="pe_membership" class="jsenabled_hide">
+{!endif}
+<input type="hidden" name="mem_old_links" value='{old_links}' />
+  <fieldset>
+    <legend>{$LANG_MEMBERSHIP['block_title']}</legend>
+    <div class="piMembershipRenewalFields">
+      <fieldset><legend>{$LANG_MEMBERSHIP['pmt_info']}</legend>
+        <table border="0">
+        {!if is_member}
+        <tr><td>{$LANG_MEMBERSHIP['quickrenew']}</td>
+          <td><input type="checkbox" value="1" name="mem_quickrenew" /></td>
+        </tr>
+        {!endif}
+        <tr>
+          <td>
+            {$LANG_MEMBERSHIP['pmt_date']}:</td><td>
+            <input type="text" id="f_dtpaid" name="mem_pmtdate" size="25"
+              value="{pmt_date}" maxlength="30" />
+            <img src="{site_url}/images/datepicker.jpg" 
+              id="dtpaid_trigger"
+              style="cursor: pointer;"
+              alt="Date Selector"
+              title="Date Selector"
+              />
+          </td>
+        </tr>
+        <tr>
+          <td>{$LANG_MEMBERSHIP['pmt_amount']}:</td>
+          <td><input type="text" name="mem_pmtamt" value="" /></td>
+        </tr>
+        <tr>
+          <td>
+          {$LANG_MEMBERSHIP['pmt_method']}:</td><td>
+          <select name="mem_pmttype">
+            <option value="" selected="selected">--Select--</option>
+            <option value="check">{$LANG_MEMBERSHIP['check']}</option>
+            <option value="cash">{$LANG_MEMBERSHIP['cash']}</option>
+            <option value="cc">{$LANG_MEMBERSHIP['cc']}</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>{$LANG_MEMBERSHIP['pmt_desc']}:</td>
+          <td><input type="text" name="mem_pmtdesc" size="30" /></td>
+        </tr>
+        </table>
+      </fieldset>
+    </div>
+    <table class="pluginMembershipPlanForm">
+{!if standalone}
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['updating_member']}:</td>
+        <td>{member_name}
+          {!if viewApp}
+          &nbsp;&nbsp;<a href="{site_url}/membership/app.php?uid={my_uid}&amp;prt" target="_new" class="toolbar">{$LANG_MEMBERSHIP['view_app']}</a>
+          {!endif}
+        </td>
+      </tr>
+{!endif}
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['plan']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_plan_id', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        <td>
+          <input type="hidden" name="mem_plan_id_orig" value="{plan_id_orig}" />
+          <select name="mem_plan_id" onchange="memUpdateLinkText(this);">
+            <option value="">--{$LANG_MEMBERSHIP['select']}--</option>
+          <!-- BEGIN PlanBlock -->
+            <option value="{plan_id}" {plan_sel}>{plan_name}</option>
+          <!-- END PlanBlock -->
+          </select> <span id="upd_link_txt">{upd_link_text}</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['joined']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_joined', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <input type="hidden" name="mem_joined_orig" value="{joined}" />
+          <input type="text" id="f_dtjoined" name="mem_joined" size="15"
+            value="{joined}" maxlength="15" />
+          <img src="{site_url}/images/datepicker.jpg" 
+            id="dtjoin_trigger"
+            style="cursor: pointer;"
+            alt="Date Selector"
+            title="Date Selector"
+            />
+        </td>
+      </tr>
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['expires']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_expires', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <input type="hidden" name="mem_expires_orig"  value="{expires}"/>
+          <input type="text" id="f_dtexpire" name="mem_expires" size="15"
+            value="{expires}" maxlength="15" />
+          <img src="{site_url}/images/datepicker.jpg" 
+            id="dtexpire_trigger"
+            style="cursor: pointer;"
+            alt="Date Selector"
+            title="Date Selector"
+            />
+        </td>
+      </tr>
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['notified']}?
+          <a href="#" onclick="popupWindow('{doc_url}#desc_notified', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <input type="hidden" value="{notified_orig}" name="mem_notified_orig" />
+          <input type="checkbox" value="1" name="mem_notified" {notified_chk} />
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>{$LANG_MEMBERSHIP['linked_accounts']}</legend>
+    <table>
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['linked_accounts']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_links', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <ul id="linklist">
+            <!-- BEGIN LinkBlock -->
+              <li id="link{uid}">
+                <a href="{site_url}/users.php?mode=profile&amp;uid={uid}">{uname}</a> &nbsp;
+                <a href="#" onclick='MEMremoveElement({uid},"{uname}")'>
+                  <img src="{layout_url}/images/admin/delete.png" 
+                  title="{$LANG_MEMBERSHIP['rem_this_item']}"
+                  class="gl_mootip" />
+                </a>
+              </li>
+            <!-- END LinkBlock -->
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['add_link']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_add_link', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <select id="linkselect" name="add_link" onchange="MEMaddElement(this)">
+            <option value="0">--{$LANG_MEMBERSHIP['none']}--</option>
+          <!-- BEGIN linkSelect -->
+            <option value="{link_id}">{link_name}</option>
+          <!-- END linkSelect -->
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['emancipate']}?
+          <a href="#" onclick="popupWindow('{doc_url}#desc_emancipate', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td><input type="checkbox" value="1" name="emancipate" /></td>
+      </tr>
+      <tr>
+        <td colspan="2">{$LANG_MEMBERSHIP['hlp_renew']}</td>
+      </tr>
+      <!--<tr>
+        <td>{$LANG_MEMBERSHIP['expires']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_expires', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <input type="text" id="f_dtexpire" name="mem_expires" size="15"
+            value="{expires}" maxlength="15" />
+          <img src="{site_url}/images/datepicker.jpg" 
+            id="dtexpire_trigger"
+            style="cursor: pointer;"
+            alt="Date Selector"
+            title="Date Selector"
+            />
+        </td>
+      </tr>
+      <tr>
+        <td>{$LANG_MEMBERSHIP['pmt_info']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_pmt_info', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          {$LANG_MEMBERSHIP['pmt_date']}:
+          <input type="text" id="f_dtpaid" name="mem_dtpaid" size="25"
+            value="" maxlength="30" />
+          <img src="{site_url}/images/datepicker.jpg" 
+            id="dtpaid_trigger"
+            style="cursor: pointer;"
+            alt="Date Selector"
+            title="Date Selector"
+            />&nbsp;&nbsp;
+          {$LANG_MEMBERSHIP['pmt_method']}:
+          <select name="mem_pmttype">
+            <option value="" selected="selected">--Select--</option>
+            <option value="check">{$LANG_MEMBERSHIP['check']}</option>
+            <option value="cash">{$LANG_MEMBERSHIP['cash']}</option>
+            <option value="cc">{$LANG_MEMBERSHIP['cc']}</option>
+            </select>&nbsp;&nbsp;
+          {$LANG_MEMBERSHIP['pmt_desc']}:
+          <input type="text" name="mem_pmtdesc" size="30" />
+        </td>
+      </tr>-->
+    </table>
+    <hr />
+    {hlp_member_edit}
+  </fieldset>
+{!if standalone}
+  <input type="submit" class="lgButton green" name="savemember" value="{$LANG_MEMBERSHIP['submit']}" />
+  <input type="submit" class="lgButton grey" name="listmembers" value="{$LANG_MEMBERSHIP['cancel']}" />
+  <input type="reset" class="lgButton blue" name="reset" value="{$LANG_MEMBERSHIP['reset']}" />
+</form>
+{!else}
+</div>
+{!endif}
+
+<script type="text/javascript">
+    Calendar.setup({
+        inputField     :    "f_dtjoined",
+        ifFormat       :    "%Y-%m-%d",
+        showsTime      :    false,
+        timeFormat     :    "24",
+        button          :   "dtjoin_trigger"
+    });
+    Calendar.setup({
+        inputField     :    "f_dtexpire",
+        ifFormat       :    "%Y-%m-%d",
+        showsTime      :    false,
+        timeFormat     :    "24",
+        button          :   "dtexpire_trigger"
+    });
+    Calendar.setup({
+        inputField     :    "f_dtpaid",
+        ifFormat       :    "%Y-%m-%d %H:%M:%S",
+        showsTime      :    true,
+        timeFormat     :    "12",
+        button          :   "dtpaid_trigger"
+    });
+
+function memUpdateLinkText(selid)
+{
+    var family_ids = new Array({family_plans});
+    var plan_id = selid.options[selid.selectedIndex].value;
+    // default if no family plans
+    var text = "{$LANG_MEMBERSHIP['no_upd_links']}";
+    
+    if (plan_id == '') {
+        text = '';
+    } else {
+        for (var i=0; i<family_ids.length; i++) {
+            if (family_ids[i] == plan_id) {
+                text = "{$LANG_MEMBERSHIP['does_upd_links']}";
+            }
+        }
+    }
+    document.getElementById("upd_link_txt").innerHTML = text;
+}
+
+</script>
+{# end {templatelocation} #}

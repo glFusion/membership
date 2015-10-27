@@ -1,0 +1,122 @@
+.member_arrears {
+    background-color:#FFFF99;
+}
+.member_expired {
+    background-color:#FF9999;
+}
+
+.pluginMembershipPlanForm label {
+    width: 16em;
+    float: left;
+    text-align: right;
+    margin-right: 1em;
+    display: block;
+    clear: both;
+}
+
+td.lbl {
+    width: 18em;
+}
+
+.pluginMembershipButtons {
+    position: relative;
+    float: right;
+    margin-right: 5%;
+    text-align:left;
+    padding-bottom: 5px;
+}
+
+#pluginMembershipHeader {
+    font-size: 150%;
+}
+
+#pluginMembershipAppMsg{
+    font-size: 150%;
+    clear: both;
+    text-align:center;
+}
+
+#pluginMembershipPlanName {
+    font-size: 150%;
+    /*padding-bottom: 5px;*/
+}
+
+#pluginMembershipPrice {
+    font-weight: bold;
+    padding-top: 5px;
+}
+
+.pluginMembershipPlanItem {
+    padding: 10px;
+    clear: both;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+#linklist {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#pluginMembershipExpMsg {
+    font-style: italic;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: red;
+    text-align: center;
+}
+
+#pluginMembershipDescription {
+    margin-bottom: 1em;
+}
+
+.member_highlight {
+    background-color:#FFFF99;
+}
+.member_normal { }
+
+div.piMembershipRenewalFields {
+    float: right;
+    background-color: #FFCCCC;
+}
+
+div.piMembershipLoginForm {
+    border: 3px solid black;
+    background-color: #CCCCCC;
+    padding: 25px;
+    font-size: 150%;
+    text-align: center;
+    display: none;
+}
+
+.app_error {
+    background-color: #FF9999;
+}
+
+div.grouplist {
+    font-size: 120%;
+    text-align:center;
+}
+
+div.grouplist td {
+    padding: 10px;
+}
+
+div.grouplist .userimage {
+    width:100px;
+}
+
+div.grouplist .vacant {
+    font-style: italic;
+    color: green;
+}
+
+.piMembershipAdminNewItem {
+    font-style: italic;
+    font-weight: bold;
+    color: red;
+}
+

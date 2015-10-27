@@ -1,0 +1,30 @@
+{# begin {templatelocation} #}
+<div class="story"><h1>{$LANG_MEMBERSHIP['block_title']}</h1></div>
+{!if you_expire}
+  <div id="pluginMembershipExpMsg">
+    {you_expire}
+  </div>
+{!endif}
+<div style="position:relative;float:right;">
+  <div>{purchase_btn}</div>
+  <div><b>{$LANG_MEMBERSHIP['price']}:</b> {price}</div>
+  <div>
+    {!if expiration}
+    <b>{$LANG_MEMBERSHIP['expiration']}:</b> {expiration}
+    {!endif}
+  </div>
+  {!if expiration}
+    <div class="expmessage">
+      {$LANG_MEMBERSHIP['you_expire']}: {exp_date}
+      {!if renew_now}
+      <br {xhtml}>
+      <span class="renewnow">{$LANG_MEMBERSHIP['renew_now']}</span>
+      {!endif}
+    </div>
+  {!endif}
+</div>
+<div>
+  <h2>{name}</h2>
+  XX{description}XX
+</div>
+{# end {templatelocation} #}

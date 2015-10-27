@@ -1,0 +1,46 @@
+{# begin {templatelocation} #}
+<div class="story-featured"><h1>{$LANG_MEMBERSHIP['plans']}</h1></div>
+{!if login_msg}
+<div id="loginform" style="border:3px solid black; background-color:#9999ff; padding:25px; font-size:150%; text-align:center; display:none;">
+{login_form}
+</div>
+<span id="pluginMembershipExpMsg" class="{exp_msg_class}">{login_msg}</span>
+{!endif}
+{!if you_expire}
+<!--    <div id="pluginMembershipExpMsg" class="alert" style="clear:both; width:75%;">-->
+    <span id="pluginMembershipExpMsg" class="{exp_msg_class}">
+    {you_expire}
+    </span>
+{!endif}
+{!if app_msg}
+<span id="pluginMembershipAppMsg" class="info">{app_msg}</span>
+{!endif}
+<hr width="85%" />
+<!-- BEGIN PlanBlock -->
+<div class="pluginMembershipPlanItem">
+  <div class="floatleft">
+    <div id="pluginMembershipPlanName">
+      <h2>{name}</h2>
+    </div>
+    {!if description}
+    <div id="pluginMembershipDescription">{description}</div>
+    {!endif}
+  </div>
+  <div class="pluginMembershipButtons">
+    {purchase_btn}
+    <div id="pluginMembershipPrice">
+    {lang_price}: {price} {currency}
+    {!if fee}
+    <br />({price_actual} + {fee} {$LANG_MEMBERSHIP['processing_fee']})
+    {!endif}
+    </div>
+  </div>
+</div>
+<div style="clear:both;">
+  <hr width="85%" />
+</div>
+<!-- END PlanBlock -->
+{!if footer}
+{footer}
+{!endif}
+{# end {templatelocation} #}

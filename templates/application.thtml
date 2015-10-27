@@ -1,0 +1,12 @@
+{# begin {templatelocation} #}
+<h1 class="aligncenter">{$LANG_MEMBERSHIP['app_header']}</h1>
+<table border="0">
+<tr><td>{$LANG_MEMBERSHIP['member_name']}: </td><td>{member_name}</td></tr>
+<!-- BEGIN DataRow -->
+<tr><td>{description}</td><td>{value}</td></tr>
+<!-- END DataRow -->
+{!if rel_accounts}
+<tr><td>{$LANG_MEMBERSHIP['related_accounts']}: </td><td>{rel_accounts}</td></tr>
+{!endif}
+</table>
+{# end {templatelocation} #}

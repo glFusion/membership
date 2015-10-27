@@ -1,0 +1,23 @@
+{# begin {templatelocation} #}
+<table border="0" cellspacing="0" cellpadding="2" width="80%" align="center">
+  <tr>
+    <th>{$LANG_MEMBERSHIP['plan']}</th>
+    <th width="75" style="text-align:right;">{$LANG_MEMBERSHIP['current']}</th>
+    <th width="75" style="text-align:right;">{$LANG_MEMBERSHIP['arrears']}</th>
+    <th width="75" style="text-align:right;">{$LANG_MEMBERSHIP['total']}</th>
+  </tr>
+  <!-- BEGIN statrow -->
+  <tr>
+    <td>{plan}</td>
+    <td align="right">{num_current}</td>
+    <td align="right">{num_arrears}</td>
+    <td align="right">{line_total}</td>
+  </tr>
+  <!-- END statrow -->
+  <tr>
+    <td><b>{$LANG_MEMBERSHIP['total']}:</b></td>
+    <td align="right">{tot_current}</td>
+    <td align="right">{tot_arrears}</td>
+    <td align="right">{grand_total}</td>
+</table>
+{# end {templatelocation} #}
