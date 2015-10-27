@@ -1,0 +1,2 @@
+# membership
+Club Membership Plugin
