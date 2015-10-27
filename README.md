@@ -32,4 +32,3 @@ Some of the characteristics of this plugin are:
 
 REQUIREMENTS:
 This plugin requires both the Profile plugin and lgLIB 0.0.2 or later for core functions.
-
