@@ -3,7 +3,7 @@ Membership Plugin for glFusion
 
 This plugin is similar to the Subscription plugin, but geared towards club
 memberships. Site members can be linked together to form "families" for
-"family" memberships.  When one member joins or renews their membership, all
+family memberships.  When one member joins or renews their membership, all
 linked accounts are updated, depending on the membership plan's configuration.
 
 Some of the characteristics of this plugin are:
@@ -32,3 +32,4 @@ Some of the characteristics of this plugin are:
 
 REQUIREMENTS:
 This plugin requires both the Profile plugin and lgLIB 0.0.2 or later for core functions.
+The Paypal plugin can be integrated to handle membership payments.

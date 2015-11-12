@@ -38,7 +38,7 @@ $_TABLES['membership_positions'] = $prefix . 'positions';
 */
 global $_CONF_MEMBERSHIP;
 $_CONF_MEMBERSHIP['pi_name']           = 'membership';
-$_CONF_MEMBERSHIP['pi_version']        = '0.0.6';
+$_CONF_MEMBERSHIP['pi_version']        = '0.1.0';
 $_CONF_MEMBERSHIP['gl_version']        = '1.4.0';
 $_CONF_MEMBERSHIP['pi_url']            = 'http://www.leegarner.com';
 $_CONF_MEMBERSHIP['pi_display_name']   = 'Membership';

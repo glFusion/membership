@@ -1,0 +1,12 @@
+<plugin>
+    <id>membership</id>
+    <name>Forms</name>
+    <description>Provides an interface to manage club members.</description>
+    <version>0.1.0</version>
+    <glfusionversion>1.4.0</glfusionversion>
+    <phpversion>5.3.0</phpversion>
+    <url>http://www.leegarner.com</url>
+    <maintainer>Lee Garner</maintainer>
+    <requires>lglib</requires>
+    <requires>profile</requires>
+</plugin>
