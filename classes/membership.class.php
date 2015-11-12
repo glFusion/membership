@@ -923,30 +923,38 @@ class Membership
 
         // 2. Update the image quota in mediagallery.
         // Mediagallery doesn't hava a service function, have to update the
-        // database directly.
+        // database directly. Don't update users with unlimited quotas.
         if ($_CONF_MEMBERSHIP['manage_mg_quota']  &&
                 in_array('mediagallery', $_PLUGINS)) {
-            $max = (int)$_CONF_MEMBERSHIP['mg_quota_member'];
-            $min = (int)$_CONF_MEMBERSHIP['mg_quota_nonmember'];
-            // sanity checking. Min must be positive to have an effect,
-            // zero is unlimited. Max can be zero but otherwise must be > min
-            if ($min < 1) $min = 1;
-            if ($max == 0 || $min < $max) {
-                switch ($mem_status) {
-                case MEMBERSHIP_STATUS_ACTIVE:
-                case MEMBERSHIP_STATUS_ARREARS:
-                    $size = $max * 1048576;
-                    break;
-                default:
-                    $size = $min * 1048576;
-                    break;
+
+            $quota = DB_getItem($_TABLES['mg_userprefs'], 'quota', "uid=$uid");
+            if ($quota > 0) {
+
+                $max = (int)$_CONF_MEMBERSHIP['mg_quota_member'];
+                $min = (int)$_CONF_MEMBERSHIP['mg_quota_nonmember'];
+                // sanity checking. Min must be positive to have an effect,
+                // zero is unlimited. Max can be zero but otherwise must be > min
+                if ($min < 1) $min = 1;
+                if ($max == 0 || $min < $max) {
+                    switch ($mem_status) {
+                    case MEMBERSHIP_STATUS_ACTIVE:
+                    case MEMBERSHIP_STATUS_ARREARS:
+                        $size = $max * 1048576;
+                        break;
+                    default:
+                        $size = $min * 1048576;
+                        break;
+                    }
+                    // Update the MG uerpref table with the new quota.
+                    // Ignore errors, nothing to be done about them here.
+                    $sql = "INSERT INTO {$_TABLES['mg_userprefs']}
+                                (`uid`, `quota`)
+                            VALUES
+                                ($uid, $size)
+                            ON DUPLICATE KEY UPDATE
+                                quota = '$size'";
+                    DB_query($sql, 1);
                 }
-                DB_query("INSERT INTO {$_TABLES['mg_userprefs']}
-                            (`uid`, `quota`)
-                        VALUES
-                            ($uid, $size)
-                        ON DUPLICATE KEY UPDATE
-                            quota = '$size'");
             }
          }
 
