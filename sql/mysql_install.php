@@ -60,7 +60,7 @@ $_SQL['membership_trans'] = "CREATE TABLE `{$_TABLES['membership_trans']}` (
   KEY `exp` (`tx_exp`)
 )";
 
-$_SQL['membership_log'] = "CREATE TABLE {$_TABLES['membership_log']} {
+$_SQL['membership_log'] = "CREATE TABLE {$_TABLES['membership_log']} (
     id int(11) unsigned NOT NULL auto_increment,
     uid mediumint(11) unsigned NOT NULL,
     dt datetime NOT NULL,
