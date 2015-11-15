@@ -328,11 +328,12 @@ function plugin_autouninstall_membership ()
                 'membership_trans',
                 'membership_positions',
         ),
-        // give the full name of the group, as in the db
+        // give the full name of the group, as in the db.
+        // Don't remove the membership group, it should be left alone or
+        // the site admin might lose track of current members.
         'groups' => array(
                 'membership Admin',
                 'membership Manage',
-                'membership Members',
         ),
         // give the full name of the feature, as in the db
         'features' => array(
