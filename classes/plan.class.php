@@ -1,12 +1,11 @@
 <?php
-//  $Id: plan.class.php 135 2015-10-26 22:30:27Z root $
 /**
 *   Class to manage membership plans
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2011-2012 Lee Garner
+*   @copyright  Copyright (c) 2011-2015 Lee Garner
 *   @package    membership
-*   @version    0.0.1
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
@@ -353,7 +352,8 @@ class MembershipPlan
     function Edit($id = '')
     {
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
-                $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH;
+                $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH,
+                $_SYSTEM;
 
         if ($id != '') {
             // If an id is passed in, then read that record
@@ -394,6 +394,8 @@ class MembershipPlan
         $T->set_var('gltoken_name', CSRF_TOKEN);
         $T->set_var('gltoken', SEC_createToken());
         $T->set_var('site_url', $_CONF['site_url']);
+
+        $T->set_var('mootools', $_SYSTEM['disable_mootools'] ? '' : 'true');
 
         if ($id != '') {
             $T->set_var('plan_id', $this->plan_id);
@@ -665,6 +667,10 @@ class MembershipPlan
             $status = LGLIB_invokeService('paypal', 'genButton', $vars,
                     $output, $svc_msg);
             if ($status == PLG_RET_OK && is_array($output)) {
+                if (!$_CONF_MEMBERSHIP['allow_buy_now']) {
+                    // A little trickery to only allow add-to-cart button
+                    $output = array('add_cart' => $output['add_cart']);
+                }
                 $retval = $output;
             }
         }

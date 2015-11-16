@@ -1,9 +1,12 @@
 {# begin {templatelocation} #}
+{!if mootools}
 <script language="javascript" type="text/javascript">
-window.addEvent('domready',function() {
+window.addEvent('load',
+  function() {
     var myValidator = new fValidator("{form_id}");
 });
 </script>
+{!endif}
 <div class="story">
 <h1>{$LANG_MEMBERSHIP['hdr_app_form']}</h1>
 <p>{$LANG_MEMBERSHIP['instr_app_form']} {exp_msg}</p>
@@ -11,17 +14,6 @@ window.addEvent('domready',function() {
 <form id="{form_id}" action="{site_url}/membership/index.php" method="post">
 <input type="hidden" name="mem_uid" value="{mem_uid}" />
 <input type="hidden" name="purch_url" value="{purch_url}" />
-<p>{$LANG_MEMBERSHIP['plan']} <span style="color:red;">({$LANG_MEMBERSHIP['required']})</span>:
-<!-- BEGIN TypeSelect -->
-<span class="gl_mootip" title="{description}">
-<input type="radio" name="{varname}" value="{plan_id}" {selected}
-  onclick="document.getElementById('saveapp').disabled=false;" />{plan_id} (${totalprice})
-  <img src={layout_url}/images/info.png />
-</span>
-<!--{type_select}-->
-<!-- END TypeSelect -->
-</p>
-<p>&nbsp;</p>
 {profile_fields}
 {!if update_maillist}
 <p>
@@ -48,9 +40,8 @@ id="terms_accept" type="checkbox" name="terms_accept" value="1" />
 </p>
 <p>&nbsp;</p>
 {!endif}
-<input id="saveapp" class="lgButton green" type="submit" name="saveapp" value="{$LANG_MEMBERSHIP['submit']}" {submit_disabled} />
-<input type="reset" class="lgButton blue" name="reset" value="{$LANG_MEMBERSHIP['reset']}" 
-  onclick="document.getElementById('saveapp').disabled={submit_disabled_bool};" />
+<input id="saveapp" class="lgButton green" type="submit" name="saveapp" value="{$LANG_MEMBERSHIP['submit']}" />
+<input type="reset" class="lgButton blue" name="reset" value="{$LANG_MEMBERSHIP['reset']}" />
 <input type="reset" class="lgButton grey" onclick="location.href='{site_url}/index.php';" name="cancelapp" value="{$LANG_MEMBERSHIP['cancel']}" />
 </form>
 </div>

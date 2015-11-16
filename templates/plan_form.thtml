@@ -197,10 +197,12 @@
 </form>
 
 <script language="javascript" type="text/javascript">
+{!if mootools}
 window.addEvent('domready',function() {
     var myValidator = new fValidator("planform");
     //period_chg("{period_start}");
 });
+{!endif}
 
 function period_chg(value)
 {

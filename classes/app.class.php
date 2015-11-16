@@ -1,12 +1,11 @@
 <?php
-//  $Id: app.class.php 128 2015-05-21 22:47:15Z root $
 /**
 *   Class to handle membership application viewing and editing.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.1
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -153,8 +152,6 @@ class MembershipApp
                 'profile_fields' => $output,
                 'exp_msg'       => $M->isNew ? '' :
                     sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires),
-                'submit_disabled_bool' => empty($sel) ? 'true' : 'false',
-                'submit_disabled' => empty($sel) ? 'disabled="disabled"' : '',
             ) );
             if ($_CONF_MEMBERSHIP['update_maillist']) {
                 $status = LGLIB_invokeService('mailchimp', 'issubscribed',

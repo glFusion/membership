@@ -1,5 +1,4 @@
 <?php
-//  $Id: english.php 130 2015-10-21 17:07:33Z root $
 /**
 *   English language file for the Membership plugin.
 *
@@ -164,6 +163,7 @@ $LANG_MEMBERSHIP = array(
     $_CONF['site_admin_url'] . '/user.php">user profile area</a>.',
 'adm_listtrans' => 'List membership payment transactions.',
 'adm_stats' => 'This list shows the total number of memberships that are current or in arrears (where the grace period has not passed). Only unique memberships are shown. Members that belong to the same membership are not counted separately.',
+'adm_importform' => 'Import existing site users into the Membership plugin. Existing membership records are not affected.<br />Only one target membership plan is supported, and accounts are not linked.',
 'new_acct_msg' => 'Thank you for registering! If you\'d like to join our organization, please click <a href="' . $_CONF['site_url'] . '/membership">here</a> to update your application and purchase a membership.',
 'new_user_msg' => 'Thank you for registering on our site. Your site registration is free and allows you to access public content and forums. If you\'d like to become a member of the association, please <a href="' . $_CONF['site_url'] . '/users.php?mode=login">login</a> to complete your membership application.',
 'required' => 'Required',
@@ -176,6 +176,8 @@ $LANG_MEMBERSHIP = array(
 'err_terms_accept' => 'You must accept the terms and conditions.',
 'field_required' => 'This item cannot be left blank',
 'mailchimp_subscribe' => 'Subscribe to our mailing list?',
+'import_current' => 'Import Current Members',
+'import_from_grp' => 'Import members from group',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
@@ -198,6 +200,7 @@ $LANG_fs['membership'] = array(
     'fs_checkpay' => 'Manual Payment Options',
     'fs_mailchimp' => 'Mailchimp',
     'fs_mediagallery' => 'MediaGallery',
+    'fs_paypal' => 'Paypal Plugin',
 );
 
 $LANG_confignames['membership'] = array(
@@ -235,6 +238,7 @@ $LANG_confignames['membership'] = array(
     'manage_mg_quota' => 'Manage the user Album quota?',
     'mg_quota_member' => 'User Album quota for members (MB)',
     'mg_quota_nonmember' => 'User Album quota for non-members (MB)',
+    'allow_buy_now' => 'Allow Buy-Now Payment Button?',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']

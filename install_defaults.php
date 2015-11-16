@@ -4,9 +4,9 @@
 *   Configuration Defaults for the Membership plugin for glFusion.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012 Lee Garner
+*   @copyright  Copyright (c) 2012-2015 Lee Garner
 *   @package    membership
-*   @version    0.0.1
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -105,6 +105,10 @@ $_MEMBERSHIP_DEFAULT = array(
 
     // Update Mailchimp mailing list?
     'update_maillist' => 0,
+
+    // Allow "Buy Now" button? If disabled, only the cart can be used,
+    // and the buyer will be redirected to the Paypal plugin product list
+    'allow_buy_now' => 1,
 );
 
 
@@ -211,6 +215,12 @@ function plugin_initconfig_membership($group_id = 0)
                 'text', 20, 20, 0, 20, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('mg_quota_nonmember', $_MEMBERSHIP_DEFAULT['mg_quota_nonmember'],
                 'text', 20, 20, 0, 30, true, $_CONF_MEMBERSHIP['pi_name']);
+
+        // Fieldset - Paypal plugin options
+        $c->add('fs_paypal', NULL, 'fieldset', 20, 30, NULL, 0, true,
+                $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('allow_buy_now', $_MEMBERSHIP_DEFAULT['allow_buy_now'],
+                'select', 20, 30, 3, 10, true, $_CONF_MEMBERSHIP['pi_name']);
      }
 
      return true;

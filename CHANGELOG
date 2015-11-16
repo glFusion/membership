@@ -1,3 +1,8 @@
-$Id: CHANGELOG 62 2013-04-23 02:45:04Z root $
-glMembership - Change Log
+glFusion Membership Plugin - Change Log
 ====================
+0.1.1
+=====
+- Add option to remove "Buy Now" button from purchase options
+- Do not remove default membership group during plugin removal
+- Add a function to the admin page to import existing site members
+

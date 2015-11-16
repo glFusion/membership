@@ -1,0 +1,32 @@
+{# begin {templatelocation} #}
+<h1>{$LANG_MEMBERSHIP['import_members']}</h1>
+<form action="{site_admin_url}/plugins/membership/index.php" method="post">
+  {$LANG_MEMBERSHIP['import_from_grp']}: <select name="from_group">
+  {frm_grp_options}
+  </select><br />
+<!--  Update Group Memberships? <input type="radio" name="update_groups" value="1" checked="checked" /> Yes
+  <input type="radio" name="update_groups" value="0" /> No<br />-->
+  Membership Plan: <select name="plan">
+    {plan_sel}
+  </select><br />
+  {$LANG_MEMBERSHIP['exp_notice']}: <input type="text" id="f_expiration" name="expiration" />
+  <img src="{site_url}/images/datepicker.jpg" 
+      id="expiration_trigger"
+      style="cursor: pointer;"
+      alt="Date Selector"
+      title="Date Selector"
+      />
+  <br />
+  <input type="submit" name="importusers" class="lgButton green" value="Submit" /> 
+  <input type="submit" name="listmembers" class="lgButton grey" value="Cancel" /> 
+</form>
+<script type="text/javascript">
+    Calendar.setup({
+        inputField     :    "f_expiration",
+        ifFormat       :    "%Y-%m-%d",
+        showsTime      :    false,
+        timeFormat     :    "24",
+        button          :   "expiration_trigger"
+    });
+</script>
+{# end {templatelocation} #}

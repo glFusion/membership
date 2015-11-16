@@ -74,6 +74,12 @@ function MEMBERSHIP_do_upgrade($current_ver)
             return $error;
     }
 
+    if ($current_ver < '0.1.1') {
+        $error = MEMBERSHIP_upgrade_0_1_1();
+        if ($error)
+            return $error;
+    }
+
     return $error;
 
 }
@@ -154,6 +160,21 @@ function MEMBERSHIP_upgrade_0_0_3()
 }
 
 
+function MEMBERSHIP_upgrade_0_1_1()
+{
+    global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT;
+
+    $c = config::get_instance();
+    if ($c->group_exists($_CONF_MEMBERSHIP['pi_name'])) {
+        // Fieldset - Paypal plugin options
+        $c->add('fs_paypal', NULL, 'fieldset', 20, 30, NULL, 0, true,
+                $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('allow_buy_now', $_MEMBERSHIP_DEFAULT['allow_buy_now'],
+                'select', 20, 30, 3, 10, true, $_CONF_MEMBERSHIP['pi_name']);
+    }
+}
+
+ 
 /**
 *   Actually perform any sql updates.
 *

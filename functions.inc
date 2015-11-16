@@ -3,9 +3,9 @@
 *   Public API functions for the Membership plugin for glFusion.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.1
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -570,7 +570,7 @@ function plugin_getheaderjs_membership()
 *   Get the link to a documentation file.
 *   Returns the URL to the file, or to the directory if no file requested.
 *
-*   @see    plugin_getconfigelementhelp_subscription()
+*   @see    plugin_getconfigelementhelp_membership()
 *   @param  string  $file       HTML file
 *   @param  string  $doclang    Documentation language
 *   @return string              URL to document directory or file

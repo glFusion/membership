@@ -1,11 +1,11 @@
 <?php
 /**
-*   Entry point to administration functions for the Membership plugin.
+*   Entry point to administration functions for the Forms plugin.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2013 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.1
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *              GNU Public License v2 or later
 *   @filesource
@@ -42,6 +42,8 @@ USES_membership_class_plan();
 // This is used in several user list functions
 USES_lglib_class_nameparser();
 
+$content = '';
+
 // Set view and action variables.  We use $action for things to do, and
 // $view for the page to show.  $mode is often set by glFusion functions,
 // so we'll check for it and see if we should use it, but by using $action
@@ -51,10 +53,10 @@ $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'renewmember', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
-    'reorderpos',
+    'reorderpos', 'importusers',
     // Views to display
     'editplan', 'listplans', 'listmembers', 'editmember', 'stats',
-    'listtrans', 'positions',  'editpos',
+    'listtrans', 'positions',  'editpos', 'importform',
 );
 foreach($expected as $provided) {
     if (isset($_POST[$provided])) {
@@ -69,6 +71,12 @@ foreach($expected as $provided) {
 }
 
 switch ($action) {
+case 'importusers':
+    require_once MEMBERSHIP_PI_PATH . '/import_members.php';
+    $view = 'importform';
+    $import_text .= MEMBERSHIP_import();
+    break;
+
 case 'quickrenew':
     USES_membership_class_membership();
     $M = new Membership($_POST['mem_uid']);
@@ -178,6 +186,37 @@ default:
 
 // Select the page to display
 switch ($view) {
+case 'importform':
+    //require_once MEMBERSHIP_PI_PATH . '/import_members.php';
+    $content .= MEMBERSHIP_adminMenu('importform', '');
+    $LT = new Template(MEMBERSHIP_PI_PATH . '/templates');
+    $LT->set_file('form', 'import_form.thtml');
+    if (isset($import_success)) {
+        $content .= "Imported $successes successfully<br />\n";
+        $content .= "$import_failures failed<br />\n";
+    }
+    $sql = "SELECT plan_id, name
+        FROM {$_TABLES['membership_plans']}";
+    $res = DB_query($sql);
+    $plan_sel = '';
+    while ($A = DB_fetchArray($res, false)) {
+        $plan_sel .= '<option value="' . $A['plan_id'] . '">' . $A['name'] .
+                '</option>' . LB;
+    }
+    $groups = MEMBERSHIP_groupSelection();
+    $grp_options = '';
+    foreach ($groups as $grp_name=>$grp_id) {
+        $grp_options .= '<option value="' . $grp_id . '">' . $grp_name . "</option>\n";
+    }
+    $LT->set_var(array(
+        'frm_grp_options' => $grp_options,
+        'plan_sel'      => $plan_sel,
+    ) );
+    $LT->parse('import_form','form');
+    $content .= $LT->finish($LT->get_var('import_form'));
+    $content .= '<p>' . $import_text . '</p>';
+    break;
+
 case 'editmember':
     USES_membership_class_membership();
     $M = new Membership($actionval);
@@ -674,6 +713,8 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
             'text' => $LANG_MEMBERSHIP['member_stats']),
         array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
             'text' => 'Positions'),
+        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?importform',
+            'text' => 'Import'),
         array('url' => $_CONF['site_admin_url'],
             'text' => $LANG01[53]),
     );
