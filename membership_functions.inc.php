@@ -188,7 +188,7 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
             case MEMBERSHIP_CANPURCHASE:
                 $exp_ts = strtotime($M->expires);
                 $exp_format = strftime($_CONF['shortdate'], $exp_ts);
-                $output = $P->MakeButton($price_total, $M->isNew);
+                $output = $P->MakeButton($price_total, $M->isNew, MEMBERSHIP_PI_URL);
                 if (!empty($output))
                     $buttons = implode('&nbsp;&nbsp;', $output);
                 break;

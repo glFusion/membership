@@ -635,9 +635,12 @@ class MembershipPlan
     *   Create a purchase-now button.
     *   This plugin only uses one type of button, so that's all that we return.
     *
+    *   @param  float   $price  Price for membership
+    *   @param  boolean $isnew  True for new membership, false for renewal
+    *   @param  string  $return Optional return URL after purchase
     *   @return string      Button code
     */
-    public function MakeButton($price, $isnew = false)
+    public function MakeButton($price, $isnew = false, $return='')
     {
         global $_CONF_MEMBERSHIP;
 
@@ -656,7 +659,7 @@ class MembershipPlan
                 'tax'           => 0,
                 'btn_type'      => 'pay_now',
                 'add_cart'      => true,
-                //'return' => MEMBERSHIP_URL,
+                '_ret_url'      => $return,
             );
             $status = LGLIB_invokeService('paypal', 'genButton', $vars,
                     $output, $svc_msg);

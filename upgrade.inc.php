@@ -162,7 +162,7 @@ function MEMBERSHIP_upgrade_0_0_3()
 
 function MEMBERSHIP_upgrade_0_1_1()
 {
-    global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT;
+    global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT, $_TABLES;
 
     $c = config::get_instance();
     if ($c->group_exists($_CONF_MEMBERSHIP['pi_name'])) {
@@ -172,6 +172,21 @@ function MEMBERSHIP_upgrade_0_1_1()
         $c->add('allow_buy_now', $_MEMBERSHIP_DEFAULT['allow_buy_now'],
                 'select', 20, 30, 3, 10, true, $_CONF_MEMBERSHIP['pi_name']);
     }
+
+    // Get the membership admin group ID if available
+    // to set the access code for admin-only plans
+    $gid = (int)DB_getItem($_TABLES['groups'], 'grp_id', 
+            "grp_name='{$_CONF_MEMBERSHIP['pi_name']} Admin'");
+    if ($gid < 1)
+        $gid = 1;        // default to Root if group not found
+
+    // Change the access code to use the glFusion group ID
+    // Public changes from 1 to All Users
+    DB_query("UPDATE {$_TABLES['membership_plans']}
+                SET access = 2 WHERE access = 1", 1);
+    // Admin-only changes from 0 to the admin GID
+    DB_query("UPDATE {$_TABLES['membership_plans']}
+                SET access = $gid WHERE access = 0", 1);
 }
 
  
