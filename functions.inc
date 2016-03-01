@@ -230,14 +230,14 @@ function plugin_getheadercss_membership()
     $files = array('style.css');
 
     $defpath = MEMBERSHIP_PI_PATH . '/css';
-    $layoutpath = $_CONF['layout_path'] . 'plugins/membership';
+    $layoutpath = $_CONF['path_layout'] . 'plugins/membership';
     foreach ($files as $file) {
+        $styles[] = $defpath . '/' . $file;
+        if (is_file($defpath . '/custom/' . $file)) {
+            $styles[] = $defpath . '/custom/' . $file;
+        }
         if (is_file($layoutpath . '/' . $file)) {
         	$styles[] = $layoutpath . '/' . $file;
-        } elseif (is_file($defpath . '/custom/' . $file)) {
-            $styles[] = $defpath . '/custom/' . $file;
-        } else {
-            $styles[] = $defpath . '/' . $file;
         }
     }
 	return $styles;

@@ -264,11 +264,10 @@ class MembershipPlan
             $msg .= $LANG_MEMBERSHIP['succeeded'];
         } else {
             $retval = false;
-            $msg .= $LANG_MEMBERSHIP['failed.'];
+            $msg .= $LANG_MEMBERSHIP['failed'];
         }
-
         LGLIB_storeMessage(array(
-            'message' => $msg . $LANG_MEMBERSHIP['succeeded'],
+            'message' => $msg,
         ) );
         return $retval;
     }
