@@ -57,7 +57,7 @@ class MembershipPlan
             $this->fees = array();
             $this->enabled = 1;
             $this->upd_links = 0;
-            $this->access = 1;
+            $this->access = 2;  // default to "All Users"
         }
     }
 
@@ -404,19 +404,11 @@ class MembershipPlan
             $retval = COM_startBlock($LANG_MEMBERSHIP['new_plan']);
         }
 
-        /*$period_select = '';
-        foreach ($LANG_configselects['membership'][14] as $desc => $key) {
-            $sel = $key == $_CONF_MEMBERSHIP['period_start'] ?
-                    'selected="selected"' : '';
-            $period_select .= "<option value=\"$key\" $sel>$desc</option>\n";
-        }*/
-
         $T->set_var(array(
             'plan_id'       => $this->plan_id,
             'old_plan_id'   => $this->plan_id,
             'name'          => $this->name,
             'description'   => $this->description,
-            'period_select' => $period_select,
             'pi_admin_url'  => MEMBERSHIP_ADMIN_URL,
             'pi_url'        => MEMBERSHIP_URL,
             'doc_url'       => MEMBERSHIP_getDocURL('plan_form.html',
@@ -425,12 +417,14 @@ class MembershipPlan
                                     'checked="checked"' : '',
             'upd_links_chk' => $this->upd_links == 1 ?
                                     'checked="checked"' : '',
-            'access_chk_' . $this->access => 'checked="checked"',
             'new_0'         => sprintf('%.2f', $this->fees['new'][0]),
             'renew_0'       => sprintf('%.2f', $this->fees['renew'][0]),
             'fixed_fee'     => sprintf('%.2f', $this->fees['fixed']),
             'period_start'  => $_CONF_MEMBERSHIP['period_start'],
+            'group_options' => COM_optionList($_TABLES['groups'],
+                                'grp_id,grp_name', $this->access),
         ) );
+
         if ($_CONF_MEMBERSHIP['period_start'] > 0) {
             $T->set_var('period_start_text',
                     $LANG_MONTH[$_CONF_MEMBERSHIP['period_start']]);

@@ -91,7 +91,7 @@ function MEMBERSHIP_siteFooter()
 function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_plan = '')
 {
     global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
-            $_USER, $_PLUGINS, $_IMAGE_TYPE;
+            $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS;
 
     if (!MEMBERSHIP_PAYPAL_ENABLED) {
         return "PayPal is required";
@@ -102,9 +102,20 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
 
     $custom = array();  // Holder for custom attributes
     $options = array();
+
+    $sql_groups = array();
+    foreach ($_GROUPS as $name=>$gid) {
+        $sql_groups[] = $gid;
+    }
+    if (!empty($sql_groups)) {
+        $sql_groups = implode(',', $sql_groups);
+        $sql_groups = " AND access IN ($sql_groups)";
+    } else {
+        $sql_groups = '';
+    }
     $sql = "SELECT plan_id
             FROM {$_TABLES['membership_plans']}
-            WHERE enabled = 1 AND access = 1";
+            WHERE enabled = 1 $sql_groups";
     if (!empty($show_plan)) {
         $sql .= " AND plan_id = '" . DB_escapeString($show_plan) . "'";
     }

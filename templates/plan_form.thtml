@@ -55,8 +55,9 @@
     <a href="#" onclick="popupWindow('{doc_url}#desc_access', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
-  <input type="radio" name="access" value="1" {access_chk_1} />{$LANG_MEMBERSHIP['all_members']}
-  <input type="radio" name="access" value="0" {access_chk_0} />{$LANG_MEMBERSHIP['admins_only']}
+  <select name="access">
+    {group_options}
+  </select>
 </p>
 
 <p>
@@ -68,7 +69,7 @@
 </p>
 
 <p>
-  <label for="period_start">{$LANG_MEMBERSHIP['fee_schedule']}:
+  <label for="feeschedule">{$LANG_MEMBERSHIP['fee_schedule']}:
     <a href="#" onclick="popupWindow('{doc_url}#desc_fee_schedule', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
