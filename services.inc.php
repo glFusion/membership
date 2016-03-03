@@ -1,14 +1,13 @@
 <?php
-//  $Id: services.inc.php 118 2015-01-05 18:20:06Z root $
 /**
 *   Service functions for the Membership plugin.
 *   This file provides functions to be called by other plugins, such
 *   as the PayPal plugin.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.1
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -22,13 +21,19 @@ if (!defined ('GVERSION')) {
 /**
 *   Get information about a specific item.
 *
-*   @param  array   $A          Item Info (pi_name, item_type, item_id)
+*   @param  array   $A          Item Info (pi_name, Plan ID, New/Renewal)
 *   @param  array   &$output    Array to use for returned product info
 *   @param  array   &$svc_msg   Not used
 *   @return integer             PLG_RET_status
 */
 function service_productinfo_membership($A, &$output, &$svc_msg)
 {
+    // $A param must be an array:
+    //  0 => 'membership'
+    //  1 => Plan ID, integer
+    //  2 => 'renewal', other/missing = "new"
+    if (!is_array($A)) return PLG_RET_ERROR;
+
     unset($A['gl_svc']);    // not used
 
     // Create a return array with values to be populated later
@@ -70,11 +75,15 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES;
 
+    // Called by Paypal IPN, so $args should be an array, but just in case...
+    if (!is_array($args)) return PLG_RET_ERROR;
+
     // Must have an item ID following the plugin name
     $item = $args['item'];
     $ipn_data = $args['ipn_data'];
 
     $id = explode(':', $item['item_id']);
+    // item_id should be 'membership::plan_id', if no plan id return error
     if (!isset($id[1])) {
         return PLG_RET_ERROR;
     }

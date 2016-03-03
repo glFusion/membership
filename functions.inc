@@ -1007,8 +1007,9 @@ function MEMBERSHIP_debug($msg)
 
 /**
 *   Actions to perform when a user account is created.
-*   There's no way to tell when a user logs in for the first time, so we
-*   set their user ID in a DB table to indicate that they're new.
+*   Sets a message to be displayed at first login encouraging a new user
+*   to join the organization.
+*   To disable, make $LANG_MEMBERSHIP['new_acct_msg'] empty.
 *
 *   @param  integer $uid    ID of new user
 */
@@ -1017,7 +1018,7 @@ function plugin_user_create_membership($uid)
     global $LANG_MEMBERSHIP;
 
     $uid = (int)$uid;
-    if ($uid < 3) return;
+    if (empty($LANG_MEMBERSHIP['new_acct_msg']) || $uid < 3) return;
     LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['new_acct_msg'],
             'uid' => $row['mem_uid'],

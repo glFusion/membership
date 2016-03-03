@@ -11,7 +11,7 @@ Some of the characteristics of this plugin are:
   settings are saved, the membership data is updated.  Any member who was
   linked to the account being saved is also updated.
 
-- When a new site user logs in for the first time, a system message is displayed encouraging them to visit the membership area to join the organization.
+- When a new site user logs in for the first time, a system message is displayed encouraging them to visit the membership area to join the organization. To disable this behavior, create custom language files and set $LANG_MEMBERSHIP['new_acct_msg'] to '' (empty string).
 
 - Memberships are never deleted.  Removing a membership from a user account
   sets the expiration date to "now" but does not remove the membership.

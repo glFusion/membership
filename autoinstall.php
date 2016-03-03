@@ -1,10 +1,9 @@
 <?php
-//  $Id: autoinstall.php 132 2015-10-26 22:26:18Z root $
 /**
 *   Provides automatic installation of the Membership plugin.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2010 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.0.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 

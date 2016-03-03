@@ -1,10 +1,9 @@
 <?php
-//  $Id: install_defaults.php 90 2014-06-10 18:34:27Z root $
 /**
 *   Configuration Defaults for the Membership plugin for glFusion.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2015 Lee Garner
+*   @copyright  Copyright (c) 2012-2016 Lee Garner
 *   @package    membership
 *   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 

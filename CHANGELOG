@@ -5,4 +5,4 @@ glFusion Membership Plugin - Change Log
 - Add option to remove "Buy Now" button from purchase options
 - Do not remove default membership group during plugin removal
 - Add a function to the admin page to import existing site members
-
+- Added a way to disable new-user welcome messages.
