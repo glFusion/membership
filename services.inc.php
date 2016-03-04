@@ -73,7 +73,7 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
 */
 function service_handlePurchase_membership($args, &$output, &$svc_msg)
 {
-    global $_TABLES;
+    global $_TABLES, $_CONF_MEMBERSHIP;
 
     // Called by Paypal IPN, so $args should be an array, but just in case...
     if (!is_array($args)) return PLG_RET_ERROR;
@@ -99,13 +99,22 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     // Retrieve or create a membership record.
     USES_membership_class_membership();
     $M = new Membership($uid);
+
+    if ($M->Plan === NULL && $_CONF_MEMBERSHIP['use_mem_num'] == 2) {
+        // New member, apply membership number if configured
+        $M->mem_number = Membership::createMemberNumber($uid);
+    }
+
     if ($M->plan_id != $id[1]) {
+        // Changed membership plans
         $M->Plan = new MembershipPlan($id[1]);
     }
+
     if ($M->Plan->access != 1) {
         // Can't purchase a restricted membership
         return PLG_RET_NOACCESS;
     }
+
     $amount = (float)$ipn_data['pmt_gross'];
     if ($amount > $M->Price()) {    // insufficient funds
         MEMBERSHIP_auditLog('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
@@ -291,6 +300,11 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
             $pi . '_position' => array(
                 'field' => $positions . '.descr',
                 'text' => $LANG_MEMBERSHIP['position'],
+                'perm'  => '2',
+            ),
+            $pi . '_membernum' => array(
+                'field' => $members . '.mem_number',
+                'text' => $LANG_MEMBERSHIP['mem_number'],
                 'perm'  => '2',
             ),
         ),

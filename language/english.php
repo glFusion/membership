@@ -72,7 +72,8 @@ $LANG_MEMBERSHIP = array(
 'all_members'   => 'All Members',
 'renew_all'     => 'Renew all selected items',
 'renew'         => 'Renew',
-'confirm_renew' => 'Are you sure you want to renew the selected subscriptions?',
+'confirm_renew' => 'Are you sure you want to renew the selected memberships?',
+'confirm_regen' => 'Are you sure you want to create new membership numbers for these accounts?',
 'member_name'   => 'Member Name',
 'name'          => 'Name',
 'show_expired'  => 'Show Expired',
@@ -178,6 +179,8 @@ $LANG_MEMBERSHIP = array(
 'mailchimp_subscribe' => 'Subscribe to our mailing list?',
 'import_current' => 'Import Current Members',
 'import_from_grp' => 'Import members from group',
+'mem_number' => 'Membership Number',
+'regen_mem_numbers' => 'Regen Mem Numbers',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
@@ -239,6 +242,8 @@ $LANG_confignames['membership'] = array(
     'mg_quota_member' => 'User Album quota for members (MB)',
     'mg_quota_nonmember' => 'User Album quota for non-members (MB)',
     'allow_buy_now' => 'Allow Buy-Now Payment Button?',
+    'mem_num_fmt' => 'Format for membership numbers',
+    'use_mem_number' => 'Use membership numbers?',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']
@@ -261,6 +266,7 @@ $LANG_configselects['membership'] = array(
             'No' => 0),
     18 => array('0 = None' => 0, '1 - Via Email' => 1,
             '2 - Via Login Message' => 2, '3 - Both' => 3),
+    19 => array('Not Used' => 0, 'Free-Form' => 1, 'Auto-Gen' => 2),
 );
 
 ?>

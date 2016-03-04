@@ -191,6 +191,18 @@ function MEMaddElement(selid)
           <input type="checkbox" value="1" name="mem_notified" {notified_chk} />
         </td>
       </tr>
+      {!if use_mem_number}
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['mem_number']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_mem_number', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <input type="hidden" name="mem_number_orig" value="{mem_number}" />
+          <input type="text" size="40" maxlength="40" name="mem_number" value="{mem_number}" />
+        </td>
+      </tr>
+      {!endif}
     </table>
   </fieldset>
   <fieldset>

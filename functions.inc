@@ -156,13 +156,11 @@ function plugin_chkVersion_membership()
 */
 function plugin_getmenuitems_membership()
 {
-    global $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+    global $LANG_MEMBERSHIP;
 
-    $menuitems = array();
-    if ($_CONF_MEMBERSHIP['onmenu'] == 1) {
-          $menuitems[$LANG_MEMBERSHIP['block_title']] =
-                MEMBERSHIP_PI_URL . '/index.php';
-    }
+    $menuitems = array(
+        $LANG_MEMBERSHIP['block_title'] => MEMBERSHIP_PI_URL . '/index.php',
+    );
     return $menuitems;
 }
 
@@ -432,7 +430,8 @@ function plugin_user_changed_membership($uid=0)
         $op = 'renewed';
     } else {
         // Maybe just updating options
-        $vars = array('notified', 'expires', 'joined', 'position', 'plan_id');
+        $vars = array('notified', 'expires', 'joined', 'position', 'plan_id',
+                'number');
         foreach ($vars as $var) {
             if (isset($_POST['mem_'.$var]) && 
                 $_POST['mem_'.$var] != $_POST['mem_'.$var.'_orig']) {

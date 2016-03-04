@@ -30,6 +30,14 @@ Some of the characteristics of this plugin are:
 - All memberships are annual, and a member can have only one membership at
   a time.
 
+- Membership numbers can be automatically created. Define a custom function
+  CUSTOM_createMemberNumber($uid) in lib-custom.php to create a custom number.
+  The glFusion user id is provided, the return value should be a string.
+  Alternatively, a format string can be supplied in the plugin configuration
+  which will use sprintf and the user ID to create a number. e.g. "A-MEM-%03d"
+  to get member numbers like "A-MEM-005". Membershp numbers can be disabled in
+  the plugin configuration, but will be automatically generated in the background.
+
 REQUIREMENTS:
 This plugin requires both the Profile plugin and lgLIB 0.0.2 or later for core functions.
 The Paypal plugin can be integrated to handle membership payments.

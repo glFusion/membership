@@ -4,9 +4,9 @@
 *   Table definitions for the Membership plugin
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.5
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -23,6 +23,7 @@ $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_notified` int(1) NOT NULL DEFAULT '0',
   `mem_status` int(1) unsigned NOT NULL DEFAULT '1',
   `mem_guid` varchar(40) DEFAULT NULL,
+  `mem_number` varchar(40) DEFAULT '',
   PRIMARY KEY (`mem_uid`),
   KEY `plan_guid` (`mem_plan_id`,`mem_guid`)
 )";
@@ -121,6 +122,10 @@ $_UPGRADE_SQL = array(
     DROP mem_position",
   "ALTER TABLE {$_TABLES['membership_positions']}
     ADD grp_id int(11) unsigned not null default 0",
+  ),
+'0.1.1' => array(
+  "ALTER TABLE {$_TABLES['membership_members']}
+    ADD mem_number varchar(40) DEFAULT ''",
   ),
 );
 

@@ -3,7 +3,7 @@
 *   Entry point to administration functions for the Forms plugin.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
@@ -44,8 +44,6 @@ USES_lglib_class_nameparser();
 
 $content = '';
 
-// Set view and action variables.  We use $action for things to do, and
-// $view for the page to show.  $mode is often set by glFusion functions,
 // so we'll check for it and see if we should use it, but by using $action
 // and $view we don't tend to conflict with glFusion's $mode.
 $action = $_CONF_MEMBERSHIP['adm_def_view'];
@@ -53,7 +51,7 @@ $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'renewmember', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
-    'reorderpos', 'importusers',
+    'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
     // Views to display
     'editplan', 'listplans', 'listmembers', 'editmember', 'stats',
     'listtrans', 'positions',  'editpos', 'importform',
@@ -71,6 +69,34 @@ foreach($expected as $provided) {
 }
 
 switch ($action) {
+case 'genmembernum':
+case 'regenbutton_x':
+    // Generate membership numbers for all members
+    // Only if configured and valid data is received in delitem variable.
+    $view = 'listmembers';
+    if ($_CONF_MEMBERSHIP['use_mem_num'] != 2 ||
+        !is_array($_POST['delitem']) ||
+        empty($_POST['delitem'])) {
+        break;
+    }
+
+    $members = implode(',', $_POST['delitem']);
+    USES_membership_class_membership();
+    $sql = "SELECT mem_uid, mem_number
+            FROM {$_TABLES['membership_members']}
+            WHERE mem_uid in ($members)";
+    $res = DB_query($sql, 1);
+    while ($A = DB_fetchArray($res, false)) {
+        $new_mem_num = Membership::createMemberNumber($A['mem_uid']);
+        if ($new_mem_num != $A['mem_number']) {
+            $sql = "UPDATE {$_TABLES['membership_members']}
+                    SET mem_number = '" . DB_escapeString($new_mem_num) . "'
+                    WHERE mem_uid = '{$A['mem_uid']}'";
+            DB_query($sql);
+        }
+    }
+    break;
+
 case 'importusers':
     require_once MEMBERSHIP_PI_PATH . '/import_members.php';
     $view = 'importform';
@@ -308,16 +334,20 @@ function MEMBERSHIP_listMembers()
 
     $header_arr = array(
         array('text' => $LANG_ADMIN['edit'],
-                'field' => 'edit', 'sort' => false),
-        array('text' => $LANG_MEMBERSHIP['member_name'],
-                'field' => 'fullname', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['linked_accounts'],
-                'field' => 'links', 'sort' => false),
-        array('text' => $LANG_MEMBERSHIP['plan'],
-                'field' => 'plan', 'sort' => false),
-        array('text' => $LANG_MEMBERSHIP['expires'],
-                'field' => 'mem_expires', 'sort' => true),
-    );
+                'field' => 'edit', 'sort' => false));
+    if ($_CONF_MEMBERSHIP['use_mem_number']) {
+        $header_arr[] = array('text' => $LANG_MEMBERSHIP['mem_number'],
+                'field' => 'mem_number', 'sort' => true);
+    }
+    $header_arr[] = array('text' => $LANG_MEMBERSHIP['member_name'],
+                'field' => 'fullname', 'sort' => true);
+    $header_arr[] = array('text' => $LANG_MEMBERSHIP['linked_accounts'],
+                'field' => 'links', 'sort' => false);
+    $header_arr[] = array('text' => $LANG_MEMBERSHIP['plan'],
+                'field' => 'plan', 'sort' => false);
+    $header_arr[] = array('text' => $LANG_MEMBERSHIP['expires'],
+                'field' => 'mem_expires', 'sort' => true);
+
     $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'desc');
     if (isset($_REQUEST['showexp'])) {
         $frmchk = 'checked="checked"';
@@ -365,8 +395,19 @@ function MEMBERSHIP_listMembers()
             . $LANG_MEMBERSHIP['renew_all'] 
             . '" class="gl_mootip"' 
             . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
-            . '\');" />&nbsp;' . $LANG_MEMBERSHIP['renew'],
+            . '\');" />&nbsp;' . $LANG_MEMBERSHIP['renew'] . '&nbsp;&nbsp;'
     );
+    if ($_CONF_MEMBERSHIP['use_mem_number']) {
+        $options['chkactions'] .=
+            '<input name="regenbutton" type="image" src="'
+            . MEMBERSHIP_PI_URL . '/images/regen_mem_number.png" '
+            . 'style="vertical-align:text-bottom;" title-"'
+            . $LANG_MEMBERSHIP['regen_mem_numbers']
+            . '" class="gl_mootip"'
+            . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen']
+            . '\');" />&nbsp;' . $LANG_MEMBERSHIP['regen_mem_numbers'];
+    }
+
      $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_member', 
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 $options, $form_arr);

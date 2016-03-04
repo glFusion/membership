@@ -4,9 +4,9 @@
 *   Upgrade routines for the Membership plugin
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.6
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -160,9 +160,18 @@ function MEMBERSHIP_upgrade_0_0_3()
 }
 
 
+/**
+*   Upgrade to 0.1.1
+*   Get the membership Admin group ID and update plan access
+*   Add membership number options
+*   Optionally disable "buy now" button
+*/
 function MEMBERSHIP_upgrade_0_1_1()
 {
     global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT, $_TABLES;
+
+    $error = MEMBERSHIP_do_upgrade_sql('0.1.1');
+    if ($error) return $error;
 
     $c = config::get_instance();
     if ($c->group_exists($_CONF_MEMBERSHIP['pi_name'])) {
@@ -171,6 +180,11 @@ function MEMBERSHIP_upgrade_0_1_1()
                 $_CONF_MEMBERSHIP['pi_name']);
         $c->add('allow_buy_now', $_MEMBERSHIP_DEFAULT['allow_buy_now'],
                 'select', 20, 30, 3, 10, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('use_mem_number', $_MEMBERSHIP_DEFAULT['use_mem_number'],
+                'select', 0, 10, 19, 170, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('mem_num_fmt', $_MEMBERSHIP_DEFAULT['mem_num_fmt'],
+                'text', 0, 10, 0, 180, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->del('onmenu', $_CONF_MEMBERSHIP['pi_name']);
     }
 
     // Get the membership admin group ID if available
@@ -187,6 +201,7 @@ function MEMBERSHIP_upgrade_0_1_1()
     // Admin-only changes from 0 to the admin GID
     DB_query("UPDATE {$_TABLES['membership_plans']}
                 SET access = $gid WHERE access = 0", 1);
+    return $error;
 }
 
  

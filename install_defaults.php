@@ -1,4 +1,5 @@
 <?php
+//  $Id: install_defaults.php 90 2014-06-10 18:34:27Z root $
 /**
 *   Configuration Defaults for the Membership plugin for glFusion.
 *
@@ -72,9 +73,6 @@ $_MEMBERSHIP_DEFAULT = array(
     // 2 = Required, the index page will redirect the use to update their app
     'require_app'   => 0,
 
-    // Show on the standard glFusion "Plugins" menu?
-    'onmenu'        => 0,
-
     // Select the default member types to show in member listings
     // As long as one is selected the member list will show only those
     // member types. If none are selected, all site members are shown.
@@ -108,6 +106,11 @@ $_MEMBERSHIP_DEFAULT = array(
     // Allow "Buy Now" button? If disabled, only the cart can be used,
     // and the buyer will be redirected to the Paypal plugin product list
     'allow_buy_now' => 1,
+
+    // Use membership numbers?
+    'use_mem_number' => 0,
+    // Format string for creating membership numbers. Just create as uid.
+    'mem_num_fmr' => '%d',
 );
 
 
@@ -159,8 +162,6 @@ function plugin_initconfig_membership($group_id = 0)
                 'select', 0, 10, 3, 100, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('displayblocks', $_MEMBERSHIP_DEFAULT['displayblocks'],
                 'select', 0, 10, 13, 110, true, $_CONF_MEMBERSHIP['pi_name']);
-        $c->add('onmenu', $_MEMBERSHIP_DEFAULT['onmenu'],
-                'select', 0, 10, 3, 120, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('debug', $_MEMBERSHIP_DEFAULT['debug'],
                 'select', 0, 10, 3, 130, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('adm_def_view', $_MEMBERSHIP_DEFAULT['adm_def_view'],
@@ -169,6 +170,10 @@ function plugin_initconfig_membership($group_id = 0)
                 'select', 0, 10, 16, 150, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('terms_url', $_MEMBERSHIP_DEFAULT['terms_url'],
                 'text', 0, 10, 0, 160, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('use_mem_number', $_MEMBERSHIP_DEFAULT['use_mem_number'],
+                'select', 0, 10, 19, 170, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('mem_num_fmt', $_MEMBERSHIP_DEFAULT['mem_num_fmt'],
+                'text', 0, 10, 0, 180, true, $_CONF_MEMBERSHIP['pi_name']);
 
         // Profile list options
         $c->add('fs_prflist', NULL, 'fieldset', 0, 20, NULL, 0, true, 

@@ -167,6 +167,26 @@ There is no automatic facility for deleting membership records completely from t
       </td>
     </tr>
 
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_use_mem_number"></a>
+        Use Membership Numbers?</td>
+      <td class="col1 leftalign">
+        Select how you will be assigning membership numbers to your members.<br />
+    <ol><li>Not Used - membership numbers are not created or displayed.</li>
+    <li>Free-Form - You can enter a membership number in the user&apos; record.</li>
+    <li>Auto-Gen - Membership numbers will be created for new members according to the selected format (below). These numbers can be overridden by the administrator for each member.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_mem_num_fmt"></a>
+        Membership Number Format</td>
+      <td class="col1 leftalign">
+        Enter a format string (see &quot;sprintf() documentation&quot; for the creation of membership numbers. The default &quot;%04d&quot; will create a membership number equal to the user ID but you can add text or override this.<br />
+        You may also create a function in lib-custom.php named &quot;CUSTOM_createMemberNumber($uid)&quot; which will receive the user&apos;s ID and return as tring of your choice.
+      </td>
+    </tr>
+
     <tr>
       <th class="col0 leftalign" colspan="2">Profile List Options</th>
     </tr>
