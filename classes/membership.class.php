@@ -4,7 +4,7 @@
 *   Class to handle membership records.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.0.6
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
@@ -50,6 +50,7 @@ class Membership
         $this->paid = '';
         $this->notified = 0;
         $this->old_status = $this->status;
+        $this->mem_number = '';
         if ($this->Read($this->uid)) {
             $this->isNew = false;
         }
@@ -84,6 +85,7 @@ class Membership
         case 'joined':
         case 'expires':
         case 'paid':
+        case 'mem_number':
             $this->properties[$key] = trim($value);
             break;
         }
@@ -159,6 +161,7 @@ class Membership
         $this->status   = $A['mem_status'];
         $this->old_status = $this->status;  // track original status
         $this->notified = isset($A['mem_notified']) ? $A['mem_notified'] : 0;
+        $this->mem_number = $A['mem_number'];
     }
 
 
@@ -190,7 +193,7 @@ class Membership
     */
     public function EditForm($action_url = '')
     {
-        global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP;
+        global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('editmember', 'editmember.thtml');
@@ -209,6 +212,8 @@ class Membership
             'plan_id_orig' => $this->plan_id,
             'is_member' => $this->isNew ? '' : 'true',
             'pmt_date'  => date('Y-m-d H:i:s'),
+            'mem_number' => $this->mem_number,
+            'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
         ) );
         if ($action_url != '') {
             $T->set_var(array(
@@ -348,6 +353,21 @@ class Membership
 
             // Add this user to the membership group
             MEMBERSHIP_debug("Adding user $key to group {$_CONF_MEMBERSHIP['member_group']}");
+            // Create membership number if not already defined for the account
+            // Include trailing comma, be sure to place it appropriately in
+            // the sql statement that follows
+            /*if ($_CONF_MEMBERSHIP['use_mem_number']) {
+                $mem_number = "mem_number='" .
+                        DB_escapeString(self::createMemberNumber($key)) . "',";
+            } else {
+                $mem_number = '';
+            }*/
+            if ($key == $this->uid && $_CONF_MEMBERSHIP['use_mem_number']) {
+                // Only update member number for user being edited
+                $mem_number = "mem_number='" . DB_escapeString($this->mem_number) . "',";
+            } else {
+                $mem_number = '';
+            }
             $sql = "INSERT INTO {$_TABLES['membership_members']} SET
                         mem_uid = '{$key}', 
                         mem_plan_id = '{$this->plan_id}',
@@ -355,16 +375,16 @@ class Membership
                         mem_expires = '{$this->expires}',
                         mem_status = {$this->status},
                         mem_guid = '{$guid}',
+                        $mem_number
                         mem_notified = {$this->notified}
-                        $pos_sql
                     ON DUPLICATE KEY UPDATE
                         mem_plan_id = '{$this->plan_id}',
                         mem_joined = '{$this->joined}',
                         mem_expires = '{$this->expires}',
                         mem_status = {$this->status},
                         mem_guid = '{$guid}',
-                        mem_notified = {$this->notified}
-                        $pos_sql";
+                        $mem_number
+                        mem_notified = {$this->notified}";
             //echo $sql;die;
             //COM_errorLog($sql);
             DB_query($sql, 1);
@@ -476,6 +496,15 @@ class Membership
     */
     public static function Expire($uid=0, $cancel_relatives=true)
     {
+        // Remove this member from any club positions held
+        USES_membership_class_position();
+        $positions = MemPosition::getMemberPositions($uid);
+        if (!empty($positions)) {
+            foreach ($positions as $pos_id) {
+                $P = new MemPosition($pos_id);
+                $P->setMember(0);
+            }
+        }
         self::_UpdateStatus($uid, $cancel_relatives,
                 MEMBERSHIP_STATUS_ACTIVE, MEMBERSHIP_STATUS_EXPIRED);
     }
@@ -648,6 +677,8 @@ class Membership
             'nolinks'   => empty($relatives) ? 'true' : '',
             'old_links' => $old_links,
             'position' => $position,
+            'mem_number' => $this->mem_number,
+            'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
         ) );
 
         $LT->set_block('block', 'LinkBlock', 'lrow');
@@ -959,6 +990,30 @@ class Membership
          }
 
        return $retval;
+    }
+
+
+    /**
+    *   Create a membership number
+    *   Calls CUSTOM_createMemberNumber() if defined, otherwise
+    *   uses sprintf() and the member's uid to create the ID.
+    *
+    *   @return string  Membership number
+    */
+    public static function createMemberNumber($uid)
+    {
+        global $_CONF_MEMBERSHIP;
+
+        if (function_exists('CUSTOM_createMemberNumber')) {
+            $retval = CUSTOM_createMemberNumber($uid);
+        } else {
+            $fmt = $_CONF_MEMBERSHIP['mem_num_fmt'];
+            if (empty($fmt)) {
+                $fmt = '%04d';
+            }
+            $retval = sprintf($fmt, (int)$uid);
+        }
+        return $retval;
     }
 
 }

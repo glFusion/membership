@@ -3,9 +3,9 @@
 *   Class to handle board and committee possitions.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2014 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2014-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.5
+*   @version    0.1.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -120,7 +120,7 @@ class MemPosition
         $this->orderby  = $A['orderby'];
         $this->contact  = $A['contact'];
         $this->grp_id    = $A['grp_id'];
-        $this->old_uid  = isset($A['old_uid']) ? $A['old_uid'] : $this->uid;
+        $this->ld_uid  = isset($A['old_uid']) ? $A['old_uid'] : $this->uid;
         $this->old_grp_id  = isset($A['old_grp_id']) ? $A['old_grp_id'] : $this->grp_id;
 
         if ($fromDB) {
@@ -177,6 +177,42 @@ class MemPosition
         return false;
 
     }   // function Save
+
+
+    /**
+    *   Set the given member as the occupant of a position.
+    *
+    *   @param  integer $uid    User ID to hold the position
+    */
+    public function setMember($uid)
+    {
+        global $_TABLES;
+
+        $this->uid = $uid;
+        $this->Save();
+    }
+
+
+    /**
+    *   Remove a member from one or more positions.
+    *   Used when a membership expires.
+    *
+    *   @param  $id Position ID if affecting only one position
+    */
+    public static function getMemberPositions($uid)
+    {
+        global $_TABLES;
+
+        $retval = array();
+        $uid = (int)$uid;
+        $sql = "SELECT id FROM {$_TABLES['membership_positions']}
+                WHERE uid = '$uid'";
+        $res = DB_query($sql);
+        while ($A = DB_fetchArray($res, false)) {
+            $retval[] = $A['id'];
+        }
+        return $retval;
+    }
 
 
     /**
@@ -370,9 +406,11 @@ class MemPosition
         if ($this->old_grp_id != $this->grp_id ||
                 $this->old_uid != $this->uid) {
             if ($this->old_grp_id != 0 && $this->old_uid != 0) {
+                // used to be a member in this position, now maybe not
                 USER_delGroup($this->old_grp_id, $this->old_uid);
             }
             if ($this->grp_id != 0 && $this->uid != 0) {
+                // There is a user in this position, add to the group
                 USER_addGroup($this->grp_id, $this->uid);
             }
         }
