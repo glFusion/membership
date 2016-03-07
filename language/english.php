@@ -44,6 +44,7 @@ $LANG_MEMBERSHIP = array(
 'print'         => 'Print',
 'exp_notice'    => 'Membership Expiration',
 'you_expire'    => 'Your current membership (%s) expires %s.',
+'renew_within'  => 'You can renew your membership within %d days of expiration',
 //'must_login'    => 'Please <a href="%s">register</a> or <a href="%s">log in</a> to update your profile and purchase memberships.',
 'must_login'    => 'Please <a href="' . $_CONF['site_url'] . '/users.php?mode=new">register</a> or <a href="' . $_CONF['site_url'] .
         '/users.php?mode=login">log in</a> to update your profile and purchase memberships.',
@@ -181,6 +182,8 @@ $LANG_MEMBERSHIP = array(
 'import_from_grp' => 'Import members from group',
 'mem_number' => 'Membership Number',
 'regen_mem_numbers' => 'Regen Mem Numbers',
+'istrial' => 'Trial Membership?',
+'trial' => 'Trial',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';

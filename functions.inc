@@ -431,7 +431,7 @@ function plugin_user_changed_membership($uid=0)
     } else {
         // Maybe just updating options
         $vars = array('notified', 'expires', 'joined', 'position', 'plan_id',
-                'number');
+                'number', 'istrial');
         foreach ($vars as $var) {
             if (isset($_POST['mem_'.$var]) && 
                 $_POST['mem_'.$var] != $_POST['mem_'.$var.'_orig']) {

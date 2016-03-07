@@ -24,6 +24,7 @@ $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_status` int(1) unsigned NOT NULL DEFAULT '1',
   `mem_guid` varchar(40) DEFAULT NULL,
   `mem_number` varchar(40) DEFAULT '',
+  `mem_istrial` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`mem_uid`),
   KEY `plan_guid` (`mem_plan_id`,`mem_guid`)
 )";
@@ -125,7 +126,8 @@ $_UPGRADE_SQL = array(
   ),
 '0.1.1' => array(
   "ALTER TABLE {$_TABLES['membership_members']}
-    ADD mem_number varchar(40) DEFAULT ''",
+    ADD mem_number varchar(40) DEFAULT '',
+    ADD mem_istrial tinyint(1) unsigned default 0",
   ),
 );
 

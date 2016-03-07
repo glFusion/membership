@@ -151,7 +151,11 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
         } elseif ($M->expires >= $_CONF_MEMBERSHIP['today']) {
             // Let current members know when they expire
             $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
-                $M->plan_id, $M->expires));
+                $M->planDescription(), $M->expires));
+            if ($_CONF_MEMBERSHIP['early_renewal'] > 0) {
+                $T->set_var('early_renewal', sprintf($LANG_MEMBERSHIP['renew_within'],
+                    $_CONF_MEMBERSHIP['early_renewal']));
+            }
             $T->set_var('exp_msg_class', 'info');
         }
         if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
@@ -179,7 +183,7 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
     while ($A = DB_fetchArray($result, false)) {
         $P->Read($A['plan_id']);
         $description = $P->description;
-        $price = $P->Price($M->isNew, 'actual');
+        $price = $P->Price($M->isNew(), 'actual');
         $fee = $P->Fee();
         $price_total = $price + $fee;
         $buttons = '';
@@ -188,7 +192,7 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
             case MEMBERSHIP_CANPURCHASE:
                 $exp_ts = strtotime($M->expires);
                 $exp_format = strftime($_CONF['shortdate'], $exp_ts);
-                $output = $P->MakeButton($price_total, $M->isNew, MEMBERSHIP_PI_URL);
+                $output = $P->MakeButton($price_total, $M->isNew(), MEMBERSHIP_PI_URL);
                 if (!empty($output))
                     $buttons = implode('&nbsp;&nbsp;', $output);
                 break;

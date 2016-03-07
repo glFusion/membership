@@ -7,9 +7,11 @@
 <span id="pluginMembershipExpMsg" class="{exp_msg_class}">{login_msg}</span>
 {!endif}
 {!if you_expire}
-<!--    <div id="pluginMembershipExpMsg" class="alert" style="clear:both; width:75%;">-->
-    <span id="pluginMembershipExpMsg" class="{exp_msg_class}">
-    {you_expire}
+    <span class="{exp_msg_class}">
+    <span id="pluginMembershipExpMsg">{you_expire}</span>
+    {!if early_renewal}
+    <br />{early_renewal}
+    {!endif}
     </span>
 {!endif}
 {!if app_msg}

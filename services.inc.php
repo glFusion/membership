@@ -110,13 +110,13 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         $M->Plan = new MembershipPlan($id[1]);
     }
 
-    if ($M->Plan->access != 1) {
+    if (!SEC_inGroup($M->Plan->access, $uid)) {
         // Can't purchase a restricted membership
         return PLG_RET_NOACCESS;
     }
 
     $amount = (float)$ipn_data['pmt_gross'];
-    if ($amount > $M->Price()) {    // insufficient funds
+    if ($amount < $M->Price()) {    // insufficient funds
         MEMBERSHIP_auditLog('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
         return PLG_RET_ERROR;
     }
@@ -134,7 +134,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 
     MEMBERSHIP_auditLog('Processing membership for ' . COM_getDisplayName($uid) . "($uid), plan {$id[1]}", true);
     if ($uid > 1) {
-        $status = $M->Add($uid, $M->Plan->plan_id, 0);
+        $status = $M->Add($uid, $M->Plan->plan_id);
     } else {
         $status = false;
     }

@@ -203,6 +203,16 @@ function MEMaddElement(selid)
         </td>
       </tr>
       {!endif}
+      <tr>
+        <td class="lbl">{$LANG_MEMBERSHIP['istrial']}:
+          <a href="#" onclick="popupWindow('{doc_url}#desc_istrial', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <input type="hidden" name="mem_istrial_orig" value="{mem_istrial}" />
+          <input type="checkbox" name="mem_istrial" value="1" {mem_istrial_chk} />
+        </td>
+      </tr>
     </table>
   </fieldset>
   <fieldset>

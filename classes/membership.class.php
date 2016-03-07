@@ -51,6 +51,7 @@ class Membership
         $this->notified = 0;
         $this->old_status = $this->status;
         $this->mem_number = '';
+        $this->istrial = 0;
         if ($this->Read($this->uid)) {
             $this->isNew = false;
         }
@@ -73,6 +74,7 @@ class Membership
             break;
 
         case 'notified':
+        case 'istrial':
             $this->properties[$key] = $value == 1 ? 1 : 0;
             break;
 
@@ -162,6 +164,7 @@ class Membership
         $this->old_status = $this->status;  // track original status
         $this->notified = isset($A['mem_notified']) ? $A['mem_notified'] : 0;
         $this->mem_number = $A['mem_number'];
+        $this->istrial = $A['mem_istrial'];
     }
 
 
@@ -197,7 +200,6 @@ class Membership
 
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('editmember', 'editmember.thtml');
-        // Language string added here to allow html to be included.
         $T->set_var(array(
             'my_uid'    => $this->uid,
             'joined'    => $this->joined,
@@ -214,6 +216,8 @@ class Membership
             'pmt_date'  => date('Y-m-d H:i:s'),
             'mem_number' => $this->mem_number,
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
+            'mem_istrial' => $this->istrial,
+            'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
         ) );
         if ($action_url != '') {
             $T->set_var(array(
@@ -376,7 +380,8 @@ class Membership
                         mem_status = {$this->status},
                         mem_guid = '{$guid}',
                         $mem_number
-                        mem_notified = {$this->notified}
+                        mem_notified = {$this->notified},
+                        mem_istrial = {$this->istrial}
                     ON DUPLICATE KEY UPDATE
                         mem_plan_id = '{$this->plan_id}',
                         mem_joined = '{$this->joined}',
@@ -384,7 +389,8 @@ class Membership
                         mem_status = {$this->status},
                         mem_guid = '{$guid}',
                         $mem_number
-                        mem_notified = {$this->notified}";
+                        mem_notified = {$this->notified},
+                        mem_istrial = {$this->istrial}";
             //echo $sql;die;
             //COM_errorLog($sql);
             DB_query($sql, 1);
@@ -550,10 +556,12 @@ class Membership
             return false;       // invalid plan requested
         $this->notified = 0;
         $this->status = MEMBER_STATUS_ACTIVE;
-        if ($exp == '') 
+        $this->istrial = 0;
+        if ($exp == '')  {
             $this->expires = $this->Plan->calcExpiration($this->expires);
-        else
+        } else {
             $this->expires = $exp;
+        }
         if ($joined != '') $this->joined = $joined;
         $this->paid = $_CONF_MEMBERSHIP['today'];
         if ($this->Save()) {
@@ -611,7 +619,7 @@ class Membership
     */
     public function Price()
     {
-        return $this->Plan->Price($this->isNew);
+        return $this->Plan->Price($this->isNew());
     }
 
 
@@ -829,18 +837,11 @@ class Membership
     */
     public function Renew($args = array())
     {
-        if ($this->Plan !== NULL && !$this->isNew) {
+        if (!$this->istrial && $this->Plan !== NULL && !$this->isNew) {
             $this->expires = isset($args['exp']) ? $args['exp'] :
                     $this->Plan->calcExpiration($this->expires);
             $args['mem_expires'] = $this->expires;
-            /*list($y, $m, $d) = explode('-', $this->expires);
-            $y += 1;
-            $this->expires = sprintf('%4d-%02d-%02d', $y, $m, $d);*/
             $this->Save($args);
-            /*if (isset($args['mem_pmttype']) && !empty($args['mem_pmttype'])) {
-                $this->AddTrans($args['mem_pmttype'], $args['mem_pmtamt'],
-                        $args['mem_pmtdesc'], $args['mem_pmtdate']);
-            }*/
             return true;
         } else {
             return false;
@@ -1016,6 +1017,39 @@ class Membership
         return $retval;
     }
 
+
+    /**
+    *   For pricing purposes trial memberships are considered "new".
+    *
+    *   @return string  String indicating 'new' or 'renewal' for pricing
+    */
+    public function isNew()
+    {
+        if ($this->istrial || $this->isNew) {
+            return 'new';
+        } else {
+            return 'renewal';
+        }
+    }
+
+
+    /**
+    *   Get a short description for display in messages
+    *
+    *   @return string  Description
+    */
+    public function planDescription()
+    {
+        global $LANG_MEMBERSHIP;
+
+        $retval = $this->plan_id;
+        if ($this->istrial) {
+            $retval .= ', ' . $LANG_MEMBERSHIP['trial'];
+        }
+        return $retval;
+    }
+
 }
+   
 
 ?>
