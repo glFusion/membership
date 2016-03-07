@@ -184,6 +184,7 @@ function MEMBERSHIP_upgrade_0_1_1()
                 'select', 0, 10, 19, 170, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('mem_num_fmt', $_MEMBERSHIP_DEFAULT['mem_num_fmt'],
                 'text', 0, 10, 0, 180, true, $_CONF_MEMBERSHIP['pi_name']);
+        // onmenu config not needed, menu appearance based on rights
         $c->del('onmenu', $_CONF_MEMBERSHIP['pi_name']);
     }
 
