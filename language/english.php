@@ -125,6 +125,7 @@ $LANG_MEMBERSHIP = array(
 'position_type' => 'Position Type',
 'move'          => 'Move Up/Down',
 'contact_info'  => 'Contact Info',
+'contact'       => 'Contact',
 'vacant'        => 'Vacant',
 'title_positionpage' => '%s Positions',
 

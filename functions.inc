@@ -1100,7 +1100,7 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 
             USES_lib_user();
 
-            $sql = "SELECT p.*,u.fullname,u.email
+            $sql = "SELECT p.*,u.username,u.fullname,u.email
                 FROM {$_TABLES['membership_positions']} p
                 LEFT JOIN {$_TABLES['users']} u
                     ON u.uid = p.uid
@@ -1124,7 +1124,8 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
                     $show_vacant = $A['show_vacant'] ? 'true' : '';
                     $username = '';
                 } else {
-                    $username = $A['fullname'];
+                    $username = COM_getDisplayName($A['uid'], $A['username'],
+                                    $A['fullname']);
                     $show_vacant = '';
                 }
                 $T->set_var(array(
@@ -1136,7 +1137,7 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
                     'show_vacant' => $show_vacant,
                     'user_img'  => USER_getPhoto($A['uid']),
                     'user_email' => empty($A['contact']) ?
-                        LGLIB_obfuscate($A['email']) : $A['contact'],
+                        $LANG_MEMBERSHIP['contact'] : $A['contact'],
                     'uid'       => $A['uid'],
                 ) );
                 $T->parse('uRow', 'userRow', true);

@@ -25,7 +25,11 @@
   {!else}
   <td></td>
   {!endif}
-  <td><a href="{site_url}/profiles.php?uid={uid}">{user_email}</a></td>
+  <td>
+    {!if user_name}
+    <a href="{site_url}/profiles.php?uid={uid}">{user_email}</a>
+    {!endif}
+  </td>
 </tr>
 <!-- END userRow -->
 </table>
