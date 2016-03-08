@@ -1,5 +1,4 @@
 <?php
-//  $Id: install.php 396 2009-07-29 21:13:33Z root $
 /**
 *   Installation routine for the Membership plugin for GLFusion
 *

@@ -1,5 +1,4 @@
 <?php
-//  $Id: membership.class.php 131 2015-10-21 17:08:42Z root $
 /**
 *   Class to handle membership records.
 *

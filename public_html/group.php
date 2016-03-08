@@ -1,5 +1,4 @@
 <?php
-//  $Id$
 /**
 *   Home page for the Member List
 *

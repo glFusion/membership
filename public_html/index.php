@@ -1,5 +1,4 @@
 <?php
-//  $Id: index.php 4595 2009-07-08 21:32:31Z lgarner $
 /**
 *   Public entry point for the Membership plugin.
 *

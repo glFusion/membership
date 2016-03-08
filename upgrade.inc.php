@@ -1,5 +1,4 @@
 <?php
-//  $Id: upgrade.inc.php 118 2015-01-05 18:20:06Z root $
 /**
 *   Upgrade routines for the Membership plugin
 *

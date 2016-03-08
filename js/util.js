@@ -1,4 +1,3 @@
-//  $Id: util.js 109 2014-08-15 22:38:32Z root $
 //  Misc utility JS functions for the Membership plugin
 
 // Find all elements sharing a "rel" tag

@@ -1,5 +1,4 @@
 <?php
-//  $Id: mysql_install.php 133 2015-10-26 22:26:57Z root $
 /**
 *   Table definitions for the Membership plugin
 *

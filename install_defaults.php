@@ -1,5 +1,4 @@
 <?php
-//  $Id: install_defaults.php 90 2014-06-10 18:34:27Z root $
 /**
 *   Configuration Defaults for the Membership plugin for glFusion.
 *

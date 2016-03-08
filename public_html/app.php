@@ -1,5 +1,4 @@
 <?php
-//  $Id: index.php 4595 2009-07-08 21:32:31Z lgarner $
 /**
 *   Membership Application.
 *   Calls on the Forms plugin to provide a membership application

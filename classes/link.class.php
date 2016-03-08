@@ -1,5 +1,4 @@
 <?php
-//  $Id: link.class.php 28 2012-09-18 23:23:01Z root $
 /**
 *   Class to handle membership links.
 *

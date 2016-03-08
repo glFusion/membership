@@ -1,5 +1,4 @@
 <?php
-//  $Id: membership_functions.inc.php 135 2015-10-26 22:30:27Z root $
 /**
 *   Plugin-specific functions for the Membership plugin
 *   Load by calling USES_membership_functions()

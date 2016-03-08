@@ -35,7 +35,7 @@ Some of the characteristics of this plugin are:
   The glFusion user id is provided, the return value should be a string.
   Alternatively, a format string can be supplied in the plugin configuration
   which will use sprintf and the user ID to create a number. e.g. "A-MEM-%03d"
-  to get member numbers like "A-MEM-005". Membershp numbers can be disabled in
+  to get member numbers like "A-MEM-005". Membership numbers can be disabled in
   the plugin configuration, but will be automatically generated in the background.
 
 REQUIREMENTS:

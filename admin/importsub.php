@@ -1,5 +1,4 @@
 <?php
-//  $Id: index.php 5646 2010-03-20 18:07:36Z lgarner $
 /**
 *   Import subscription records into the Membership plugin.
 *   - Membership expirations are set to the subscription expiration
@@ -88,6 +87,10 @@ case 'do_import':
         $M = new Membership($A['uid']);
         $M->plan_id = $plans[$A['item_id']];
         $M->expires = $A['expiration'];
+        if ($_CONF_MEMBERSHIP['use_mem_num'] == 2) {
+            // Generate a membership number
+            $M->mem_number = Membership::createMemberNumber($uid);
+        }
         $M->Save();
     }
     $view = 'none';

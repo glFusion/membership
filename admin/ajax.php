@@ -1,5 +1,4 @@
 <?php
-//  $Id: ajax.php 25 2009-12-03 17:36:43Z root $
 /**
 *   Common admistrative AJAX functions.
 *
