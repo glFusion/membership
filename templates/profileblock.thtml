@@ -21,10 +21,12 @@
     <td>{$LANG_MEMBERSHIP['expires']}:</td>
     <td>{expires}</td>
   </tr>
+  {!if position}
   <tr>
     <td>{$LANG_MEMBERSHIP['position']}:</td>
     <td>{position}</td>
   </tr>
+  {!endif}
   <tr>
     <td>{$LANG_MEMBERSHIP['linked_accounts']}:</td>
     <td>
@@ -51,12 +53,6 @@
       <!--<a href="{site_url}/membership/index.php?prt&amp;uid={my_uid}" target="_blank" class="toolbar">{$LANG_MEMBERSHIP['print']}</a>-->
       <a href="{site_url}/membership/app.php?prt&amp;uid={my_uid}" target="_blank" class="toolbar">{$LANG_MEMBERSHIP['print']}</a>
     </td>
-  </tr>
-  {!endif}
-  {!if position}
-  <tr>
-    <td>{$LANG_MEMBERSHIP['position']}:</td>
-    <td>{position}</td>
   </tr>
   {!endif}
 </table>

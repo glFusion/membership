@@ -666,7 +666,11 @@ class Membership
                 $positions[] = $A['descr'];
             }
         }
-        $position = implode(',', $positions);
+        $position = implode(', ', $positions);
+        $app_link = '';     // no app link by default
+        if (!$this->isNew && $_CONF_MEMBERSHIP['require_app'] > 0) {
+            $app_link = 'true';
+        }
 
         $LT = new Template(MEMBERSHIP_PI_PATH . '/templates/');
         $LT->set_file(array(
@@ -679,7 +683,7 @@ class Membership
             'plan_description' => $plan_description,
             'plan_id'   => $plan_id,
             //'app_link'  => self::hasApp($uid) ? 'true' : '',
-            'app_link'  => $this->isNew ? '' : 'true',
+            'app_link'  => $app_link,
             'my_uid'    => $uid,
             'panel'     => $panel ? 'true' : '',
             'nolinks'   => empty($relatives) ? 'true' : '',
