@@ -213,6 +213,15 @@ function MEMaddElement(selid)
           <input type="checkbox" name="mem_istrial" value="1" {mem_istrial_chk} />
         </td>
       </tr>
+      <tr>
+        <td class="lbl"><strong>{$LANG_MEMBERSHIP['cancel']}:</strong>
+          <a href="#" onclick="popupWindow('{doc_url}#desc_cancel', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <img src="{layout_url}/images/button_help.png" alt="" /></a>
+        </td>
+        <td>
+          <input type="checkbox" name="mem_cancel" value="1" />
+        </td>
+      </tr>
     </table>
   </fieldset>
   <fieldset>

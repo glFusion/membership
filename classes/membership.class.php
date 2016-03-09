@@ -351,6 +351,7 @@ class Membership
         USES_lib_user();
 
         foreach ($accounts as $key => $name) {
+
             $this->joined = DB_escapeString($this->joined);
             $this->expires = DB_escapeString($this->expires);
 
@@ -359,18 +360,13 @@ class Membership
             // Create membership number if not already defined for the account
             // Include trailing comma, be sure to place it appropriately in
             // the sql statement that follows
-            /*if ($_CONF_MEMBERSHIP['use_mem_number']) {
+            if ($_CONF_MEMBERSHIP['use_mem_number']) {
                 $mem_number = "mem_number='" .
                         DB_escapeString(self::createMemberNumber($key)) . "',";
             } else {
                 $mem_number = '';
-            }*/
-            if ($key == $this->uid && $_CONF_MEMBERSHIP['use_mem_number']) {
-                // Only update member number for user being edited
-                $mem_number = "mem_number='" . DB_escapeString($this->mem_number) . "',";
-            } else {
-                $mem_number = '';
             }
+
             $sql = "INSERT INTO {$_TABLES['membership_members']} SET
                         mem_uid = '{$key}', 
                         mem_plan_id = '{$this->plan_id}',
@@ -387,7 +383,6 @@ class Membership
                         mem_expires = '{$this->expires}',
                         mem_status = {$this->status},
                         mem_guid = '{$guid}',
-                        $mem_number
                         mem_notified = {$this->notified},
                         mem_istrial = {$this->istrial}";
             //echo $sql;die;
@@ -434,29 +429,31 @@ class Membership
         $new_status = (int)$new_status;
         USES_lib_user();
 
-        // Set membership status
-        $sql = "UPDATE {$_TABLES['membership_members']} SET
-                mem_status = $new_status
-                WHERE mem_uid = $uid";
-        //echo $sql;die;
-        DB_query($sql, 1);
+        // Will always update to the new status.
+        // Expiration/Cancellation will also change the expiration date
+        $sql_sets = array("mem_status = $new_status");
 
         // Remove the member from the membership group
         $groups = array();
         switch ($new_status) {
         case MEMBERSHIP_STATUS_EXPIRED:
-            //if (!empty($_CONF_MEMBERSHIP['member_all_group'])) {
-            //    $groups[] = $_CONF_MEMBERSHIP['member_all_group'];
-            //}
-        //case MEMBERSHIP_STATUS_ARREARS:
+            $sql_sets[] = "mem_expires = '" . $_CONF_MEMBERSHIP['today'] . "'";
             if (!empty($_CONF_MEMBERSHIP['member_group'])) {
                 $groups[] = $_CONF_MEMBERSHIP['member_group'];
             }
         }
+        // Set membership status
+        $sql_sets = implode(', ', $sql_sets);
+        $sql = "UPDATE {$_TABLES['membership_members']} SET
+                $sql_sets
+                WHERE mem_uid = $uid";
+        //echo $sql;die;
+        DB_query($sql, 1);
+
+        // Remove this member from the membership groups
         foreach ($groups as $group) {
             USER_delGroup($group, $uid);
         }
-
         self::updatePlugins($uid, $old_status, $new_status);
 
         // Now do the same thing for all the relatives.
@@ -510,6 +507,9 @@ class Membership
                 $P->setMember(0);
             }
         }
+        // Disable the account if so configured
+        self::_disableAccount($uid);
+
         self::_UpdateStatus($uid, $cancel_relatives,
                 MEMBERSHIP_STATUS_ACTIVE, MEMBERSHIP_STATUS_EXPIRED);
     }
@@ -658,6 +658,7 @@ class Membership
             $plan_desc = $this->Plan->description;
             $plan_id = $this->Plan->plan_id;
             $relatives = $this->getRelatives();
+            $mem_number = $this->mem_number;
             $sql = "SELECT descr FROM {$_TABLES['membership_positions']}
                     WHERE uid = $uid";
             $res = DB_query($sql, 1);
@@ -688,7 +689,7 @@ class Membership
             'nolinks'   => empty($relatives) ? 'true' : '',
             'old_links' => $old_links,
             'position' => $position,
-            'mem_number' => $this->mem_number,
+            'mem_number' => SEC_hasRights('membership.admin') ? $this->mem_number : '',
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
         ) );
 
@@ -872,6 +873,8 @@ class Membership
 
         // Delete this membership record
         DB_delete($_TABLES['membership_members'], 'mem_uid', $uid);
+
+        self::_disableAccount($uid);
     }
 
 
@@ -1029,9 +1032,9 @@ class Membership
     public function isNew()
     {
         if ($this->istrial || $this->isNew) {
-            return 'new';
+            return true;
         } else {
-            return 'renewal';
+            return false;
         }
     }
 
@@ -1051,6 +1054,19 @@ class Membership
         }
         return $retval;
     }
+
+
+    private static function _disableAccount($uid)
+    {
+        global $_TABLES, $_CONF_MEMBERSHIP;
+
+        if ($_CONF_MEMBERSHIP['disable_expired']) {
+            // Disable the user account at expiration, if so configured
+            DB_query("UPDATE {$_TABLES['users']}
+                    SET status = " . USER_ACCOUNT_DISABLED .
+                    " WHERE uid = $uid", 1);
+        }
+    } 
 
 }
    

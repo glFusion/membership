@@ -110,6 +110,9 @@ $_MEMBERSHIP_DEFAULT = array(
     'use_mem_number' => 0,
     // Format string for creating membership numbers. Just create as uid.
     'mem_num_fmr' => '%d',
+
+    // Disable expired member accounts
+    'disable_expired' => 0,
 );
 
 
@@ -152,6 +155,8 @@ function plugin_initconfig_membership($group_id = 0)
                 'select', 0, 10, 18, 65, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('period_start', $_MEMBERSHIP_DEFAULT['period_start'],
                 'select', 0, 10, 14, 70, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('disable_expired', $_MEMBERSHIP_DEFAULT['disable_expired'],
+                'select', 0, 10, 3, 80, true, $_CONF_MEMBERSHIP['pi_name']);
         // If using the Forms plugin, maybe a later option.
         //$c->add('app_form', $_MEMBERSHIP_DEFAULT['app_form'],
         //        'select', 0, 10, 0, 80, true, $_CONF_MEMBERSHIP['pi_name']);

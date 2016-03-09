@@ -419,7 +419,7 @@ function plugin_user_changed_membership($uid=0)
     $op = '';
     $need_save = false; // assume nothing to do
     $joined = isset($_POST['mem_joined']) ? $_POST['mem_joined'] : '';
- 
+
     if ($M->isNew && !empty($_POST['mem_plan_id'])) {
         // A new member, previously with no plan
         $M->Add($uid, $_POST['mem_plan_id'], $_POST['mem_expires'], $joined);
@@ -428,6 +428,9 @@ function plugin_user_changed_membership($uid=0)
         // A renewing member via quick renewal
         $M->Renew($_POST);
         $op = 'renewed';
+    } elseif (isset($_POST['mem_cancel'])) {
+        // Cancel the membership
+        Membership::Cancel($uid);
     } else {
         // Maybe just updating options
         $vars = array('notified', 'expires', 'joined', 'position', 'plan_id',

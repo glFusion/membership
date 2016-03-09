@@ -518,7 +518,7 @@ class MembershipPlan
         if ($M->CanPurchase()) {
             $price = $this->Price($M->isNew);
             $price_txt = COM_numberFormat($price, 2);
-            $buttons = implode('&nbsp;&nbsp;', $this->MakeButton($price, $M->isNew));
+            $buttons = implode('&nbsp;&nbsp;', $this->MakeButton($price, $M->isNew()));
         } else {
             $buttons = '';
             $price_txt = '';

@@ -9,3 +9,4 @@ glFusion Membership Plugin - Change Log
 - Add handling for membership numbers
 - Remove member from any positions held upon expiration or cancellation.
 - Enable trial memberships
+- Optionally disable logins for expired accounts

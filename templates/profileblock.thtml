@@ -27,6 +27,12 @@
     <td>{position}</td>
   </tr>
   {!endif}
+  {!if mem_number}
+  <tr>
+    <td>{$LANG_MEMBERSHIP['mem_number']}:</td>
+    <td>{mem_number}</td>
+  </tr>
+  {!endif}
   <tr>
     <td>{$LANG_MEMBERSHIP['linked_accounts']}:</td>
     <td>

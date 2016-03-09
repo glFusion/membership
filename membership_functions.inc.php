@@ -92,9 +92,9 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
     global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
             $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS;
 
-    if (!MEMBERSHIP_PAYPAL_ENABLED) {
+    /*if (!MEMBERSHIP_PAYPAL_ENABLED) {
         return "PayPal is required";
-    }
+    }*/
     
     $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
     $T->set_file('planlist', 'plan_list.thtml');

@@ -353,15 +353,10 @@ function MEMBERSHIP_listMembers()
         $frmchk = 'checked="checked"';
     } else {
         $frmchk = '';
-        $exp_query = "AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+        $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
+                " AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
     }
-    /*$full_name = "IF (u.fullname = '' OR u.fullname IS NULL,
-                u.fullname, 
-                CONCAT(SUBSTRING_INDEX(u.fullname,' ',-1), ', ',
-                    SUBSTRING_INDEX(u.fullname,' ',1))) AS fullname,
-                u.fullname AS realfullname";*/
     $query_arr = array('table' => 'membership_members',
-        //'sql' => "SELECT m.*, u.username, $full_name, p.name as plan
         'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
                 FROM {$_TABLES['membership_members']} m
                 LEFT JOIN {$_TABLES['users']} u
