@@ -313,6 +313,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                     {$members}.mem_joined as {$pi}_joined,
                     {$members}.mem_plan_id as {$pi}_membertype,
                     {$members}.mem_status as {$pi}_status,
+                    {$members}.mem_number as {$pi}_membernum,
                     {$positions}.descr as {$pi}_position,
                     {$plans}.description AS {$pi}_description",
 

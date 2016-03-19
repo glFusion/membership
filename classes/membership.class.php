@@ -360,29 +360,28 @@ class Membership
             // Create membership number if not already defined for the account
             // Include trailing comma, be sure to place it appropriately in
             // the sql statement that follows
-            if ($_CONF_MEMBERSHIP['use_mem_number']) {
-                $mem_number = "mem_number='" .
-                        DB_escapeString(self::createMemberNumber($key)) . "',";
-            } else {
-                $mem_number = '';
+            if ($_CONF_MEMBERSHIP['use_mem_number'] &&
+                    $this->isNew && $this->mem_number == '') {
+                $this->mem_number = self::createMemberNumber($key);
             }
 
             $sql = "INSERT INTO {$_TABLES['membership_members']} SET
                         mem_uid = '{$key}', 
-                        mem_plan_id = '{$this->plan_id}',
-                        mem_joined = '{$this->joined}',
-                        mem_expires = '{$this->expires}',
+                        mem_plan_id = '" . DB_escapeString($this->plan_id) ."',
+                        mem_joined = '" . DB_escapeString($this->joined) ."',
+                        mem_expires = '" . DB_escapeString($this->expires) ."',
                         mem_status = {$this->status},
                         mem_guid = '{$guid}',
-                        $mem_number
+                        mem_number = '" . DB_EscapeString($this->mem_number) . "',
                         mem_notified = {$this->notified},
                         mem_istrial = {$this->istrial}
                     ON DUPLICATE KEY UPDATE
-                        mem_plan_id = '{$this->plan_id}',
-                        mem_joined = '{$this->joined}',
-                        mem_expires = '{$this->expires}',
+                        mem_plan_id = '" . DB_escapeString($this->plan_id) . "',
+                        mem_joined = '" . DB_escapeString($this->joined) . "',
+                        mem_expires = '" . DB_escapeString($this->expires) . "',
                         mem_status = {$this->status},
                         mem_guid = '{$guid}',
+                        mem_number = '" . DB_EscapeString($this->mem_number) . "',
                         mem_notified = {$this->notified},
                         mem_istrial = {$this->istrial}";
             //echo $sql;die;
