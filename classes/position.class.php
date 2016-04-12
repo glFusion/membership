@@ -280,10 +280,14 @@ class MemPosition
     */
     public function Edit()
     {
-        global $_TABLES;
+        global $_TABLES, $_SYSTEM;
 
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
-        $T->set_file(array('editform' => 'position_form.thtml'));
+        if ($_SYSTEM['disable_jquery_slimbox']) {
+            $T->set_file(array('editform' => 'position_form_uikit.thtml'));
+        } else {
+            $T->set_file(array('editform' => 'position_form.thtml'));
+        }
 
         $T->set_var(array(
             'action_url'    => MEMBERSHIP_ADMIN_URL,

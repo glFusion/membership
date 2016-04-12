@@ -59,11 +59,11 @@ $LANG_MEMBERSHIP = array(
 'joined'    => 'Joined',
 'expires'   => 'Expires',
 'na'        => 'N/A',
-'upd_links' => 'Update Linked Accounts',
+'upd_links' => 'Update Linked',
 'q_del_item'    => 'Are you sure that you want to delete this item?',
 'q_del_member'  => 'Are you sure that you want to delete these members? ' .
 'The member will be unlinked from any linked accounts, and the membership record will be permanently deleted.',
-'emancipate'    => 'Remove this account from family',
+'emancipate'    => 'Remove from family',
 'log_expired'   => 'Expired membership for user %d (%s).',
 'log_arrears'   => 'Membership for user %d (%s) is in arrears.',
 'log_purged'    => 'Purged %d memberships expired over %d days ago.',
@@ -151,7 +151,7 @@ $LANG_MEMBERSHIP = array(
 //'hlp_new_plan' => 'Create a new custom form definition.  The Order indicates where the item will appear on membership relative to other items, and may be changed later.',
 //'hlp_reset_perms' => 'Reset all field permissions to their default values.',
 'hlp_member_edit' => '<ul><li>Linking or Unlinking an account will immediately add or remove that account from the family, but <span class="warning">membership information is not saved until the &quot;Save&quot; button is clicked.</span></li>' .
-    '<li>Checking the &quot;Remove this account from family&quot; checkbox will remove <b>this</b> account from the family.</li>' .
+    '<li>Checking the &quot;Remove from family&quot; checkbox will remove <b>this</b> account from the family and leave other linked accounts alone.</li>' .
     '<li>If the membership type is set to update linked accounts, then all currently-linked accounts will be updated when the profile is saved. Un-linked accounts are not affected.</li>' .
     '</ul>',
 'hlp_transfer_plan' => 'Select a plan to which all members will be converted.  This is required before a plan can be deleted that has current members.',

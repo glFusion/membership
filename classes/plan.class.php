@@ -374,8 +374,11 @@ class MembershipPlan
             $postmode_html = 'selected="selected"';
         }
 
-        //$T->set_file(array('product' => "plan_form{$editor_type}.thtml"));
-        $T->set_file('product', 'plan_form.thtml');
+        if ($_SYSTEM['disable_jquery_menu']) { // uikit-based theme
+            $T->set_file('product', 'plan_form_uikit.thtml');
+        } else {
+            $T->set_file('product', 'plan_form.thtml');
+        }
         $action_url = MEMBERSHIP_ADMIN_URL . '/index.php';
         if ($editor_type == '_advanced') {
             $T->set_var('show_adveditor','');

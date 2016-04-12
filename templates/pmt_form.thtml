@@ -1,4 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{#  This is a self-contained HTML file intended to be printed and
+    mailed with the membership payment. lib-common.php is not loaded, so
+    site CSS is not available.
+#}
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1" />
