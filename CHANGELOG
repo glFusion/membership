@@ -7,6 +7,7 @@ glFusion Membership Plugin - Change Log
 - Add a function to the admin page to import existing site members
 - Added a way to disable new-user welcome messages.
 - Add handling for membership numbers
-- Remove member from any positions held upon expiration or cancellation.
+- Remove member from any positions held upon expiration or cancellation
 - Enable trial memberships
 - Optionally disable logins for expired accounts
+- Allow PayPal integration to be disbled, cart only or cart + buy-now

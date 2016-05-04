@@ -649,7 +649,7 @@ class MembershipPlan
         $retval = array();
         $is_renewal = $isnew ? 'new' : 'renewal';
 
-        if (MEMBERSHIP_PAYPAL_ENABLED) {
+        if ($_CONF_MEMBERSHIP['enable_paypal'] > 0) {
             $vars = array(
                 'item_number'   => 'membership:' . $this->plan_id .
                             ':' . $is_renewal,
@@ -666,8 +666,9 @@ class MembershipPlan
             $status = LGLIB_invokeService('paypal', 'genButton', $vars,
                     $output, $svc_msg);
             if ($status == PLG_RET_OK && is_array($output)) {
-                if (!$_CONF_MEMBERSHIP['allow_buy_now']) {
+                if ($_CONF_MEMBERSHIP['enable_paypal'] < 2) {
                     // A little trickery to only allow add-to-cart button
+                    // if not using buy-now + cart
                     $output = array('add_cart' => $output['add_cart']);
                 }
                 $retval = $output;

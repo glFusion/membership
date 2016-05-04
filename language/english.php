@@ -245,7 +245,7 @@ $LANG_confignames['membership'] = array(
     'manage_mg_quota' => 'Manage the user Album quota?',
     'mg_quota_member' => 'User Album quota for members (MB)',
     'mg_quota_nonmember' => 'User Album quota for non-members (MB)',
-    'allow_buy_now' => 'Allow Buy-Now Payment Button?',
+    'enable_paypal' => 'Enable Paypal Payments?',
     'mem_num_fmt' => 'Format for membership numbers',
     'use_mem_number' => 'Use membership numbers?',
     'disable_expired' => 'Disable account upon expiration',
@@ -272,6 +272,7 @@ $LANG_configselects['membership'] = array(
     18 => array('0 = None' => 0, '1 - Via Email' => 1,
             '2 - Via Login Message' => 2, '3 - Both' => 3),
     19 => array('Not Used' => 0, 'Free-Form' => 1, 'Auto-Gen' => 2),
+    20 => array('Disabled' => 0, 'Cart Only' => 1, 'Buy Now + Cart' => 2),
 );
 
 ?>

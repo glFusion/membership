@@ -5,7 +5,7 @@
 *   @author     Lee Garner <lee@leegarner.com>
 *   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.1.1
+*   @version    0.1.2
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -80,7 +80,6 @@ function MEMBERSHIP_do_upgrade($current_ver)
     }
 
     return $error;
-
 }
 
 
@@ -189,6 +188,16 @@ function MEMBERSHIP_upgrade_0_1_1()
         $c->del('onmenu', $_CONF_MEMBERSHIP['pi_name']);
     }
 
+    // Change the yes/now allow_buy_now to a multichoice enable_paypal.
+    if ($_CONF_MEMBERSHIP['allow_buy_now'] == 0) {
+        $value = 1;     // no buy now, change to cart only
+    } else {
+        $value = 2;     // buy_now ok, change to buy_now + cart
+    }
+    $c->add('enable_paypal', $_MEMBERSHIP_DEFAULT['enable_paypal'],
+            'select', 20, 30, 20, 10, true, $_CONF_MEMBERSHIP['pi_name']);
+    $c->del('allow_buy_now', $_CONF_MEMBERSHIP['pi_name']);
+
     // Get the membership admin group ID if available
     // to set the access code for admin-only plans
     $gid = (int)DB_getItem($_TABLES['groups'], 'grp_id', 
@@ -206,7 +215,7 @@ function MEMBERSHIP_upgrade_0_1_1()
     return $error;
 }
 
- 
+
 /**
 *   Actually perform any sql updates.
 *

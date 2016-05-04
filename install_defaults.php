@@ -102,9 +102,10 @@ $_MEMBERSHIP_DEFAULT = array(
     // Update Mailchimp mailing list?
     'update_maillist' => 0,
 
-    // Allow "Buy Now" button? If disabled, only the cart can be used,
-    // and the buyer will be redirected to the Paypal plugin product list
-    'allow_buy_now' => 1,
+    // Enable integration with the Paypal plugin
+    // If not enabled, only manual payments will be available
+    // 0 - disabled, 1 = cart only, 2 = buy now + cart
+    'enable_paypal' => 2,
 
     // Use membership numbers?
     'use_mem_number' => 0,
@@ -227,8 +228,8 @@ function plugin_initconfig_membership($group_id = 0)
         // Fieldset - Paypal plugin options
         $c->add('fs_paypal', NULL, 'fieldset', 20, 30, NULL, 0, true,
                 $_CONF_MEMBERSHIP['pi_name']);
-        $c->add('allow_buy_now', $_MEMBERSHIP_DEFAULT['allow_buy_now'],
-                'select', 20, 30, 3, 10, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('enable_paypal', $_MEMBERSHIP_DEFAULT['enable_paypal'],
+                'select', 20, 30, 20, 10, true, $_CONF_MEMBERSHIP['pi_name']);
      }
 
      return true;
