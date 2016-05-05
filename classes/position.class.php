@@ -262,8 +262,7 @@ class MemPosition
 
 
     /**
-    *   Remove the current gateway.
-    *   This removes all of the configuration for the gateway, but not files.
+    *   Remove the current position.
     */
     public function Remove()
     {

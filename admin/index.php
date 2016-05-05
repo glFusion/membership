@@ -52,6 +52,7 @@ $expected = array(
     'saveplan', 'deleteplan', 'renewmember', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
     'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
+    'deletepos',
     // Views to display
     'editplan', 'listplans', 'listmembers', 'editmember', 'stats',
     'listtrans', 'positions',  'editpos', 'importform',
@@ -190,6 +191,12 @@ case 'reorderpos':
     $view = 'positions';
     break;
 
+case 'deletepos':
+    USES_membership_class_position();
+    $P = new MemPosition($actionval);
+    $P->Remove();
+    $view = 'positions';
+    break; 
     
 /*case 'update':
     // Save or update a membership record
@@ -567,7 +574,7 @@ function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
                     height=\"16\" width=\"16\" border=\"0\"
                     onclick=\"return confirm('{$LANG_MEMBERSHIP['q_del_item']}');\"
                     >",
-                MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['plan_id']
+                MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id']
         );
        break;
 
