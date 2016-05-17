@@ -332,13 +332,11 @@ class Membership
         if ($this->Plan->plan_id == '')
             return false;       // invalid plan requested
 
-        // Date has been updated with a later date.
+        // Date has been updated with a later date. If updated to an earlier
+        // date then the expiration/arrears will be handled by
+        // runScheduledTask
         if ($this->expires > $_CONF_MEMBERSHIP['today']) {
             $this->status = MEMBERSHIP_STATUS_ACTIVE;
-        } elseif ($this->expires > $_CONF_MEMBERSHIP['dt_end_grace']) {
-            $this->status = MEMBERSHIP_STATUS_ARREARS;
-        } else {
-            $this->status = MEMBERSHIP_STATUS_EXPIRED;
         }
 
         // If this plan updates linked accounts, get all the accounts.
@@ -396,8 +394,14 @@ class Membership
                 COM_errorLog('MEMBERSHIP sql error: ' . $sql);
                 return false;
             }
-            USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
-            //USER_addGroup($_CONF_MEMBERSHIP['member_all_group'], $key);
+
+            // Add the member to the groups if the status has changed,
+            // and the status is active. If the expiration was set to a past
+            // date then the status and group changes will be handled by
+            // runScheduledTask
+            if ($this->status = MEMBERSHIP_STATUS_ACTIVE && $this->status != $this->old_status) {
+                USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
+            }
             self::updatePlugins($key, $this->old_status, $this->status);
         }
 
