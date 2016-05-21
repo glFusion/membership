@@ -1191,4 +1191,7 @@ function MEMBERSHIP_memberstatuses()
     return $types;
 }
 
+// This is temporary, and will be included in glFusion 1.6.0
+isset($_SYSTEM['framework']) || $_SYSTEM['framework'] = 'legacy';
+
 ?>
