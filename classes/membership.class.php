@@ -194,15 +194,9 @@ class Membership
     */
     public function EditForm($action_url = '')
     {
-        global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP,
-                $_SYSTEM;
+        global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
-        if ($_SYSTEM['disable_jquery_slimbox']) {
-            $T->set_file('editmember', 'editmember_uikit.thtml');
-        } else {
-            $T->set_file('editmember', 'editmember.thtml');
-        }
+        $T = MEMBERSHIP_getTemplate('editmember', 'editmember');
         $T->set_var(array(
             'my_uid'    => $this->uid,
             'joined'    => $this->joined,

@@ -351,8 +351,7 @@ class MembershipPlan
     function Edit($id = '')
     {
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
-                $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH,
-                $_SYSTEM;
+                $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH;
 
         if ($id != '') {
             // If an id is passed in, then read that record
@@ -361,7 +360,6 @@ class MembershipPlan
             }
         }
         $id = $this->plan_id;
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
 
         if (isset($_CONF['advanced_editor']) &&
                 $_CONF['advanced_editor'] == 1) {
@@ -374,11 +372,7 @@ class MembershipPlan
             $postmode_html = 'selected="selected"';
         }
 
-        if ($_SYSTEM['disable_jquery_menu']) { // uikit-based theme
-            $T->set_file('product', 'plan_form_uikit.thtml');
-        } else {
-            $T->set_file('product', 'plan_form.thtml');
-        }
+        $T = MEMBERSHIP_getTemplate('plan_form', 'product');
         $action_url = MEMBERSHIP_ADMIN_URL . '/index.php';
         if ($editor_type == '_advanced') {
             $T->set_var('show_adveditor','');
@@ -396,8 +390,6 @@ class MembershipPlan
         $T->set_var('gltoken_name', CSRF_TOKEN);
         $T->set_var('gltoken', SEC_createToken());
         $T->set_var('site_url', $_CONF['site_url']);
-
-        $T->set_var('mootools', $_SYSTEM['disable_mootools'] ? '' : 'true');
 
         if ($id != '') {
             $T->set_var('plan_id', $this->plan_id);

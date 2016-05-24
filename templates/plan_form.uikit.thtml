@@ -204,26 +204,19 @@
 </fieldset>
 {!endif}
 
-<button type="submit" name="saveplan" class="lgButton green"
+<button type="submit" name="saveplan" class="uk-button uk-button-success"
     value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
-<button type="reset" name="reset" class="lgButton blue"
+<button type="reset" name="reset" class="uk-button uk-button-primary"
     value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
-<button type="submit" name="cancel" class="lgButton grey"
+<button type="submit" name="cancel" class="uk-button"
     value="{$LANG_ADMIN['cancel']}">{$LANG_ADMIN['cancel']}</button>
 <button name="deleteplan" value="{$LANG_ADMIN['delete']}"
-  type="submit" class="lgButton red"
+  type="submit" class="uk-button uk-button-danger"
   onclick="return confirm('{$LANG_MEMBERSHIP['q_del_item']}');">{$LANG_ADMIN['delete']}</button>
 
 </form>
 
 <script language="javascript" type="text/javascript">
-{!if mootools}
-window.addEvent('domready',function() {
-    var myValidator = new fValidator("planform");
-    //period_chg("{period_start}");
-});
-{!endif}
-
 function period_chg(value)
 {
     switch(value) {
@@ -237,7 +230,6 @@ function period_chg(value)
         break;
     }
 }
-
 </script>
 
 {# end {templatelocation} #}
