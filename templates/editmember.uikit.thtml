@@ -69,6 +69,20 @@ function MEMaddElement(selid)
 
   selid.remove(selid.selectedIndex);
 }
+
+var is_expanded = 0;
+function togglePmtDiv()
+{
+    if (is_expanded) {
+        document.getElementById('pmt_div').style.display="none";
+        document.getElementById('exp_col').className="uk-icon-chevron-down";
+        is_expanded = 0;
+    } else {
+        document.getElementById('pmt_div').style.display="block";
+        document.getElementById('exp_col').className="uk-icon-chevron-up";
+        is_expanded = 1;
+    }
+}
 </script>
 
 {!if standalone}
@@ -79,7 +93,10 @@ function MEMaddElement(selid)
 {!endif}
 <input type="hidden" name="mem_old_links" value='{old_links}' />
 <fieldset>
-  <legend>{$LANG_MEMBERSHIP['pmt_info']}</legend>
+  <legend>{$LANG_MEMBERSHIP['pmt_info']}
+    <span class="uk-icon-chevron-down" onclick="javascript:togglePmtDiv();" id="exp_col"></span>
+  </legend>
+ <div style="display:none;" id="pmt_div">
   {!if is_member}
   <div class="uk-form-row">
     <label for="quickrenew" class="uk-form-label">{$LANG_MEMBERSHIP['quickrenew']}</label>
@@ -126,6 +143,7 @@ function MEMaddElement(selid)
     <div class="uk-form-controls">
       <input id="pmt_desc" type="text" name="mem_pmtdesc" size="30" />
     </div>
+  </div>
   </div>
 </fieldset>
 
@@ -271,7 +289,7 @@ function MEMaddElement(selid)
         </div>
       </div>
       <div class="uk-form-row">
-        <label class="uk-form-row" for="emancipate">{$LANG_MEMBERSHIP['emancipate']}?
+        <label class="uk-form-label" for="emancipate">{$LANG_MEMBERSHIP['emancipate']}?
           <a href="#" onclick="popupWindow('{doc_url}#desc_emancipate', 'Help', 640, 480, 1);return false;" class="toolbar">
           <img src="{layout_url}/images/button_help.png" alt="" /></a>
         </label>
@@ -282,9 +300,9 @@ function MEMaddElement(selid)
     {hlp_member_edit}
   </fieldset>
 {!if standalone}
-  <input type="submit" class="lgButton green" name="savemember" value="{$LANG_MEMBERSHIP['submit']}" />
-  <input type="submit" class="lgButton grey" name="listmembers" value="{$LANG_MEMBERSHIP['cancel']}" />
-  <input type="reset" class="lgButton blue" name="reset" value="{$LANG_MEMBERSHIP['reset']}" />
+  <button type="submit" class="uk-button uk-button-success" name="savemember" value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
+  <button type="submit" class="uk-button" name="listmembers" value="{$LANG_MEMBERSHIP['cancel']}">{$LANG_MEMBERSHIP['cancel']}</button>
+  <button type="reset" class="uk-button uk-button-primary" name="reset" value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
 </form>
 {!else}
 </div>

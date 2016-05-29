@@ -90,11 +90,27 @@ function MEMBERSHIP_siteFooter()
 function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_plan = '')
 {
     global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
-            $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS;
+            $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
 
     $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
     $T->set_file('planlist', 'plan_list.thtml');
-
+    $T->set_var('is_uikit', $_SYSTEM['framework'] == 'uikit' ? 'true' : '');
+    if (COM_isAnonUser()) {
+        // Anonymous must log in to purchase
+        //$T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
+        //$login_url = "#\" onclick=\"Popup.showModal('loginform',null,null,{'screenColor':'#999999','screenOpacity':.6,'className':'piMembershipLoginForm'});return false;\"";
+        $login_url = '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';';
+        $T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
+            $_CONF['site_url'] . '/users.php?mode=new', $login_url));
+        /*$T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
+            $_CONF['site_url'] . '/users.php?mode=new',
+            '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';'));*/
+        $T->set_var('exp_msg_class', 'alert');
+        $T->set_var('login_form', SEC_loginform());
+        $T->parse('output', 'planlist');
+        return $T->finish($T->get_var('output', 'planlist'));
+    } 
+ 
     $custom = array();  // Holder for custom attributes
     $options = array();
 
@@ -126,47 +142,32 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
     USES_membership_class_plan();
     $P = new MembershipPlan();
     $M = new Membership();
-
-    if (COM_isAnonUser()) {
-        // Anonymous must log in to purchase
-        //$T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
-        //$login_url = "#\" onclick=\"Popup.showModal('loginform',null,null,{'screenColor':'#999999','screenOpacity':.6,'className':'piMembershipLoginForm'});return false;\"";
-        $login_url = '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';';
-        $T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
-            $_CONF['site_url'] . '/users.php?mode=new', $login_url));
-        /*$T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
-            $_CONF['site_url'] . '/users.php?mode=new',
-            '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';'));*/
-        $T->set_var('exp_msg_class', 'alert');
-        $T->set_var('login_form', SEC_loginform());
-    } else {
-        if ($M->isNew) {
-            // New member, no expiration message
-            $T->set_var('you_expire', '');
-        } elseif ($M->expires >= $_CONF_MEMBERSHIP['today']) {
-            // Let current members know when they expire
-            $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
+    if ($M->isNew) {
+        // New member, no expiration message
+        $T->set_var('you_expire', '');
+    } elseif ($M->expires >= $_CONF_MEMBERSHIP['today']) {
+        // Let current members know when they expire
+        $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
                 $M->planDescription(), $M->expires));
-            if ($_CONF_MEMBERSHIP['early_renewal'] > 0) {
+        if ($_CONF_MEMBERSHIP['early_renewal'] > 0) {
                 $T->set_var('early_renewal', sprintf($LANG_MEMBERSHIP['renew_within'],
                     $_CONF_MEMBERSHIP['early_renewal']));
-            }
-            $T->set_var('exp_msg_class', 'info');
         }
-        if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
-            if ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_OPTIONAL) {
-                $T->set_var('app_msg',
+        $T->set_var('exp_msg_class', 'info');
+    }
+    if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
+        if ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_OPTIONAL) {
+            $T->set_var('app_msg',
                     sprintf($LANG_MEMBERSHIP['please_complete_app'], 
                             MEMBERSHIP_PI_URL . '/index.php?editapp'));
-            } elseif ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED
-                    && !$have_app) {
-                $T->set_var('app_msg',
-                    sprintf($LANG_MEMBERSHIP['plan_list_app_footer'],
+        } elseif ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED
+                && !$have_app) {
+            $T->set_var('app_msg',
+                sprintf($LANG_MEMBERSHIP['plan_list_app_footer'],
                             MEMBERSHIP_PI_URL . '/index.php?editapp'));
-            }
-            // Offer a link to return to update the application
-            $T->set_var('footer', $LANG_MEMBERSHIP['return_to_edit']);
         }
+        // Offer a link to return to update the application
+        $T->set_var('footer', $LANG_MEMBERSHIP['return_to_edit']);
     }
 
     $status = LGLIB_invokeService('paypal', 'getCurrency', array(),
