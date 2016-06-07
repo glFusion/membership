@@ -353,8 +353,9 @@ function MEMBERSHIP_listMembers()
         $frmchk = 'checked="checked"';
     } else {
         $frmchk = '';
-        $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
-                " AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+        $exp_query = "AND m.mem_status in (" . MEMBERSHIP_STATUS_ACTIVE . ',' .
+                MEMBERSHIP_STATUS_ARREARS . 
+                ") AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
     }
     $query_arr = array('table' => 'membership_members',
         'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
