@@ -1196,4 +1196,34 @@ function MEMBERSHIP_memberstatuses()
     return $types;
 }
 
+
+/**
+*   Helper function to get a template object.
+*
+*   @param  string  $name   Base name of template, e.g. "editor"
+*   @param  string  $id     ID of template, e.g. "editform"
+*   @param  string  $path   Optional path if not "templates/"
+*   @return string      Full filename, e.g. "editor.uikit.thtml"
+*/
+function MEMBERSHIP_getTemplate($name, $id, $path='')
+{
+    global $_SYSTEM;
+
+    // May use "switch" later, for now there are only two options
+    $tpltype = $_SYSTEM['framework'] == 'uikit' ? '.uikit' : '';
+    $filename = "$name$tpltype.thtml";
+    if (substr($path, 0, 9) != 'templates') {
+        $path = 'templates/' . $path;
+    }
+    if (!file_exists(MEMBERSHIP_PI_PATH . "/$path/$filename")) {
+        $filename = "$name.thtml";
+    }
+    $T = new Template(MEMBERSHIP_PI_PATH . '/' . $path);
+    $T->set_file($id, $filename);
+    return $T;
+}
+
+// This is temporary, and will be included in glFusion 1.6.0
+isset($_SYSTEM['framework']) || $_SYSTEM['framework'] = 'legacy';
+
 ?>

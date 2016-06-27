@@ -1,0 +1,261 @@
+{# begin {templatelocation} #}
+<form action="{site_admin_url}/plugins/membership/index.php" method="post"
+    class="uk-form uk-form-horizontal" id="planform">
+  <input type=hidden name="old_plan_id" value="{old_plan_id}" />
+
+  <fieldset>
+  <legend>{$LANG_MEMBERSHIP['plan_info']}</legend>
+  <div class="uk-form-row">
+    <label for="f_plan_id" class="uk-form-label">{$LANG_MEMBERSHIP['plan_id']}
+      <span id="plan_id" class="tooltip_cfg tooltipstered"></span> 
+    </label>
+    <div class="uk-form-controls">
+      <input required size="50"
+        type="text" name="plan_id" value="{plan_id}" id="f_plan_id" />
+    </div>
+  </div>
+
+  <div class="uk-form-row">
+    <label for="f_name" class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
+      <span id="short_name" class="tooltip_cfg tooltipstered"></span>
+    </label>
+    <div class="uk-form-controls">
+      <input class="fValidate['required']"  size="50"
+        type="text" name="name" value="{name}" id="f_name" />
+    </div>
+  </div>
+
+  <div id="html_editarea" class="uk-form-row">
+    <label for="html_content" class="uk-form-label">{$LANG_MEMBERSHIP['description']}
+      <span id="description" class="tooltip_cfg tooltipstered"></span>
+    </label>
+    <div class="uk-form-controls">
+      <textarea id="html_content" name="description" cols="35" rows="5" 
+        style="width:70%">{description}</textarea>
+    </div>
+  </div>
+
+  <div class="uk-form-row">
+    <label for="f_enabled" class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}
+    </label>
+    <div class="uk-form-controls">
+      <input type="checkbox" id="f_enabled" name="enabled" value="1" {ena_chk} />
+      <span id="enabled" class="tooltip_cfg tooltipstered"></span>
+    </div>
+  </div>
+
+  <div class="uk-form-row">
+    <label for="f_upd_links" class="uk-form-label">{$LANG_MEMBERSHIP['upd_links']}
+    </label>
+    <div class="uk-form-controls">
+      <input type="checkbox" id="f_upd_links" name="upd_links" value="1" {upd_links_chk} />
+      <span id="upd_links" class="tooltip_cfg tooltipstered"></span>
+    </div>
+  </div>
+
+  <div class="uk-form-row">
+    <label for="f_access" class="uk-form-label">{$LANG_MEMBERSHIP['purch_access']}
+      <span id="access" class="tooltip_cfg tooltipstered"></span>
+    </label>
+    <div class="uk-form-controls">
+      <select name="access" id="f_access">
+        {group_options}
+      </select>
+    </div>
+  </div>
+
+  {!if 0}
+  <div class="uk-form-row">
+    <label for="f_period_start" class="uk-form-label">{$LANG_MEMBERSHIP['period_start']}
+    <span id="period_start" class="tooltip_cfg tooltipstered"></span>
+    </label>
+    <div class="uk-form-controls">
+      {period_start_text}
+    </div>
+  </div>
+  {!endif}
+
+  <div class="uk-form-row">
+    {!if fee_rolling}
+    <label for="fee_rolling" class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
+    {!else}
+    <label for="feeschedule" class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
+    {!endif}
+      <span id="fee_schedule" class="tooltip_cfg tooltipstered"></span>
+    </label>
+    <div class="uk-form-controls">
+    {!if fee_rolling}
+      <table id="fee_rolling" border="0">
+        <tr>
+          <th>{$LANG_MEMBERSHIP['period']}</th>
+          <th>{$LANG_MEMBERSHIP['new_purch']}</th>
+          <th>{$LANG_MEMBERSHIP['renewal']}</th>
+        </tr>
+        <tr>
+          <td>{$LANG_MEMBERSHIP['any_period']}</td>
+          <td><input type="text" name="fee_new" value="{new_0}" /></td>
+          <td><input type="text" name="fee_renew" value="{renew_0}" /></td>
+        </tr>
+      </table>
+    {!else}
+      <table id="feeschedule" border="0">
+        <tr>
+          <th>{$LANG_MEMBERSHIP['period']}</th>
+          <th>{$LANG_MEMBERSHIP['new_purch']}</th>
+          <th>{$LANG_MEMBERSHIP['renewal']}</th>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[1]}: </td>
+          <td><input type="text" name="fee[new][0]" value="{new_0}" /></td>
+          <td><input type="text" name="fee[renew][0]" value="{renew_0}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[2]}: </td>
+          <td><input type="text" name="fee[new][1]" value="{new_1}" /></td>
+          <td><input type="text" name="fee[renew][1]" value="{renew_1}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[3]}: </td>
+          <td><input type="text" name="fee[new][2]" value="{new_2}" /></td>
+          <td><input type="text" name="fee[renew][2]" value="{renew_2}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[4]}: </td>
+          <td><input type="text" name="fee[new][3]" value="{new_3}" /></td>
+          <td><input type="text" name="fee[renew][3]" value="{renew_3}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[5]}: </td>
+          <td><input type="text" name="fee[new][4]" value="{new_4}" /></td>
+          <td><input type="text" name="fee[renew][4]" value="{renew_4}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[6]}: </td>
+          <td><input type="text" name="fee[new][5]" value="{new_5}" /></td>
+          <td><input type="text" name="fee[renew][5]" value="{renew_5}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[7]}: </td>
+          <td><input type="text" name="fee[new][6]" value="{new_6}" /></td>
+          <td><input type="text" name="fee[renew][6]" value="{renew_6}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[8]}: </td>
+          <td><input type="text" name="fee[new][7]" value="{new_7}" /></td>
+          <td><input type="text" name="fee[renew][7]" value="{renew_7}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[9]}: </td>
+          <td><input type="text" name="fee[new][8]" value="{new_8}" /></td>
+          <td><input type="text" name="fee[renew][8]" value="{renew_8}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[10]}: </td>
+          <td><input type="text" name="fee[new][9]" value="{new_9}" /></td>
+          <td><input type="text" name="fee[renew][9]" value="{renew_9}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[11]}: </td>
+          <td><input type="text" name="fee[new][10]" value="{new_10}" /></td>
+          <td><input type="text" name="fee[renew][10]" value="{renew_10}" /></td>
+        </tr>
+        <tr>
+          <td>{$LANG_MONTH[12]}: </td>
+          <td><input type="text" name="fee[new][11]" value="{new_11}" /></td>
+          <td><input type="text" name="fee[renew][11]" value="{renew_11}" /></td>
+        </tr>
+      </table>
+    {!endif}
+    </div>
+  </div>
+
+  <div class="uk-form-row">
+    <label for="f_fixed_fee" class="uk-form-label">{$LANG_MEMBERSHIP['fixed_fee']}
+      <span id="fixed_fee" class="tooltip_cfg tooltipstered"></span>
+    </label>
+    <div class="uk-form-controls">
+      <input id="f_fixed_fee" size="10" type="text" name="fixed_fee" value="{fixed_fee}" />
+    </div>
+  </div>
+
+</fieldset>
+
+{!if has_members}
+<fieldset style="margin-top:20px">
+  <legend>{$LANG_MEMBERSHIP['fs_deleteplan']}</legend>
+  <div class="uk-form-row"{$LANG_MEMBERSHIP['hlp_transfer_plan']}</div>
+  <div class="uk-form-row">
+    <label for="f_transfer_plan" class="uk-form-label">{$LANG_MEMBERSHIP['transfer_plan']}
+      <span id="transfer_plan" class="tooltip_cfg tooltipstered"></span>
+    </label>
+    <div class="uk-form-controls">
+      <select id="f_transfer_plan" name="transfer_plan">
+        <option value="" selected="selected">{$LANG_MEMBERSHIP['none']}</option>
+        {xfer_plan_select}
+      </select>
+    </div>
+  </div>
+</fieldset>
+{!endif}
+
+<div class="uk-form-row"></div>
+<div class="uk-form-row">
+<div class="uk-form-controls">
+<button type="submit" name="saveplan" class="uk-button uk-button-success"
+    value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
+<button type="reset" name="reset" class="uk-button uk-button-primary"
+    value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
+<button type="submit" name="cancel" class="uk-button"
+    value="{$LANG_ADMIN['cancel']}">{$LANG_ADMIN['cancel']}</button>
+<button name="deleteplan" value="{$LANG_ADMIN['delete']}"
+  type="submit" class="uk-button uk-button-danger"
+  onclick="return confirm('{$LANG_MEMBERSHIP['q_del_item']}');">{$LANG_ADMIN['delete']}</button>
+</div>
+</div>
+</form>
+
+<script language="javascript" type="text/javascript">
+function period_chg(value)
+{
+    switch(value) {
+    case '0':
+        document.getElementById('fee_rolling').style.display = 'block';
+        document.getElementById('feeschedule').style.display = 'none';
+        break;
+    default:
+        document.getElementById('fee_rolling').style.display = 'none';
+        document.getElementById('feeschedule').style.display = 'block';
+        break;
+    }
+}
+
+var ConfigDocUrl = '{doc_url}';
+$(document).ready(function() {
+    $('.tooltip_cfg').tooltipster({
+        contentAsHTML: true,
+        animation: 'fade',
+        trigger: 'click',
+        iconDesktop: true,
+        iconTouch: true,
+        functionBefore: function(origin, continueTooltip) {
+            continueTooltip();
+            var attrHref = ConfigDocUrl;
+            var ajobj = $(this);
+            $.get(attrHref, function(data) {
+                var confVar = ajobj.attr('id');
+                if (data.indexOf(confVar) > 0) {
+                    var a = $(data).find('a[name=desc_' + confVar + ']');
+                    var tds = a.parent().parent().children("td");
+                    var desc = tds.eq(1).html();
+                    origin.tooltipster('content', desc);
+                } else {
+                    origin.tooltipster('content', 'No Help Text Found');
+                    console.log('Unable to find help text for desc_%s',confVar);
+                }
+            });
+        }
+    });
+});
+</script>
+
+{# end {templatelocation} #}

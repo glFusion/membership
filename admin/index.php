@@ -20,19 +20,11 @@ if (!in_array('membership', $_PLUGINS)) {
     COM_404();
 }
 
-$isAdmin = MEMBERSHIP_isManager() ? true : false;
-
 // Only let admin users access this page
-if (!$isAdmin) {
+if (!MEMBERSHIP_isManager()) {
     // Someone is trying to illegally access this page
     COM_errorLog("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
-    $display = COM_siteHeader();
-    $display .= COM_startBlock($LANG_PL00['access_denied']);
-    $display .= $LANG_DQ00['access_denied_msg'];
-    $display .= COM_endBlock();
-    $display .= COM_siteFooter(true);
-    echo $display;
-    exit;
+    COM_404();
 }
 
 // Import administration functions
@@ -223,7 +215,8 @@ case 'importform':
     //require_once MEMBERSHIP_PI_PATH . '/import_members.php';
     $content .= MEMBERSHIP_adminMenu('importform', '');
     $LT = new Template(MEMBERSHIP_PI_PATH . '/templates');
-    $LT->set_file('form', 'import_form.thtml');
+    $tpltype = $_SYSTEM['framework'] == 'uikit' ? '_uikit' : '';
+    $LT->set_file('form', "import_form$tpltype.thtml");
     if (isset($import_success)) {
         $content .= "Imported $successes successfully<br />\n";
         $content .= "$import_failures failed<br />\n";
@@ -360,8 +353,9 @@ function MEMBERSHIP_listMembers()
         $frmchk = 'checked="checked"';
     } else {
         $frmchk = '';
-        $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
-                " AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+        $exp_query = "AND m.mem_status in (" . MEMBERSHIP_STATUS_ACTIVE . ',' .
+                MEMBERSHIP_STATUS_ARREARS . 
+                ") AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
     }
     $query_arr = array('table' => 'membership_members',
         'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
@@ -740,7 +734,7 @@ function MEMBERSHIP_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 */
 function MEMBERSHIP_adminMenu($mode='', $help_text = '')
 {
-    global $_CONF, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $LANG01, $isAdmin;
+    global $_CONF, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $LANG01;
 
     $help_text = isset($LANG_MEMBERSHIP['adm_' . $mode]) ?
             $LANG_MEMBERSHIP['adm_' . $mode] : '';

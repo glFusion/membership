@@ -12,6 +12,10 @@
 */
 
 require_once '../lib-common.php';
+if (empty($_GET['type'])) {
+    COM_404();
+}
+
 USES_membership_functions();
 
 $autotag = array(

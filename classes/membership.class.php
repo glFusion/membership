@@ -160,7 +160,6 @@ class Membership
         $this->expires  = $A['mem_expires'];
         $this->plan_id  = $A['mem_plan_id'];
         $this->status   = $A['mem_status'];
-        $this->old_status = $this->status;  // track original status
         $this->notified = isset($A['mem_notified']) ? $A['mem_notified'] : 0;
         $this->mem_number = $A['mem_number'];
         $this->istrial = $A['mem_istrial'];
@@ -195,15 +194,9 @@ class Membership
     */
     public function EditForm($action_url = '')
     {
-        global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP,
-                $_SYSTEM;
+        global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
-        if ($_SYSTEM['disable_jquery_slimbox']) {
-            $T->set_file('editmember', 'editmember_uikit.thtml');
-        } else {
-            $T->set_file('editmember', 'editmember.thtml');
-        }
+        $T = MEMBERSHIP_getTemplate('editmember', 'editmember');
         $T->set_var(array(
             'my_uid'    => $this->uid,
             'joined'    => $this->joined,
@@ -312,6 +305,7 @@ class Membership
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
 
+        $old_status = $this->status;  // track original status
         if (is_array($A)) {
             if ($A['mem_plan_id'] == '') {
                 // remove membership, leave record
@@ -399,10 +393,10 @@ class Membership
             // and the status is active. If the expiration was set to a past
             // date then the status and group changes will be handled by
             // runScheduledTask
-            if ($this->status = MEMBERSHIP_STATUS_ACTIVE && $this->status != $this->old_status) {
+            if ($this->status == MEMBERSHIP_STATUS_ACTIVE && $this->status != $old_status) {
                 USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
             }
-            self::updatePlugins($key, $this->old_status, $this->status);
+            self::updatePlugins($key, $old_status, $this->status);
         }
 
         // If this is a payment transaction, as opposed to a simple edit,
@@ -437,23 +431,17 @@ class Membership
         $new_status = (int)$new_status;
         USES_lib_user();
 
-        // Will always update to the new status.
-        // Expiration/Cancellation will also change the expiration date
-        $sql_sets = array("mem_status = $new_status");
-
         // Remove the member from the membership group
         $groups = array();
         switch ($new_status) {
         case MEMBERSHIP_STATUS_EXPIRED:
-            $sql_sets[] = "mem_expires = '" . $_CONF_MEMBERSHIP['today'] . "'";
             if (!empty($_CONF_MEMBERSHIP['member_group'])) {
                 $groups[] = $_CONF_MEMBERSHIP['member_group'];
             }
         }
         // Set membership status
-        $sql_sets = implode(', ', $sql_sets);
         $sql = "UPDATE {$_TABLES['membership_members']} SET
-                $sql_sets
+                mem_status = $new_status
                 WHERE mem_uid = $uid";
         //echo $sql;die;
         DB_query($sql, 1);
@@ -644,7 +632,7 @@ class Membership
     */
     public function ShowInfo($panel = false, $uid = 0)
     {
-        global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_USER, $_TABLES;
+        global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_USER, $_TABLES, $_SYSTEM;
 
         if ($uid == 0) $uid = (int)$_USER['uid'];
         $positions = array();
@@ -685,6 +673,7 @@ class Membership
             'block' => 'profileblock.thtml',
         ));
         $LT->set_var(array(
+            'is_uikit'  => $_SYSTEM['framework'] == 'uikit' ? 'true' : '',
             'joined'    => $joined,
             'expires'   => $expires,
             'plan_name' => $plan_name,

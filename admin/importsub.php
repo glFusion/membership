@@ -18,35 +18,21 @@
 require_once '../../../lib-common.php';
 require_once '../../auth.inc.php';
 
-// Make sure the plugin is installed and enabled
+// Make sure both plugins are installed and enabled
 if (!in_array('membership', $_PLUGINS) || !in_array('subscription', $_PLUGINS)) {
     COM_404();
 }
 
-$isAdmin = SEC_hasRights('membership.admin') ? true : false;
-
 // Only let admin users access this page
-if (!$isAdmin) {
+if (!MEMBERSHIP_isAdmin()) {
     // Someone is trying to illegally access this page
     COM_errorLog("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
-    $display = COM_siteHeader();
-    $display .= COM_startBlock($LANG_MEMBERSHIP['access_denied']);
-    $display .= $LANG_MEMBERSHIP['access_denied_msg'];
-    $display .= COM_endBlock();
-    $display .= COM_siteFooter(true);
-    echo $display;
-    exit;
+    COM_404();
 }
 
 // Import administration functions
 //USES_lib_admin();
 USES_membership_functions();
-
-// Clean $_POST and $_GET, in case magic_quotes_gpc is set
-if (GVERSION < '1.3.0') {
-    $_POST = LGLIB_stripslashes($_POST);
-    $_GET = LGLIB_stripslashes($_GET);
-}
 
 // Set view and action variables.  We use $action for things to do, and
 // $view for the page to show.  $mode is often set by glFusion functions,

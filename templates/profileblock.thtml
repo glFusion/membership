@@ -4,9 +4,17 @@
   <fieldset>
   <legend>{$LANG_MEMBERSHIP['block_title']}</legend>
 {!else}
+  {!if is_uikit}
+<nav class="uk-navbar">
+  <div class="uk-navbar-content">
+  {$LANG_MEMBERSHIP['block_title']}
+  </div>
+</nav>
+  {!else}
 <div class="profile-header">
   {$LANG_MEMBERSHIP['block_title']}
 </div>
+  {!endif}
 {!endif}
 <table border="0">
   <tr>

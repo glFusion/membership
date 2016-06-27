@@ -8,6 +8,6 @@ glFusion Membership Plugin - Change Log
 - Added a way to disable new-user welcome messages.
 - Add handling for membership numbers
 - Remove member from any positions held upon expiration or cancellation
-- Enable trial memberships
+- Enable trial memberships, where a renewal is treated as "new"
 - Optionally disable logins for expired accounts
-- Allow PayPal integration to be disbled, cart only or cart + buy-now
+- Allow PayPal integration to be disabled, cart only or cart + buy-now
