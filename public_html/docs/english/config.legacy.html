@@ -1,0 +1,351 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1" />
+  <link href="../../../docs/docstyle.css" type="text/css" rel="stylesheet" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Membership Plugin - glFusion CMS</title>
+</head>
+
+<body style="direction: ltr;">
+<div id="gl_container_fluid">
+  <div id="gl_header"><span style="color: rgb(255, 255, 255); float: left; padding-left: 10px; padding-top: 5px; vertical-align: middle;">glFusion Documentation Project
+  </span><a style="float: right; padding-right: 10px; padding-top: 5px; vertical-align: middle;" href="http://www.glfusion.org/wiki/doku.php">glFusion Wiki</a>
+</div>
+<div id="gl_wrapper">
+<div class="body-container">
+<h1><a name="memb_plugin" id="memb_plugin">Membership Plugin</a></h1>
+
+<div class="level1">
+<p>The Membership Plugin allows site users to become members and gain access to additional features. This requires the PayPal plugin to be installed and working correctly.<p />
+<h1><a name="membership_plugin_configuration_options" id="membership_plugin_configuration_options">Membership Plugin Configuration Options</a></h1>
+
+<table class="inline">
+  <tbody>
+    <tr>
+      <th class="col0 leftalign" colspan="2">Main Settings</th>
+    </tr>
+
+    <tr class="row0">
+      <th class="col0 leftalign">Option </th>
+      <th class="col1 leftalign">Description </th>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_member_group"></a>
+        Current Member Group</td>
+      <td class="col1 leftalign">
+        Select the glFusion group to which members will automatically be added as current members. This can be used to limit access to content, create lists, etc. As soon as a membership expires, the member will be removed from this group. Use this group to limit access to only current members.
+      </td>
+    </tr>
+
+    <!--
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_member_all_group"></a>
+        All Member Group</td>
+      <td class="col1 leftalign">
+        Select the glFusion group for members that are in arrears. When a membership is purchased, and this group is selected, the member is added to both this group and the &quot;Current Member Group&quot; above. When the membership expires, the member is left in this group until the grace period expires.
+      </td>
+    </tr>
+    -->
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_grace_days"></a>Grace Period</td>
+      <td class="col1 leftalign">
+        Enter the grace period for membership expirations.  This is the number of days after a membership expires during which the member will still be able to access the additional features.  Enter "0" to have the membership terminate immediately upon expiration.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_drop_days"></a>Days after expiration when member will be dropped</td>
+      <td class="col1 leftalign">
+        This is the number of days after expiration when a member's membership record will be considered "dropped" and will no longer be shown in the membership list. Enter &quot;-1&quot; to disable this feature, or zero to have memberships dropped upon expiration.<br /><br />
+There is no automatic facility for deleting membership records completely from the database. If a membership is created in error it must be deleted manually.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_expire_eom"></a>Round expiration up to end of month?</td>
+      <td class="col1 leftalign">
+        Select whether to round the expiration date to the end of the month. For example, if a member joins on July 15, selecting "Yes" here will have their membership expire on July 31 of next year.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_early_renewal"></a>Early Renewal</td>
+      <td class="col1 leftalign">
+        This is the number of days prior to a membership's expiration when it may be renewed.  You probably want to allow members to renew at least a few days before their memberships expire.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_notifydays"></a>
+        Days before expiration to send notifications</td>
+      <td class="col1 leftalign">
+        This is the number of days prior to expiration when notifications will be sent to members. Only one notification will be sent per expiration; when the membership is renewed the flag is reset to that an email will be sent before the new expiration date. Enter "-1" to disable notifications completely.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_notifymethod"></a>
+        Method of expiration notifications</td>
+      <td class="col1 leftalign">
+        Select how members should be notified that their membership is about to expire. The options are none, via email, via message at login, or both.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_period_start"></a>
+        Membership Period Start</td>
+      <td class="col1 leftalign">
+        Select the starting month for memberships, or "Rolling" if memberships can be started at any time.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_disable_expired"></a>
+        Disable Expired Accounts?</td>
+      <td class="col1 leftalign">
+        Select &quot;Yes&quot; if you wish to have members&apos; site accounts disabled when their membership expires. This option would be used if you operate a private site that only permits current members to log in. The account status will be set to &quot;Banned&quot;. Rember that the administrator must manually re-enable the account for members who wish to renew after expiration.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_require_app"></a>
+        Require App?</td>
+      <td class="col1 leftalign">
+        Select whether members are required or able to fill out an application.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_view_app"></a>
+        View App?</td>
+      <td class="col1 leftalign">
+        Select whether members can view their application.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_displayblocks"></a>
+        Display glFusion Blocks</td>
+      <td class="col1 leftalign">
+        Select the glFusion blocks to be displayed on the main membership page.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_onmenu"></a>
+        Show on glFusion Menu</td>
+      <td class="col1 leftalign">
+        Select whether an option to this plugin&apos;s home page should be placed on glFusion&apos;s &quot;Plugins&quot; menu.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_debug"></a>
+        Log debugging messages?</td>
+      <td class="col1 leftalign">
+        Select "Yes" to enable verbose logging to the glFusion error log.  Select "No" to turn off logging. Memberships, expirations and cancellations are always logged to the plugin's log.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_adm_def_view"></a>
+        Default Administrator&apos;s View</td>
+      <td class="col1 leftalign">
+        Select the default view presented to membership administrators.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_terms_accept"></a>
+        Terms and Conditions Acceptance</td>
+      <td class="col1 leftalign">
+        Select whether applicants are able or required to accept terms and conditions as part of the application.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_terms_url"></a>
+        Terms and Conditions URL</td>
+      <td class="col1 leftalign">
+        Provide the URL to the Terms and Conditions page. This can be an internal or external page, and you can use &quot;%site_url%&quot; to represent the base URL of your site.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_use_mem_number"></a>
+        Use Membership Numbers?</td>
+      <td class="col1 leftalign">
+        Select how you will be assigning membership numbers to your members.<br />
+    <ol><li>Not Used - membership numbers are not created or displayed.</li>
+    <li>Free-Form - You can enter a membership number in the user&apos; record.</li>
+    <li>Auto-Gen - Membership numbers will be created for new members according to the selected format (below). These numbers can be overridden by the administrator for each member.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_mem_num_fmt"></a>
+        Membership Number Format</td>
+      <td class="col1 leftalign">
+        Enter a format string (see &quot;sprintf() documentation&quot; for the creation of membership numbers. The default &quot;%04d&quot; will create a membership number equal to the user ID but you can add text or override this.<br />
+        You may also create a function in lib-custom.php named &quot;CUSTOM_createMemberNumber($uid)&quot; which will receive the user&apos;s ID and return as tring of your choice.
+      </td>
+    </tr>
+
+    <tr>
+      <th class="col0 leftalign" colspan="2">Profile List Options</th>
+    </tr>
+
+    <tr class="row0">
+      <th class="col0 leftalign">Option </th>
+      <th class="col1 leftalign">Description </th>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_prflist_current"></a>
+        Include current members?</td>
+      <td class="col1 leftalign">
+        Select &quot;Yes&quot; to show current members on the profile list by default. This option may be combined with other options to show selected member types only. Select &quot;No&quot; to omit current members. If &quot;No&quot; is selected for all profile list options, then all site members will be displayed.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_prflist_arrears"></a>
+        Include members in arrears?</td>
+      <td class="col1 leftalign">
+        Select &quot;Yes&quot; to show members who are in arrears on the profile list by default. This option may be combined with other options to show selected member types only. Select &quot;No&quot; to omit members in arrears. If &quot;No&quot; is selected for all profile list options, then all site members will be displayed.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_prflist_expired"></a>
+        Include expired members?</td>
+      <td class="col1 leftalign">
+        Select &quot;Yes&quot; to show expired members on the profile list by default. This option may be combined with other options to show selected member types only. Select &quot;No&quot; to omit expired members. If &quot;No&quot; is selected for all profile list options, then all site members will be displayed.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_ena_checkpay"></a>
+        Include expired members?</td>
+      <td class="col1 leftalign">
+        Select "Yes" to allow members to pay by check (or cash, or other manual method). This causes a payment icon to be displayed on the plan list that links to a remittance coupon.
+      </td>
+    </tr>
+
+    <tr>
+      <th class="col0 leftalign" colspan="2">Manual Payment Options</th>
+    </tr>
+
+    <tr class="row0">
+      <th class="col0 leftalign">Option </th>
+      <th class="col1 leftalign">Description </th>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_ena_checkpay"></a>
+        Enable manual payments?</td>
+      <td class="col1 leftalign">
+        Select "Yes" to allow members to pay by check (or cash, or other manual method). This causes a payment icon to be displayed on the plan list that links to a remittance coupon.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_payable_to"></a>
+        Remit To</td>
+      <td class="col1 leftalign">
+        Enter the name to whom membership checks should be payable. This will be shown on the remittance coupon as &quot;Make checks payable to...&quot;
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_remit_to"></a>
+        Remittance Address</td>
+      <td class="col1 leftalign">
+        Enter the address to which payments should be sent. HTML such as &lt;br /&gt; can be used to format the address for the remittance coupon.
+      </td>
+    </tr>
+
+    <tr>
+      <th class="col0 leftalign" colspan="2">Integrations</th>
+    </tr>
+
+    <tr class="row0">
+      <th class="col0 leftalign">Option </th>
+      <th class="col1 leftalign">Description </th>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_update_maillist"></a>Update mailing list segment</td>
+      <td class="col1 leftalign">
+        If the Mailchimp plugin is installed, the Membership plugin can call it to update the list segment associated with different member statuses. You can then segment your mailing list by Current, Former and Non-Members. The segments must be set up in Mailchimp in advance for this to work.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_segment_active"></a>Segment for active members</td>
+      <td class="col1 leftalign">
+        Enter the Mailchimp list segment to use for active (current) members.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_segment_arrears"></a>Segment for members in arrears</td>
+      <td class="col1 leftalign">
+        Enter the Mailchimp list segment to use for members in arrears (expired but within the grace period).
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_segment_expired"></a>Segment for expired members</td>
+      <td class="col1 leftalign">
+        Enter the Mailchimp list segment to use for expired members who have not renewed within the grace period.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_segment_dropped"></a>Segment for non-members</td>
+      <td class="col1 leftalign">
+        Enter the Mailchimp list segment to use for members with no membership record. Includes members dropped from the database.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_manage_mg_quota"></a>Manage the user album quota?</td>
+      <td class="col1 leftalign">
+        If the MediaGallery plugin is installed and enabled, the Membership plugin can directly update the user album quotas based on changes in membership status.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_mg_quota_member"></a>User album quota for members</td>
+      <td class="col1 leftalign">
+        Enter a number of megabytes for the user album quota for current and in-arrears members. This should be a positive number greater than the non-member quota below.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_mg_quota_nonmember"></a>User album quota for members</td>
+      <td class="col1 leftalign">
+        Enter a number of megabytes for the user album quota for expired and non-members. This should be a positive number and less than the quota for members. If not, the Mediagallery update is disabled.
+      </td>
+    </tr>
+
+    <tr class="row0">
+      <td class="col0 leftalign" valign="top"><a name="desc_enable_paypal"></a>Enable PayPal Payments?</td>
+      <td class="col1 leftalign">
+        Select whether to use PayPal for payments, and whether to allow Buy-Now buttons. The reason you may wish to disable Buy Now buttons is if you offer additional products along with the membership, such as decals, patches, name tags, etc. After the buyer clicks &quot;Add to Cart&quot; they will be directed to your product catalog.
+      </td>
+    </tr>
+
+   </tbody>
+</table>
+<p></p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

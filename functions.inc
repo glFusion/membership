@@ -539,15 +539,20 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
 */
 function plugin_getconfigelementhelp_membership($option, $doclang='english')
 {
-    $doc_url = MEMBERSHIP_getDocURL('config.html', $doclang);
+    if (version_compare(GVERSION, '1.6.0', '<')) {
+        $file = 'config.legacy.html';
+    } else {
+        $file = 'config.html';
+    }
+    $doc_url = MEMBERSHIP_getDocURL($file, $doclang);
     if (empty($doc_url))
         return false;
 
     if (!empty($option)) {
-        $file .= '#desc_' . $option;
+        $doc_url .= '#desc_' . $option;
     }
 
-    return array($doc_url . $file, 0);
+    return array($doc_url, 0);
 }
 
 
