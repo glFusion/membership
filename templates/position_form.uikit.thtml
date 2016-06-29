@@ -115,11 +115,13 @@
   </div>
 
   <div class="uk-form-row" align="center">
-    <button type="submit" class="uk-button uk-button-success" name="saveposition" value="{$LANG_ADMIN['save']}">{$LANG_ADMIN['save']}</button>
-    <button type="reset" class="uk-button">{$LANG_MEMBERSHIP['reset']}</button>
-    <button type="submit" class="uk-button uk-button-danger" name="deleteposition" value="{$LANG_ADMIN['delete']}"
+    <div class="uk-form-controls">
+      <button type="submit" class="uk-button uk-button-success" name="saveposition" value="{$LANG_ADMIN['save']}">{$LANG_ADMIN['save']}</button>
+      <button type="reset" class="uk-button">{$LANG_MEMBERSHIP['reset']}</button>
+      <button type="submit" class="uk-button uk-button-danger" name="deleteposition" value="{$LANG_ADMIN['delete']}"
         onclick="return confirm('{$LANG_MEMBERSHIP['q_del_item']}');">{$LANG_ADMIN['delete']}</button>
-    <button type="submit" class="uk-button uk-button-primary" name="positions" value="{$LANG_ADMIN['cancel']}">{$LANG_ADMIN['cancel']}</button>
+      <button type="submit" class="uk-button uk-button-primary" name="positions" value="{$LANG_ADMIN['cancel']}">{$LANG_ADMIN['cancel']}</button>
+    </div>
   </div>
 
 </form>

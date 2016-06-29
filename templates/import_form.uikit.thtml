@@ -36,7 +36,7 @@
   <div class="uk-form-row">
     <div class="uk-form-controls">
       <button type="submit" name="importusers" class="uk-button uk-button-success" value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
-  <button type="submit" name="listmembers" class="lgButton grey" value="{$LANG_MEMBERSHIP['cancel']}">{$LANG_MEMBERSHIP['cancel']}</button>
+      <button type="submit" name="listmembers" class="uk-button" value="{$LANG_MEMBERSHIP['cancel']}">{$LANG_MEMBERSHIP['cancel']}</button>
     </div>
   </div>
 </form>

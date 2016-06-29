@@ -25,6 +25,7 @@ if (!MEMBERSHIP_isManager()) {
     // Someone is trying to illegally access this page
     COM_errorLog("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
     COM_404();
+    exit;
 }
 
 // Import administration functions
@@ -164,8 +165,10 @@ case 'saveposition':
     $P = new MemPosition($pos_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        $view = 'positions';
+        COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
+        exit;
     } else {
+        // Redisplay the edit form in case of error, keeping $_POST vars
         $content .= MEMBERSHIP_adminMenu('editpos', '');
         $content .= $P->Edit();
         $view = 'none';
@@ -187,7 +190,8 @@ case 'deletepos':
     USES_membership_class_position();
     $P = new MemPosition($actionval);
     $P->Remove();
-    $view = 'positions';
+    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
+    exit;
     break; 
     
 /*case 'update':
@@ -214,9 +218,9 @@ switch ($view) {
 case 'importform':
     //require_once MEMBERSHIP_PI_PATH . '/import_members.php';
     $content .= MEMBERSHIP_adminMenu('importform', '');
-    $LT = new Template(MEMBERSHIP_PI_PATH . '/templates');
-    $tpltype = $_SYSTEM['framework'] == 'uikit' ? '_uikit' : '';
-    $LT->set_file('form', "import_form$tpltype.thtml");
+    $LT = MEMBERSHIP_getTemplate('import_form', 'form');
+    //$LT = new Template(MEMBERSHIP_PI_PATH . '/templates');
+    //$LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
         $content .= "Imported $successes successfully<br />\n";
         $content .= "$import_failures failed<br />\n";
@@ -353,9 +357,8 @@ function MEMBERSHIP_listMembers()
         $frmchk = 'checked="checked"';
     } else {
         $frmchk = '';
-        $exp_query = "AND m.mem_status in (" . MEMBERSHIP_STATUS_ACTIVE . ',' .
-                MEMBERSHIP_STATUS_ARREARS . 
-                ") AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+        $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
+                " AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
     }
     $query_arr = array('table' => 'membership_members',
         'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
@@ -467,19 +470,23 @@ function MEMBERSHIP_listPlans()
 */
 function MEMBERSHIP_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 {
-    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_SYSTEM;
 
     $retval = '';
 
     $pi_admin_url = MEMBERSHIP_ADMIN_URL;
     switch($fieldname) {
     case 'edit':
-        $retval = 
-            COM_createLink(
-                $icon_arr['edit'],
+        if ($_SYSTEM['framework'] == 'uikit') {
+            $retval = COM_createLink('',
                 MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' .
-                $A['plan_id']
-            );
+                $A['plan_id'],
+                array('class' => 'uk-icon uk-icon-edit') );
+        } else {
+            $retval = COM_createLink($icon_arr['edit'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' .
+                $A['plan_id'] );
+        }
         break;
 
     case 'delete':
@@ -537,39 +544,60 @@ function MEMBERSHIP_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 */
 function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 {
-    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_SYSTEM;
 
     $retval = '';
 
     $pi_admin_url = MEMBERSHIP_ADMIN_URL;
     switch($fieldname) {
     case 'editpos':
-        $retval = 
-            COM_createLink(
-                $icon_arr['edit'],
-                MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id']
-            );
+        if ($_SYSTEM['framework'] == 'uikit') {
+            $retval = COM_createLink('',
+                MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'],
+                array('class' => 'uk-icon uk-icon-edit') );
+        } else {
+            $retval = COM_createLink($icon_arr['edit'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'] );
+        }
         break;
 
     case 'move':
-        $retval = '<a href="' . MEMBERSHIP_ADMIN_URL . '/index.php' . 
-            "?type={$A['type']}&reorderpos=x&where=up&id={$A['id']}\">" .
-            "<img src=\"" . $_CONF['layout_url'] . 
-            '/images/up.png" height="16" width="16" border="0" /></a>'."\n";
-        $retval .= '<a href="' . MEMBERSHIP_ADMIN_URL . '/index.php' . 
-            "?type={$A['type']}&reorderpos=x&where=down&id={$A['id']}\">" .
-            "<img src=\"" . $_CONF['layout_url'] .
-            '/images/down.png" height="16" width="16" border="0" /></a>' . "\n";
+        if ($_SYSTEM['framework'] == 'uikit') {
+            $retval .= COM_createLink('',
+                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=up&id=' . $A['id'],
+                array('class' => 'uk-icon uk-icon-sort-up')
+                );
+            $retval .= '&nbsp;' . COM_createLink('',
+                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=down&id=' . $A['id'],
+                array('class' => 'uk-icon uk-icon-sort-down')
+                );
+        } else {
+            $retval = '<a href="' . MEMBERSHIP_ADMIN_URL . '/index.php' . 
+                "?type={$A['type']}&reorderpos=x&where=up&id={$A['id']}\">" .
+                "<img src=\"" . $_CONF['layout_url'] . 
+                '/images/up.png" height="16" width="16" border="0" /></a>'."\n";
+            $retval .= '<a href="' . MEMBERSHIP_ADMIN_URL . '/index.php' . 
+                "?type={$A['type']}&reorderpos=x&where=down&id={$A['id']}\">" .
+                "<img src=\"" . $_CONF['layout_url'] .
+                '/images/down.png" height="16" width="16" border="0" /></a>' . "\n";
+        }
         break;
 
     case 'deletepos':
-        $retval = COM_createLink(
+        if ($_SYSTEM['framework'] == 'uikit') {
+            $retval = COM_createLink('',
+                MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
+                array('class' => 'uk-icon uk-icon-trash memb-icon-danger',
+                    'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');" ) );
+        } else {
+            $retval = COM_createLink(
                 "<img src=\"{$_CONF['layout_url']}/images/admin/delete.png\" 
                     height=\"16\" width=\"16\" border=\"0\"
                     onclick=\"return confirm('{$LANG_MEMBERSHIP['q_del_item']}');\"
                     >",
                 MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id']
-        );
+            );
+        }
        break;
 
     case 'type':
@@ -619,7 +647,7 @@ function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 */
 function MEMBERSHIP_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 {
-    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES;
+    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES, $_SYSTEM;
 
     static $link_names = array();
     $retval = '';
@@ -628,12 +656,14 @@ function MEMBERSHIP_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
     switch($fieldname) {
     case 'edit':
         $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
-        $retval = 
-            COM_createLink(
-                $icon_arr['edit'],
-                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp
-                //"{$_CONF['site_admin_url']}/user.php?edit=x&amp;uid={$A['mem_uid']}"
-            );
+        if ($_SYSTEM['framework'] == 'uikit') {
+            $retval = COM_createLink('',
+                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
+                array('class' => 'uk-icon uk-icon-edit'));
+        } else {
+            $retval = COM_createLink($icon_arr['edit'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp);
+        }
         break;
 
     case 'tx_fullname':
@@ -982,7 +1012,8 @@ function MEMBERSHIP_listPositions()
         array('text' => $LANG_MEMBERSHIP['order'],
                 'field' => 'orderby', 'sort' => true),
         array('text' => $LANG_MEMBERSHIP['show_vacant'],
-                'field' => 'show_vacant', 'sort' => true),
+                'field' => 'show_vacant', 'sort' => true,
+                'align' => 'center'),
         array('text' => $LANG_ADMIN['delete'],
                 'field' => 'deletepos', 'sort' => 'false',
                 'align' => 'center'),

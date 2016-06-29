@@ -8,7 +8,8 @@
 *   @author     Lee Garner <lee@leegarner.com>
 *   @copyright  Copyright (c) 2012 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.1
+*   @version    0.1.1
+*   @since      0.0.1
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -28,6 +29,7 @@ if (!MEMBERSHIP_isAdmin()) {
     // Someone is trying to illegally access this page
     COM_errorLog("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
     COM_404();
+    exit;
 }
 
 // Import administration functions
