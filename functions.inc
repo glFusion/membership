@@ -1125,11 +1125,12 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 
             while ($A = DB_fetchArray($res, false)) {
                 $T->set_block('groups', 'userRow', 'uRow');
-                $user_img = USER_getPhoto($A['uid']);
                 if ($A['uid'] == 0) {    // vacant position
+                    $user_img = '';
                     $show_vacant = $A['show_vacant'] ? 'true' : '';
                     $username = '';
                 } else {
+                    $user_img = USER_getPhoto($A['uid']);
                     $username = COM_getDisplayName($A['uid'], $A['username'],
                                     $A['fullname']);
                     $show_vacant = '';
@@ -1141,7 +1142,7 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
                     'user_name' => $username,
                     'comment'   => trim($A['comment']),
                     'show_vacant' => $show_vacant,
-                    'user_img'  => USER_getPhoto($A['uid']),
+                    'user_img'  => $user_img,
                     'user_email' => empty($A['contact']) ?
                         $LANG_MEMBERSHIP['contact'] : $A['contact'],
                     'uid'       => $A['uid'],
