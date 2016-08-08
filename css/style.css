@@ -123,3 +123,11 @@ div.grouplist .vacant {
 .memb-icon-danger {
     color: red;
 }
+
+/* Override button styles when using uk-icons */
+.memb-icon-button {
+    border: none;
+    float: none;
+    margin: 0 7px 0 0;
+    padding: 0;
+}

@@ -44,6 +44,7 @@ $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'renewmember', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
+    'renewbutton', 'deletebutton', 'regenbutton',
     'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
     'deletepos',
     // Views to display
@@ -65,6 +66,7 @@ foreach($expected as $provided) {
 switch ($action) {
 case 'genmembernum':
 case 'regenbutton_x':
+case 'regenbutton':
     // Generate membership numbers for all members
     // Only if configured and valid data is received in delitem variable.
     $view = 'listmembers';
@@ -114,6 +116,7 @@ case 'savemember':
     break;
 
 case 'deletebutton_x':
+case 'deletebutton':
     if (is_array($_POST['delitem'])) {
         USES_membership_class_membership();
         foreach ($_POST['delitem'] as $mem_uid) {
@@ -124,6 +127,7 @@ case 'deletebutton_x':
     exit;
 
 case 'renewbutton_x':
+case 'renewbutton':
     if (is_array($_POST['delitem'])) {
         USES_membership_class_membership();
         foreach ($_POST['delitem'] as $mem_uid) {
@@ -332,7 +336,7 @@ echo $output;
 function MEMBERSHIP_listMembers()
 {
     global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP, $_IMAGE_TYPE,
-        $_CONF_MEMBERSHIP;
+        $_CONF_MEMBERSHIP, $_SYSTEM;
 
     $retval = '';
 
@@ -373,29 +377,44 @@ function MEMBERSHIP_listMembers()
     );
     $text_arr = array(
         'has_extras' => true,
-        'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
+        'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php',
     );
-    if (isset($_POST['showexp']) || (empty($_POST) && isset($_GET['showexp'])))
-        $text_arr['form_url'] .= '&amp;showexp';
-    $filter = '<input type="checkbox" name="showexp" ' . $frmchk . 
-            ' onclick="javascript:submit();">' . $LANG_MEMBERSHIP['show_expired'] . '?';
-    $options = array('chkdelete' => 'true', 'chkfield' => 'mem_uid',
-        'chkactions' => '<input name="deletebutton" type="image" src="'
+    $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>' .
+            $LANG_MEMBERSHIP['show_expired'];
+
+    if ($_SYSTEM['framework'] == 'uikit') {
+        $del_action = '<button name="deletebutton" class="uk-icon uk-icon-trash memb-icon-button memb-icon-danger"'
+            . ' style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
+            . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['q_del_member']
+            . '\');" ></button>'
+            . $LANG_ADMIN['delete'];
+        $renew_action = '<button name="renewbutton" class="uk-icon uk-icon-refresh memb-icon-button"'
+            . ' style="vertical-align:text-bottom;" title="'
+            . $LANG_MEMBERSHIP['renew_all'] 
+            . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
+            . '\');" ></button>' . $LANG_MEMBERSHIP['renew'];
+    } else {
+        $del_action = '<input name="deletebutton" type="image" src="'
             . $_CONF['layout_url'] . '/images/admin/delete.' . $_IMAGE_TYPE
             . '" style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
             . '" class="gl_mootip"'
             . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['q_del_member']
             . '\');" />&nbsp;'
-            . $LANG_ADMIN['delete'] . '&nbsp;&nbsp;' .
-
-            '<input name="renewbutton" type="image" src="'
+            . $LANG_ADMIN['delete'];
+        $renew_action = '<input name="renewbutton" type="image" src="'
             . MEMBERSHIP_PI_URL . '/images/renew.png'
             . '" style="vertical-align:text-bottom;" title="'
             . $LANG_MEMBERSHIP['renew_all'] 
             . '" class="gl_mootip"' 
             . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
-            . '\');" />&nbsp;' . $LANG_MEMBERSHIP['renew'] . '&nbsp;&nbsp;'
+            . '\');" />&nbsp;' . $LANG_MEMBERSHIP['renew'];
+    }
+    $options = array(
+        'chkdelete' => 'true',
+        'chkfield' => 'mem_uid',
+        'chkactions' => $del_action . '&nbsp;&nbsp;' . $renew_action . '&nbsp;&nbsp;',
     );
+
     if ($_CONF_MEMBERSHIP['use_mem_number']) {
         $options['chkactions'] .=
             '<input name="regenbutton" type="image" src="'
