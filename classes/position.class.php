@@ -194,10 +194,10 @@ class MemPosition
 
 
     /**
-    *   Remove a member from one or more positions.
-    *   Used when a membership expires.
+    *   Get the positions held by a member.
     *
-    *   @param  $id Position ID if affecting only one position
+    *   @param  integer $id     Member's User ID
+    *   @return array       Array of position IDs
     */
     public static function getMemberPositions($uid)
     {
