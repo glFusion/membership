@@ -226,7 +226,8 @@ class Membership
 
         $family_plans = array();
         $sql = "SELECT plan_id, name, upd_links
-                FROM {$_TABLES['membership_plans']}";
+                FROM {$_TABLES['membership_plans']}
+                WHERE enabled = 1";
         $res = DB_query($sql);
         $T->set_block('editmember', 'PlanBlock', 'planrow');
         while ($A = DB_fetchArray($res, false)) {
@@ -393,7 +394,7 @@ class Membership
             // and the status is active. If the expiration was set to a past
             // date then the status and group changes will be handled by
             // runScheduledTask
-            if ($this->status == MEMBERSHIP_STATUS_ACTIVE && $this->status != $old_status) {
+            if ($this->status == MEMBERSHIP_STATUS_ACTIVE) {
                 USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
             }
             self::updatePlugins($key, $old_status, $this->status);

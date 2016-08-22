@@ -176,11 +176,11 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     // If posted variables are recieved, use them. Otherwise, use GET but only
     // if POST is empty. Otherwise the user may have just unchecked all the
     // options
-    if (isset($args['post']['mem_exp_status_flag']))
+    if (isset($args['post']['mem_exp_status_flag'])) {
         $exp_stat = $args['post']['mem_exp_status'];
-    elseif (empty($args['post']) && isset($args['get']['mem_exp_status']))
-        $exp_stat = split(',', $args['get']['mem_exp_status']);
-    else {
+    } elseif (empty($args['post']) && isset($args['get']['mem_exp_status'])) {
+        $exp_stat = explode(',', $args['get']['mem_exp_status']);
+    } else {
         // Use the default setting if no other options received
         $exp_stat = array();
         if ($_CONF_MEMBERSHIP['prflist_current'] == 1)
