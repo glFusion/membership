@@ -215,7 +215,7 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
 *   The $output array contains the field names, the SELECT and JOIN queries,
 *   and the search fields for the ADMIN_list function.
 *
-*   @param  array   $args       Unused
+*   @param  array   $args       Post, Get, incl_exp_stat and incl_user_stat
 *   @param  array   &$output    Pointer to output array
 *   @param  array   &$svc_msg   Unused
 *   @return integer             Status code
@@ -229,6 +229,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     $members = $_TABLES['membership_members'];
     $positions = $_TABLES['membership_positions'];
     $where = '';
+    $exp_stat = array();
 
     // Does not support remote web services, must be local only.
     if ($args['gl_svc'] !== false) return PLG_RET_PERMISSION_DENIED;
@@ -237,26 +238,22 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     if (isset($args['post']['mem_exp_status_flag']))
         $exp_stat = $args['post']['mem_exp_status'];
     elseif (empty($args['post']) && isset($args['get']['mem_exp_status']))
-        $exp_stat = split(',', $args['get']['mem_exp_status']);
-    else {
-        // Use the default setting if no other options received
-        $exp_stat = array();
-        if ($_CONF_MEMBERSHIP['prflist_current'] == 1)
+        $exp_stat = explode(',', $args['get']['mem_exp_status']);
+    elseif (isset($args['incl_exp_stat'])) {
+        if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_ENABLED)
             $exp_stat[] = MEMBERSHIP_STATUS_ENABLED;
-        if ($_CONF_MEMBERSHIP['prflist_arrears'] == 1)
+        if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_ARREARS)
             $exp_stat[] = MEMBERSHIP_STATUS_ARREARS;
-        if ($_CONF_MEMBERSHIP['prflist_expired'] == 1)
+        if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_EXPIRED)
             $exp_stat[] = MEMBERSHIP_STATUS_EXPIRED;
     }
-    if (!is_array($exp_stat))
-        $exp_stat = array();
-
     if (!empty($exp_stat)) {
         foreach ($exp_stat as $stat) {
             $incl_exp_stat += (int)$stat;
         }
 
-        if ($incl_exp_stat > 0 && $incl_exp_stat < 16) {
+        if ($incl_exp_stat > 0 && $incl_exp_stat < 7) {
+            // Only create sql if filtering on some expiration status
             $grace = (int)$_CONF_MEMBERSHIP['grace_days'];
             $exp_arr = array();
             if ($incl_exp_stat & MEMBERSHIP_STATUS_ENABLED == MEMBERSHIP_STATUS_ENABLED) {
