@@ -36,7 +36,7 @@ $_SQL['membership_plans'] = "CREATE TABLE `{$_TABLES['membership_plans']}` (
   `fees` text,
   `enabled` tinyint(1) DEFAULT '1',
   `upd_links` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `access` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  `grp_access` int(11) unsigned NOT NULL DEFAULT '2',
   PRIMARY KEY (`plan_id`)
 )";
 

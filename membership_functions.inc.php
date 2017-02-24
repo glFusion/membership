@@ -111,22 +111,9 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
         return $T->finish($T->get_var('output', 'planlist'));
     } 
  
-    $custom = array();  // Holder for custom attributes
-    $options = array();
-
-    $sql_groups = array();
-    foreach ($_GROUPS as $name=>$gid) {
-        $sql_groups[] = $gid;
-    }
-    if (!empty($sql_groups)) {
-        $sql_groups = implode(',', $sql_groups);
-        $sql_groups = " AND access IN ($sql_groups)";
-    } else {
-        $sql_groups = '';
-    }
     $sql = "SELECT plan_id
             FROM {$_TABLES['membership_plans']}
-            WHERE enabled = 1 $sql_groups";
+            WHERE enabled = 1 " . SEC_buildAccessSql();
     if (!empty($show_plan)) {
         $sql .= " AND plan_id = '" . DB_escapeString($show_plan) . "'";
     }

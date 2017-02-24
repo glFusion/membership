@@ -55,7 +55,7 @@
     <a href="#" onclick="popupWindow('{doc_url}#desc_access', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
-  <select name="access">
+  <select name="grp_access">
     {group_options}
   </select>
 </p>

@@ -110,7 +110,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         $M->Plan = new MembershipPlan($id[1]);
     }
 
-    if (!SEC_inGroup($M->Plan->access, $uid)) {
+    if (!SEC_inGroup($M->Plan->grp_access, $uid)) {
         // Can't purchase a restricted membership
         return PLG_RET_NOACCESS;
     }

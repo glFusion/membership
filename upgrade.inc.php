@@ -215,6 +215,18 @@ function MEMBERSHIP_upgrade_0_1_1()
     return $error;
 }
 
+/**
+*   Upgrade to 0.1.2
+*   Expande and rename access to grp_access for plans
+*/
+function MEMBERSHIP_upgrade_0_1_2()
+{
+    global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT, $_TABLES;
+
+    DB_query("ALTER TABLE {$_TABLES['membership_plans']}
+            CHANGE access grp_access int(11) unsigned not null default 2");
+}
+
 
 /**
 *   Actually perform any sql updates.

@@ -57,7 +57,7 @@ class MembershipPlan
             $this->fees = array();
             $this->enabled = 1;
             $this->upd_links = 0;
-            $this->access = 2;  // default to "All Users"
+            $this->grp_access = 2;  // default to "All Users"
         }
     }
 
@@ -76,7 +76,7 @@ class MembershipPlan
             $this->properties[$var] = COM_sanitizeID($value, false);
             break;
 
-        case 'access':
+        case 'grp_access':
             // Integer values
             $this->properties[$var] = (int)$value;
             break;
@@ -138,7 +138,7 @@ class MembershipPlan
         $this->description = $row['description'];
         $this->enabled = $row['enabled'];
         $this->upd_links = $row['upd_links'];
-        $this->access = $row['access'];
+        $this->grp_access = $row['grp_access'];
 
         if ($fromDB) {
             $this->fees = @unserialize($row['fees']);
@@ -239,7 +239,7 @@ class MembershipPlan
                 fees = '" . DB_escapeString(@serialize($this->fees)) . "',
                 enabled = '{$this->enabled}',
                 upd_links = '{$this->upd_links}',
-                access = '{$this->access}'";
+                grp_access = '{$this->grp_access}'";
         $sql = $sql1 . $sql2 . $sql3;
         //MEMBERSHIP_debug($sql);
         //echo $sql;die;
@@ -416,7 +416,7 @@ class MembershipPlan
             'fixed_fee'     => sprintf('%.2f', $this->fees['fixed']),
             'period_start'  => $_CONF_MEMBERSHIP['period_start'],
             'group_options' => COM_optionList($_TABLES['groups'],
-                                'grp_id,grp_name', $this->access),
+                                'grp_id,grp_name', $this->grp_access),
         ) );
 
         if ($_CONF_MEMBERSHIP['period_start'] > 0) {

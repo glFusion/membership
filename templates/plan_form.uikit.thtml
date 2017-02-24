@@ -58,7 +58,7 @@
       <span id="access" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
-      <select name="access" id="f_access">
+      <select name="grp_access" id="f_access">
         {group_options}
       </select>
     </div>
