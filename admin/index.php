@@ -342,7 +342,7 @@ function MEMBERSHIP_listMembers()
 
     $header_arr = array(
         array('text' => $LANG_ADMIN['edit'],
-                'field' => 'edit', 'sort' => false));
+                'field' => 'edit', 'sort' => false, 'align'=>'center'));
     if ($_CONF_MEMBERSHIP['use_mem_number']) {
         $header_arr[] = array('text' => $LANG_MEMBERSHIP['mem_number'],
                 'field' => 'mem_number', 'sort' => true);
@@ -447,7 +447,7 @@ function MEMBERSHIP_listPlans()
 
     $header_arr = array(
         array('text' => $LANG_ADMIN['edit'],
-            'field' => 'edit', 'sort' => false),
+            'field' => 'edit', 'sort' => false, 'align'=>'center'),
         array('text' => 'ID',
             'field' => 'plan_id', 'sort' => true),
         array('text' => $LANG_MEMBERSHIP['short_name'],
