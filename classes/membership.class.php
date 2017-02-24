@@ -129,7 +129,6 @@ class Membership
         //echo $sql;die;
         $res1 = DB_query($sql);
         if (!$res1 || DB_numRows($res1) != 1) {
-            $this->access = false;
             $this->Plan = NULL;
             return false;
         } else {
