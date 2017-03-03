@@ -3,10 +3,10 @@
 *   Upgrade routines for the Membership plugin
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.1.2
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
 */
@@ -26,60 +26,68 @@ require_once MEMBERSHIP_PI_PATH . '/install_defaults.php';
 /**
 *   Perform the upgrade starting at the current version.
 *
-*   @param  string  $current_ver    Current installed version to be upgraded
-*   @return integer                 Error code, 0 for success
+*   @return boolean     True on success, False on failure
 */
-function MEMBERSHIP_do_upgrade($current_ver)
+function MEMBERSHIP_do_upgrade()
 {
-    $error = 0;
+    global $_PLUGIN_INFO, $_CONF_MEMBERSHIP;
 
-    if ($current_ver < '0.0.2') {
+    if (isset($_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']])) {
+        $current_ver = $_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']];
+    } else {
+        return false;
+    }
+
+    if (!COM_checkVersion($current_ver, '0.0.2')) {
         // upgrade from 0.0.1 to 0.0.2
+        $current_ver = '0.0.2';
         COM_errorLog("Updating Plugin to 0.0.2");
-        $error = MEMBERSHIP_do_upgrade_sql('0.0.2');
-        if ($error)
-            return $error;
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;
+        if (!MEMBERFSHIP_do_set_version($current_ver)) return false;
     }
 
-    if ($current_ver < '0.0.3') {
+    if (!COM_checkVersion($current_ver, '0.0.3')) {
         // upgrade from 0.0.2 to 0.0.3
-        COM_errorLog("Updating Plugin to 0.0.3");
-        $error = MEMBERSHIP_upgrade_0_0_3();
-        if ($error)
-            return $error;
+        $current_ver = '0.0.3';
+        if (!MEMBERSHIP_upgrade_0_0_3()) return false;
     }
 
-    if ($current_ver < '0.0.4') {
+    if (!COM_checkVersion($current_ver, '0.0.4')) {
         // upgrade from 0.0.3 to 0.0.4
-        COM_errorLog("Updating Plugin to 0.0.4");
-        $error = MEMBERSHIP_upgrade_0_0_4();
-        if ($error)
-            return $error;
+        $current_ver = '0.0.4';
+        if (!MEMBERSHIP_upgrade_0_0_4()) return false;
     }
 
-    if ($current_ver < '0.0.5') {
+    if (!COM_checkVersion($current_ver, '0.0.5')) {
         // upgrade from 0.0.4 to 0.0.5
+        $current_ver = '0.0.5';
         COM_errorLog("Updating Plugin to 0.0.5");
-        $error = MEMBERSHIP_do_upgrade_sql('0.0.5');
-        if ($error)
-            return $error;
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver)) return false;
     }
 
-    if ($current_ver < '0.0.6') {
+    if (!COM_checkVersion($current_ver, '0.0.6')) {
         // upgrade from 0.0.5 to 0.0.6
-        COM_errorLog("Updating Plugin to 0.0.6");
-        $error = MEMBERSHIP_do_upgrade_sql('0.0.6');
-        if ($error)
-            return $error;
+        $current_ver = '0.0.6';
+        COM_errorLog("Updating Plugin to $current_ver");
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;;
+        if (!MEMBERSHIP_do_set_version($current_ver)) return false;
     }
 
-    if ($current_ver < '0.1.1') {
-        $error = MEMBERSHIP_upgrade_0_1_1();
-        if ($error)
-            return $error;
+    if (!COM_checkVersion($current_ver, '0.1.1')) {
+        $current_ver = '0.1.1';
+        if (!MEMBERSHIP_upgrade_0_1_1()) return false;
     }
 
-    return $error;
+    if (!COM_checkVersion($current_ver, '0.1.2')) {
+        $current_ver = '0.1.2';
+        COM_errorLog("Updating Plugin to $current_ver");
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver)) return false;
+    }
+
+    COM_errorLog("Successfully updated the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin", 1);
+    return true;
 }
 
 
@@ -93,6 +101,7 @@ function MEMBERSHIP_upgrade_0_0_4()
 {
     global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT, $_TABLES;
 
+    COM_errorLog("Updating Plugin to 0.0.4");
     /*$c = config::get_instance();
     if ($c->group_exists($_CONF_MEMBERSHIP['pi_name'])) {
         // Subgroup - integrations
@@ -107,8 +116,8 @@ function MEMBERSHIP_upgrade_0_0_4()
                 WHERE grp_id = $res");
     }
     */
-    return MEMBERSHIP_do_upgrade_sql('0.0.4');
-
+    if (!MEMBERSHIP_do_upgrade_sql('0.0.4')) return false;
+    return MEMBERSHIP_do_set_version('0.0.3');
 }
 
 
@@ -123,6 +132,7 @@ function MEMBERSHIP_upgrade_0_0_3()
 {
     global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT;
 
+    COM_errorLog("Updating Plugin to 0.0.3");
     $c = config::get_instance();
     if ($c->group_exists($_CONF_MEMBERSHIP['pi_name'])) {
         $c->add('notifymethod', $_MEMBERSHIP_DEFAULT['notifymethod'],
@@ -153,8 +163,8 @@ function MEMBERSHIP_upgrade_0_0_3()
                 'text', 20, 20, 0, 20, true, $_CONF_MEMBERSHIP['pi_name']);
         $c->add('mg_quota_nonmember', $_MEMBERSHIP_DEFAULT['mg_quota_nonmember'],
                 'text', 20, 20, 0, 30, true, $_CONF_MEMBERSHIP['pi_name']);
-     }
-    return 0;
+    }
+    return MEMBERSHIP_do_set_version('0.0.3');
 }
 
 
@@ -168,8 +178,8 @@ function MEMBERSHIP_upgrade_0_1_1()
 {
     global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT, $_TABLES;
 
-    $error = MEMBERSHIP_do_upgrade_sql('0.1.1');
-    if ($error) return $error;
+    COM_errorLog("Updating Plugin to 0.0.1");
+    if (!MEMBERSHIP_do_upgrade_sql('0.1.1')) return false;
 
     $c = config::get_instance();
     if ($c->group_exists($_CONF_MEMBERSHIP['pi_name'])) {
@@ -200,7 +210,7 @@ function MEMBERSHIP_upgrade_0_1_1()
 
     // Get the membership admin group ID if available
     // to set the access code for admin-only plans
-    $gid = (int)DB_getItem($_TABLES['groups'], 'grp_id', 
+    $gid = (int)DB_getItem($_TABLES['groups'], 'grp_id',
             "grp_name='{$_CONF_MEMBERSHIP['pi_name']} Admin'");
     if ($gid < 1)
         $gid = 1;        // default to Root if group not found
@@ -212,7 +222,7 @@ function MEMBERSHIP_upgrade_0_1_1()
     // Admin-only changes from 0 to the admin GID
     DB_query("UPDATE {$_TABLES['membership_plans']}
                 SET access = $gid WHERE access = 0", 1);
-    return $error;
+    return MEMBERSHIP_do_set_version('0.0.3');
 }
 
 /**
@@ -223,8 +233,10 @@ function MEMBERSHIP_upgrade_0_1_2()
 {
     global $_CONF_MEMBERSHIP, $_MEMBERSHIP_DEFAULT, $_TABLES;
 
+    COM_errorLog("Updating Plugin to 0.0.3");
     DB_query("ALTER TABLE {$_TABLES['membership_plans']}
             CHANGE access grp_access int(11) unsigned not null default 2");
+    return true;
 }
 
 
@@ -232,15 +244,17 @@ function MEMBERSHIP_upgrade_0_1_2()
 *   Actually perform any sql updates.
 *
 *   @param  string  $version    Version being upgraded TO
-*   @return integer         0 on success, 1 on failure.
+*   @return boolean     True on success, False on failure
 */
 function MEMBERSHIP_do_upgrade_sql($version)
 {
     global $_TABLES, $_CONF_MEMBERSHIP, $_UPGRADE_SQL;
 
+    COM_errorLog("Updating Plugin to $current_ver");
     // If no sql statements passed in, return success
     if (!isset($_UPGRADE_SQL[$version]) || !is_array($_UPGRADE_SQL[$version])) {
-        return 0;
+        COM_errorLog("No SQL update for $current_ver");
+        return true;
     }
     // Execute SQL now to perform the upgrade
     COM_errorLOG("--Updating Membership to version $version");
@@ -249,11 +263,40 @@ function MEMBERSHIP_do_upgrade_sql($version)
         DB_query($q, '1');
         if (DB_error()) {
             COM_errorLog("SQL Error during Membership plugin update",1);
-            return 1;
+            return false;
             break;
         }
     }
-    return 0;
+    return true;
+}
+
+
+/**
+*   Update the plugin version number in the database.
+*   Called at each version upgrade to keep up to date with
+*   successful upgrades.
+*
+*   @param  string  $ver    New version to set
+*   @return boolean         True on success, False on failure
+*/
+function MEMBERSHIP_do_set_version($ver)
+{
+    global $_TABLES, $_CONF_MEMBERSHIP;
+
+    // now update the current version number.
+    $sql = "UPDATE {$_TABLES['plugins']} SET
+            pi_version = '{$_CONF_MEMBERSHIP['pi_version']}',
+            pi_gl_version = '{$_CONF_MEMBERSHIP['gl_version']}',
+            pi_homepage = '{$_CONF_MEMBERSHIP['pi_url']}'
+        WHERE pi_name = '{$_CONF_MEMBERSHIP['pi_name']}'";
+
+    $res = DB_query($sql, 1);
+    if (DB_error()) {
+        COM_errorLog("Error updating the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin version",1);
+        return false;
+    } else {
+        return true;
+    }
 }
 
 ?>

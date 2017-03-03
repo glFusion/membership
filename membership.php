@@ -3,9 +3,9 @@
 *   Table definitions and other static config variables.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.1.1
+*   @version    0.1.2
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -37,7 +37,7 @@ $_TABLES['membership_positions'] = $prefix . 'positions';
 */
 global $_CONF_MEMBERSHIP;
 $_CONF_MEMBERSHIP['pi_name']           = 'membership';
-$_CONF_MEMBERSHIP['pi_version']        = '0.1.1';
+$_CONF_MEMBERSHIP['pi_version']        = '0.1.2';
 $_CONF_MEMBERSHIP['gl_version']        = '1.4.0';
 $_CONF_MEMBERSHIP['pi_url']            = 'http://www.leegarner.com';
 $_CONF_MEMBERSHIP['pi_display_name']   = 'Membership';

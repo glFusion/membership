@@ -128,6 +128,10 @@ $_UPGRADE_SQL = array(
     ADD mem_number varchar(40) DEFAULT '',
     ADD mem_istrial tinyint(1) unsigned default 0",
   ),
+'0.1.2' => array(
+    "ALTER TABLE {$_TABLES['membership_plans']}
+        CHANGE access grp_access int(11) unsigned not null default 2",
+  ),
 );
 
 $_MEMBERSHIP_SAMPLEDATA = array(

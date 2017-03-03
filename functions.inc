@@ -246,46 +246,8 @@ function plugin_getheadercss_membership()
 */
 function plugin_upgrade_membership()
 {
-    global $_TABLES, $_CONF_MEMBERSHIP;
-
-    $pi_name = $_CONF_MEMBERSHIP['pi_name'];
-
-    // Get the current version, compare to the version in the plugin code
-    $current_ver = DB_getItem($_TABLES['plugins'], 'pi_version',
-        "pi_name = '$pi_name'");
-    if (!$current_ver) {
-        COM_errorLog("Error getting the $pi_name Plugin version",1);
-        return '03';
-    }
-
-    // if we're at the current version, what are we doing here?
-    if ($current_ver >= $_CONF_MEMBERSHIP['pi_version']) {
-        COM_errorLog("Current version $current_ver is already up to date");
-        return '06';
-    }
-
-    // If we're still here, import the upgrade functions.
-    require_once 'upgrade.inc.php';
-    $error = MEMBERSHIP_do_upgrade($current_ver);
-    if ($error) {
-        COM_errorLog("Error updating the $pi_name Plugin version",1);
-        return '04';
-    }
-
-    // now update the current version number.
-    DB_query("UPDATE {$_TABLES['plugins']} SET
-            pi_version = '{$_CONF_MEMBERSHIP['pi_version']}',
-            pi_gl_version = '{$_CONF_MEMBERSHIP['gl_version']}',
-            pi_homepage = '{$_CONF_MEMBERSHIP['pi_url']}'
-        WHERE pi_name = '$pi_name';", 1);
-
-    if (DB_error()) {
-        COM_errorLog("Error updating the $pi_name Plugin version",1);
-        return '05';
-    }
-
-    COM_errorLog("Succesfully updated the $pi_name Plugin!",1);
-    return true;
+    require_once MEMBERSHIP_PI_PATH . '/upgrade.inc.php';
+    return MEMBERSHIP_do_upgrade();
 }
 
 
