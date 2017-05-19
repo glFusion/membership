@@ -20,36 +20,39 @@ if (!MEMBERSHIP_isManager()) {
     COM_accessLog("User {$_USER['username']} tried to illegally access the classifieds admin ajax function.");
     exit;
 }
-
-switch ($_GET['action']) {
+$result = array(
+    'status' => 0,
+    'statusMessage' => 'Undefined',
+);
+switch ($_POST['action']) {
 case 'remlinkuser':
     USES_membership_class_link();
-    MemberLink::RemLink($_GET['uid1'], $_GET['uid2']);
+    MemberLink::RemLink($_POST['uid1'], $_POST['uid2']);
     break;
 
 case 'addlinkuser':
     USES_membership_class_link();
-    MemberLink::AddLink($_GET['uid1'], $_GET['uid2']);
+    MemberLink::AddLink($_POST['uid1'], $_POST['uid2']);
     break;
 
 case 'emancipate':
     USES_membership_class_link();
-    MemberLink::Emancipate($_GET['uid1']);
+    MemberLink::Emancipate($_POST['uid1']);
     break;
 
 case 'toggle':
-    switch ($_GET['component']) {
+    switch ($_POST['component']) {
     case 'enabled':
 
-        switch ($_GET['type']) {
+        switch ($_POST['type']) {
         case 'plan':
             USES_membership_class_plan();
-            $newval = MembershipPlan::toggleEnabled($_REQUEST['oldval'], $_REQUEST['id']);
+            $newval = MembershipPlan::toggleEnabled($_POST['oldval'], $_POST['id']);
             break;
 
         case 'position':
             USES_membership_class_position();
-            $newval = MemPosition::toggle($_REQUEST['oldval'], $_GET['component'], $_REQUEST['id']);
+            $newval = MemPosition::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
             break;
 
          default:
@@ -59,7 +62,7 @@ case 'toggle':
 
     case 'show_vacant':
         USES_membership_class_position();
-        $newval = MemPosition::toggle($_REQUEST['oldval'], $_GET['component'], $_REQUEST['id']);
+        $newval = MemPosition::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
         break;
 
     default:
@@ -67,20 +70,20 @@ case 'toggle':
     }
 
     $result = array(
-            'newval' => $newval,
-            'id' => $_GET['id'],
-            'type' => $_GET['type'],
-            'component' => $_GET['component'],
-            'baseurl' => $_CONF['site_url'],
+        'newval'    => $newval,
+        'id'        => $_POST['id'],
+        'type'      => $_POST['type'],
+        'component' => $_POST['component'],
+        'statusMessage' => $newval != $_POST['oldval'] ? $LANG_MEMBERSHIP['item_updated'] :
+                $LANG_MEMBERSHIP['item_nochange'],
     );
-    $result = json_encode($result);
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-cache, must-revalidate');
-    //A date in the past
-    header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-    echo $result;
     break;
-
 }
+$result = json_encode($result);
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, must-revalidate');
+//A date in the past
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+echo $result;
 
 ?>

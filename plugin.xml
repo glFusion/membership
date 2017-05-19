@@ -3,7 +3,7 @@
     <name>Forms</name>
     <description>Provides an interface to manage club members.</description>
     <version>0.1.2</version>
-    <glfusionversion>1.4.0</glfusionversion>
+    <glfusionversion>1.6.0</glfusionversion>
     <phpversion>5.3.0</phpversion>
     <url>http://www.leegarner.com</url>
     <maintainer>Lee Garner</maintainer>

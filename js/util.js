@@ -32,60 +32,31 @@ function MEM_highlight(id, state)
     }
 }
 
-var MEMB_xmlHttp;
-function MEMB_toggle(ckbox, id, type, component, base_url)
-{
-  if (window.XMLHttpRequest) {
-    MEMB_xmlHttp=new XMLHttpRequest()
-  } else if (window.ActiveXObject) {
-    MEMB_xmlHttp=new ActiveXObject("Microsoft.XMLHTTP")
-  }
-  if (MEMB_xmlHttp==null) {
-    alert ("Browser does not support HTTP Request")
-    return
-  }
-
-  // value is reversed since we send the oldvalue to ajax
-  var oldval = ckbox.checked == true ? 0 : 1;
-  var url=base_url + "/ajax.php?action=toggle";
-  url=url+"&id="+id;
-  url=url+"&type="+type;
-  url=url+"&component="+component;
-  url=url+"&oldval="+oldval;
-  url=url+"&sid="+Math.random();
-  MEMB_xmlHttp.onreadystatechange=MEMBstateChanged;
-  MEMB_xmlHttp.open("GET",url,true);
-  MEMB_xmlHttp.send(null);
-}
-
-function MEMBstateChanged()
-{
-  var newstate;
-
-  if (MEMB_xmlHttp.readyState==4 || MEMB_xmlHttp.readyState=="complete") {
-    jsonObj = JSON.parse(MEMB_xmlHttp.responseText)
-
-    // Set the span ID of the updated checkbox
-    var spanid = jsonObj.component + "_" + jsonObj.id;
-    if (jsonObj.newval == 1) {
-        document.getElementById(spanid).checked = true;
-    } else {
-        document.getElementById(spanid).checked = false;
-    }
-/*
-    xmlDoc=MEMB_xmlHttp.responseXML;
-    id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
-    //imgurl = xmlDoc.getElementsByTagName("imgurl")[0].childNodes[0].nodeValue;
-    baseurl = xmlDoc.getElementsByTagName("baseurl")[0].childNodes[0].nodeValue;
-    type = xmlDoc.getElementsByTagName("type")[0].childNodes[0].nodeValue;
-    component = xmlDoc.getElementsByTagName("component")[0].childNodes[0].nodeValue;
-    if (xmlDoc.getElementsByTagName("newval")[0].childNodes[0].nodeValue == 1) {
-        newval = 1;
-        document.getElementById("tog"+type+id).checked = true;
-    } else {
-        newval = 0;
-        document.getElementById("tog"+type+id).checked = false;
-    }*/
-  }
-}
+var MEMB_toggle = function(cbox, id, type, component) {
+    oldval = cbox.checked ? 0 : 1;
+    var dataS = {
+        "action" : "toggle",
+        "id": id,
+        "type": type,
+        "oldval": oldval,
+        "component": component,
+    };
+    data = $.param(dataS);
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: site_admin_url + "/plugins/membership/ajax.php",
+        data: data,
+        success: function(result) {
+            cbox.checked = result.newval == 1 ? true : false;
+            try {
+                $.UIkit.notify("<i class='uk-icon-check'></i>&nbsp;" + result.statusMessage, {timeout: 1000,pos:'top-center'});
+            }
+            catch(err) {
+                alert(result.statusMessage);
+            }
+        }
+    });
+    return false;
+};
 

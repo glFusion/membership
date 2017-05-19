@@ -120,10 +120,6 @@ div.grouplist .vacant {
     color: red;
 }
 
-.memb-icon-danger {
-    color: red;
-}
-
 /* Override button styles when using uk-icons */
 .memb-icon-button {
     border: none;
@@ -131,3 +127,21 @@ div.grouplist .vacant {
     margin: 0 7px 0 0;
     padding: 0;
 }
+
+.mbr-icon-ok {
+    color: green;
+}
+.mbr-icon-danger {
+    color: red;
+}
+.mbr-icon-warning {
+    color: #FFD300;
+}
+.mbr-icon-info {
+    color: #0077dd;
+}
+.mbr-icon-unknown {
+    color: #530E53;
+}
+
+

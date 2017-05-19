@@ -59,7 +59,7 @@ $LANG_MEMBERSHIP = array(
 'joined'    => 'Joined',
 'expires'   => 'Expires',
 'na'        => 'N/A',
-'upd_links' => 'Update Linked',
+'upd_links' => 'Update Linkes',
 'q_del_item'    => 'Are you sure that you want to delete this item?',
 'q_del_member'  => 'Are you sure that you want to delete these members? ' .
 'The member will be unlinked from any linked accounts, and the membership record will be permanently deleted.',
@@ -150,7 +150,7 @@ $LANG_MEMBERSHIP = array(
 'related_accounts'  => 'Related Accounts',
 //'hlp_new_plan' => 'Create a new custom form definition.  The Order indicates where the item will appear on membership relative to other items, and may be changed later.',
 //'hlp_reset_perms' => 'Reset all field permissions to their default values.',
-'hlp_member_edit' => '<ul><li>Linking or Unlinking an account will immediately add or remove that account from the family, but <span class="warning">membership information is not saved until the &quot;Save&quot; button is clicked.</span></li>' .
+'hlp_member_edit' => '<ul><li>Linking or Unlinking an account will immediately add or remove that account from the family, but <span class="mbr-icon-danger">other membership information is not saved until the &quot;Save&quot; button is clicked.</span></li>' .
     '<li>Checking the &quot;Remove from family&quot; checkbox will remove <b>this</b> account from the family and leave other linked accounts alone.</li>' .
     '<li>If the membership type is set to update linked accounts, then all currently-linked accounts will be updated when the profile is saved. Un-linked accounts are not affected.</li>' .
     '</ul>',
@@ -185,6 +185,9 @@ $LANG_MEMBERSHIP = array(
 'regen_mem_numbers' => 'Regen Mem Numbers',
 'istrial' => 'Trial Membership?',
 'trial' => 'Trial',
+'item_updated' => 'Item has been updated.',
+'item_nochange' => 'Item has not been changed.',
+'rem_this_item' => 'Remove this item',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';

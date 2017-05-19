@@ -214,6 +214,7 @@ class Membership
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
             'mem_istrial' => $this->istrial,
             'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
+            'iconset' => MEMBERSHIP_iconPrefix(),
         ) );
         if ($action_url != '') {
             $T->set_var(array(

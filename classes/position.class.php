@@ -219,22 +219,13 @@ class MemPosition
     *   Sets a boolean field to the opposite of the supplied value
     *
     *   @param  integer $oldvalue   Old (current) value
-    *   @param  string  $varname    Name of DB field to set
+    *   @param  string  $field      Name of DB field to set
     *   @param  integer $id         ID number of element to modify
     *   @return         New value, or old value upon failure
     */
-    public function toggle($oldvalue, $field, $id='')
+    public static function toggle($oldvalue, $field, $id)
     {
         global $_TABLES;
-
-        // See if we're called with an ID, or expecting to use the
-        // current object.
-        if ($id == '') {
-            if (is_object($this))
-                $id = $this->name;
-            else
-                return;
-        }
 
         // If it's still an invalid ID, return the old value
         if ($id == '')
@@ -245,7 +236,7 @@ class MemPosition
         case 'show_vacant':
             break;
         default:
-            return;
+            return $oldvalue;
         }
 
         // Determing the new value (opposite the old)
@@ -256,7 +247,6 @@ class MemPosition
                 WHERE id = " . (int)$id;
         //echo $sql;die;
         DB_query($sql, 1);
-
         return DB_error() ? $oldvalue : $newvalue;
     }
 

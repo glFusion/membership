@@ -6,7 +6,7 @@
 *   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
 */
@@ -25,13 +25,13 @@ if (!isset($_CONF_MEMBERSHIP['member_group'])) {
 require_once 'membership.php';
 
 /** Define the absolute path to the plugin's directory */
-define('MEMBERSHIP_PI_PATH', 
+define('MEMBERSHIP_PI_PATH',
         $_CONF['path'] . 'plugins/' . $_CONF_MEMBERSHIP['pi_name']);
 /** Define the base public url for the plugin */
-define('MEMBERSHIP_PI_URL', 
+define('MEMBERSHIP_PI_URL',
         $_CONF['site_url'] . '/' . $_CONF_MEMBERSHIP['pi_name']);
 /** Define the administration url for the plugin */
-define('MEMBERSHIP_ADMIN_URL', 
+define('MEMBERSHIP_ADMIN_URL',
         $_CONF['site_admin_url'] . '/plugins/' . $_CONF_MEMBERSHIP['pi_name']);
 
 // Define types of membership activity
@@ -87,16 +87,20 @@ if (file_exists(MEMBERSHIP_PI_PATH . '/config.php')) {
     include_once MEMBERSHIP_PI_PATH . '/config.php';
 }
 
-$_CONF_MEMBERSHIP['today'] = date('Y-m-d');
+// This is temporary, and will be included in glFusion 1.6.0
+$_CONF_MEMBERSHIP['_is_uikit'] = $_SYSTEM['framework'] == 'uikit' ? true : false;
+
+$_CONF_MEMBERSHIP['now'] = new Date('now', $_CONF['timezone']);
+$_CONF_MEMBERSHIP['today'] = $_CONF_MEMBERSHIP['now']->format('Y-m-d', true);
 // Save the date that the grace period ends.  If expiration is earlier than this,
 // the membership has expired
 $_CONF_MEMBERSHIP['dt_end_grace'] = date('Y-m-d',
-        strtotime('-' . $_CONF_MEMBERSHIP['grace_days'] . ' day', 
+        strtotime('-' . $_CONF_MEMBERSHIP['grace_days'] . ' day',
             strtotime($_CONF_MEMBERSHIP['today'])));
 // Save the latest expiration date that qualifies for renewal. If expiration is
 // after this date the user cannot renew yet.
 $_CONF_MEMBERSHIP['dt_begin_renewal'] = date('Y-m-d',
-        strtotime('+' . $_CONF_MEMBERSHIP['early_renewal'] . ' day', 
+        strtotime('+' . $_CONF_MEMBERSHIP['early_renewal'] . ' day',
             strtotime($_CONF_MEMBERSHIP['today'])));
 
 //if (!isset($_CONF_MEMBERSHIP['member_all_group']) ||
@@ -164,7 +168,7 @@ function plugin_getmenuitems_membership()
 
 
 /**
-*   This will put an option for membership administration in the command 
+*   This will put an option for membership administration in the command
 *   and control area
 *
 *   @return   mixed   array(title, url, icon), or false when not allowed
@@ -233,10 +237,10 @@ function plugin_getheadercss_membership()
             $styles[] = $defpath . '/custom/' . $file;
         }
         if (is_file($layoutpath . '/' . $file)) {
-        	$styles[] = $layoutpath . '/' . $file;
+            $styles[] = $layoutpath . '/' . $file;
         }
     }
-	return $styles;
+    return $styles;
 }
 
 
@@ -277,9 +281,9 @@ function plugin_autouninstall_membership ()
 {
     global $_CONF_MEMBERSHIP;
     $out = array (
-        // give the name of the tables, without $_TABLES[] 
+        // give the name of the tables, without $_TABLES[]
         'tables' => array(
-                'membership_members', 
+                'membership_members',
                 'membership_plans',
                 'membership_links',
                 'membership_log',
@@ -315,19 +319,16 @@ function plugin_autouninstall_membership ()
 function phpblock_membership_memberinfo()
 {
     global $_GROUPS, $_CONF_MEMBERSHIP;
-    
+
     $retval = '';
 
     $curr = MEMBERSHIP_currentMembership();
     if (in_array($_GROUPS, $_CONF_MEMBERSHIP['member_group'])) {
-        //in_array($_GROUPS, $_CONF_MEMBERSHIP['member_all_group']) ) {
         $retval .= sprinf($LANG_MEMBERSHIP['blk_member_info'],
             $curr->plan_id, $curr->expires);
-    //} elseif ($curr->isNew != true) {   // expired member
     } else {
         $retval .= $LANG_MEMBERSHIP['blk_join_now'];
     }
-
     return $retval;
 }
 
@@ -396,7 +397,7 @@ function plugin_user_changed_membership($uid=0)
         $vars = array('notified', 'expires', 'joined', 'position', 'plan_id',
                 'number', 'istrial');
         foreach ($vars as $var) {
-            if (isset($_POST['mem_'.$var]) && 
+            if (isset($_POST['mem_'.$var]) &&
                 $_POST['mem_'.$var] != $_POST['mem_'.$var.'_orig']) {
                 $need_save = true;
                 $op = 'updated';
@@ -542,7 +543,7 @@ function MEMBERSHIP_getDocURL($file, $doclang='')
     global $_CONF, $_CONF_MEMBERSHIP;
 
     if ($doclang == '') $doclang = $_CONF['language'];
-    $doc_path = $_CONF['path_html'] . $_CONF_MEMBERSHIP['pi_name'] . 
+    $doc_path = $_CONF['path_html'] . $_CONF_MEMBERSHIP['pi_name'] .
                 "/docs/$doclang/";
     $doc_url = '';
 
@@ -569,7 +570,7 @@ function MEMBERSHIP_getDocURL($file, $doclang='')
 *
 *   @param  string $msg     Error message to display
 *   @param  string $type    Type of message, used for style and header
-*   @param  string $header  Optional header text.  
+*   @param  string $header  Optional header text.
 *   @return string          HTML for formatted error message
 */
 function MEMBERSHIP_errorMessage($msg, $type = '', $header = '')
@@ -723,7 +724,7 @@ function plugin_runScheduledTask_membership()
     // Purge old membership records.
     $days = (int)$_CONF_MEMBERSHIP['drop_days'];
     if ($days > -1) {
-        $sql = "UPDATE {$_TABLES['membership_members']} 
+        $sql = "UPDATE {$_TABLES['membership_members']}
             SET mem_status = " . MEMBERSHIP_STATUS_DROPPED . " WHERE
             '{$_CONF_MEMBERSHIP['today']}' > (expires + interval $days DAY)";
         $res = DB_query($sql, 1);
@@ -752,10 +753,10 @@ function MEMBERSHIP_notifyExpiration()
         return;
     }
     $exp_check = date('Y-m-d',
-        strtotime('+' . $_CONF_MEMBERSHIP['notifydays'] . ' day', 
+        strtotime('+' . $_CONF_MEMBERSHIP['notifydays'] . ' day',
             strtotime($_CONF_MEMBERSHIP['today'])));
     $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
-    $sql = "SELECT m.mem_uid, m.mem_notified, 
+    $sql = "SELECT m.mem_uid, m.mem_notified,
                 p.plan_id, p.name, p.description,
                 u.email, m.mem_expires
             FROM {$_TABLES['membership_members']} m
@@ -809,7 +810,7 @@ function MEMBERSHIP_notifyExpiration()
                 'product'       => $row['name'],
                 'item_id'       => $row['plan_id'],
                 'short_description' => $row['description'],
-                'detail_url'    => MEMBERSHIP_PI_URL . 
+                'detail_url'    => MEMBERSHIP_PI_URL .
                         '/index.php?detail=x&amp;plan_id=' .
                         urlencode($row['plan_id']),
                 'buy_button'    => $button,
@@ -832,7 +833,7 @@ function MEMBERSHIP_notifyExpiration()
                     $row['plan_id'], $row['mem_expires']) .
                     ' ' . $LANG_MEMBERSHIP['renew_link'];
             $expire_msg = date('Y-m-d',
-                strtotime('-' . $_CONF_MEMBERSHIP['grace_days'] . ' day', 
+                strtotime('-' . $_CONF_MEMBERSHIP['grace_days'] . ' day',
                     strtotime($row['mem_expires'])));
             LGLIB_storeMessage(array(
                 'message' => $msg,
@@ -851,10 +852,10 @@ function MEMBERSHIP_notifyExpiration()
     // Mark that the expiration notification has been sent.
     if (!empty($notified_ids)) {
         $ids = implode(',', $notified_ids);
-        $sql = "UPDATE {$_TABLES['membership_members']} 
-                SET mem_notified=1 
+        $sql = "UPDATE {$_TABLES['membership_members']}
+                SET mem_notified=1
                 WHERE mem_uid IN ($ids)";
-        DB_query($sql, 1); 
+        DB_query($sql, 1);
         if (DB_error()) {
             COM_errorLog("membership: error executing $sql");
         }
@@ -922,7 +923,7 @@ function MEMBERSHIP_auditLog($logentry = '', $system=false)
 
     // A little sanitizing
     $logentry = str_replace(
-            array('<?', '?>'), 
+            array('<?', '?>'),
             array('(@', '@)'),
             $logentry);
 
@@ -937,8 +938,8 @@ function MEMBERSHIP_auditLog($logentry = '', $system=false)
     if ($system == false) {
         // Get the user name if it's not anonymous
         if (isset($_USER['uid'])) {
-            $byuser = $_USER['uid'] . '-'. 
-                    COM_getDisplayName($_USER['uid'], 
+            $byuser = $_USER['uid'] . '-'.
+                    COM_getDisplayName($_USER['uid'],
                         $_USER['username'], $_USER['fullname']);
         } else {
             $byuser = 'anon';
@@ -1165,10 +1166,10 @@ function MEMBERSHIP_memberstatuses()
 */
 function MEMBERSHIP_getTemplate($name, $id, $path='')
 {
-    global $_SYSTEM;
+    global $_CONF_MEMBERSHIP;
 
     // May use "switch" later, for now there are only two options
-    $tpltype = $_SYSTEM['framework'] == 'uikit' ? '.uikit' : '';
+    $tpltype = $_CONF_MEMBERSHIP['_is_uikit'] ? '.uikit' : '';
     $filename = "$name$tpltype.thtml";
     if (substr($path, 0, 9) != 'templates') {
         $path = 'templates/' . $path;
@@ -1181,7 +1182,32 @@ function MEMBERSHIP_getTemplate($name, $id, $path='')
     return $T;
 }
 
-// This is temporary, and will be included in glFusion 1.6.0
-isset($_SYSTEM['framework']) || $_SYSTEM['framework'] = 'legacy';
+
+/**
+*   Get an icon from the CSS icon set, either UIkit or FontAwesome
+*
+*   @param  string  $name   Base name of icon, e.g. "edit" for "uk-icon-edit"
+*   @param  string  $style  Style name from local CSS
+*   @return string      Class names for icon
+*/
+function MEMBERSHIP_getIcon($name, $style='info')
+{
+    global $_CONF_MEMBERSHIP;
+
+    if ($style != '')
+        $style = ' mbr-icon-' . $style;
+
+    if ($_CONF_MEMBERSHIP['_is_uikit']) {
+        return ' uk-icon-' . $name . $style;
+    } else {
+        return 'fa fa-' . $name . $style;
+    }
+}
+
+function MEMBERSHIP_iconPrefix()
+{
+    global $_CONF_MEMBERSHIP;
+    return $_CONF_MEMBERSHIP['_is_uikit'] ? 'uk-icon-' : 'fa fa-icon-';
+}
 
 ?>

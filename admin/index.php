@@ -383,14 +383,16 @@ function MEMBERSHIP_listMembers()
             $LANG_MEMBERSHIP['show_expired'];
 
     if ($_SYSTEM['framework'] == 'uikit') {
-        $del_action = '<button name="deletebutton" class="uk-icon uk-icon-trash memb-icon-button memb-icon-danger"'
+        $del_action = '<button name="deletebutton" class="' .
+                MEMBERSHIP_getIcon('trash', 'danger') . ' memb-icon-button"'
             . ' style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
             . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['q_del_member']
             . '\');" ></button>'
             . $LANG_ADMIN['delete'];
-        $renew_action = '<button name="renewbutton" class="uk-icon uk-icon-refresh memb-icon-button"'
+        $renew_action = '<button name="renewbutton" class="'
+            . MEMBERSHIP_getIcon('refresh') . ' memb-icon-button"'
             . ' style="vertical-align:text-bottom;" title="'
-            . $LANG_MEMBERSHIP['renew_all'] 
+            . $LANG_MEMBERSHIP['renew_all']
             . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
             . '\');" ></button>' . $LANG_MEMBERSHIP['renew'];
     } else {
@@ -606,7 +608,7 @@ function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
         if ($_SYSTEM['framework'] == 'uikit') {
             $retval = COM_createLink('',
                 MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
-                array('class' => 'uk-icon uk-icon-trash memb-icon-danger',
+                array('class' => MEMBERSHIP_getIcon('trash', 'danger'),
                     'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');" ) );
         } else {
             $retval = COM_createLink(
