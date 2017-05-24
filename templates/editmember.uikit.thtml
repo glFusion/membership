@@ -10,7 +10,7 @@ var MEMaddElement = function(selid) {
         "\">" + uname + " (" + uid + ")</a>";
   str = str + "&nbsp;&nbsp;<a href=\"#\" onclick='MEMremoveElement(" +
         uid + ",\"" + uname + "\")'>" +
-        "<i class=\"{iconset}trash mbr-icon-danger tooltip\"" +
+        "<i class=\"{iconset}-trash mbr-icon-danger tooltip\"" +
             "title=\"{$LANG_MEMBERSHIP['rem_this_item']}\"></i>" +
         "</a>";
   new_elem.innerHTML = str;
@@ -69,11 +69,11 @@ function togglePmtDiv()
 {
     if (is_expanded) {
         document.getElementById('pmt_div').style.display="none";
-        document.getElementById('exp_col').className="{iconset}chevron-down";
+        document.getElementById('exp_col').className="{iconset}-arrow-down";
         is_expanded = 0;
     } else {
         document.getElementById('pmt_div').style.display="block";
-        document.getElementById('exp_col').className="{iconset}chevron-up";
+        document.getElementById('exp_col').className="{iconset}-arror-up";
         is_expanded = 1;
     }
 }
@@ -88,7 +88,7 @@ function togglePmtDiv()
   <input type="hidden" name="mem_old_links" value='{old_links}' />
   <fieldset>
     <legend>{$LANG_MEMBERSHIP['pmt_info']}
-      <span class="{iconset}chevron-down" onclick="javascript:togglePmtDiv();" id="exp_col"></span>
+      <span class="{iconset}-arrow-down" onclick="javascript:togglePmtDiv();" id="exp_col"></span>
     </legend>
     <div style="display:none;" id="pmt_div">
       {!if is_member}
@@ -105,7 +105,7 @@ function togglePmtDiv()
         <div class="uk-form-controls">
         <input type="text" id="f_dtpaid" name="mem_pmtdate" size="25"
               value="{pmt_date}" maxlength="30" />
-        <i class="{iconset}calendar tooltip"
+        <i class="{iconset}-calendar tooltip"
               id="dtpaid_trigger"
               style="cursor: pointer;"
               alt="Date Selector"
@@ -179,7 +179,7 @@ function togglePmtDiv()
         <input type="hidden" name="mem_joined_orig" value="{joined}" />
         <input type="text" id="f_dtjoined" name="mem_joined" size="15"
             value="{joined}" maxlength="15" />
-        <i class="{iconset}calendar tooltip"
+        <i class="{iconset}-calendar tooltip"
             id="dtjoin_trigger"
             style="cursor: pointer;"
             alt="Date Selector"
@@ -196,7 +196,7 @@ function togglePmtDiv()
         <input type="hidden" name="mem_expires_orig"  value="{expires}"/>
         <input type="text" id="f_dtexpire" name="mem_expires" size="15"
             value="{expires}" maxlength="15" />
-        <i class="{iconset}calendar tooltip"
+        <i class="{iconset}-calendar tooltip"
             id="dtexpire_trigger"
             style="cursor: pointer;"
             alt="Date Selector"
@@ -260,7 +260,7 @@ function togglePmtDiv()
           <li id="link{uid}">
             <a href="{site_url}/users.php?mode=profile&amp;uid={uid}">{uname}</a>&nbsp;&nbsp;
             <a href="#" onclick='MEMremoveElement({uid},"{uname}")'>
-              <i class="{iconset}trash mbr-icon-danger tooltip"
+              <i class="{iconset}-trash mbr-icon-danger tooltip"
                 title="{$LANG_MEMBERSHIP['rem_this_item']}"></i>
             </a>
           </li>

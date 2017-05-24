@@ -6,7 +6,7 @@
 *   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *              GNU Public License v2 or later
 *   @filesource
 */
@@ -196,8 +196,8 @@ case 'deletepos':
     $P->Remove();
     COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
     exit;
-    break; 
-    
+    break;
+
 /*case 'update':
     // Save or update a membership record
     USES_membership_class_member();
@@ -336,7 +336,7 @@ echo $output;
 function MEMBERSHIP_listMembers()
 {
     global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP, $_IMAGE_TYPE,
-        $_CONF_MEMBERSHIP, $_SYSTEM;
+        $_CONF_MEMBERSHIP;
 
     $retval = '';
 
@@ -382,20 +382,19 @@ function MEMBERSHIP_listMembers()
     $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>' .
             $LANG_MEMBERSHIP['show_expired'];
 
-    if ($_SYSTEM['framework'] == 'uikit') {
-        $del_action = '<button name="deletebutton" class="' .
-                MEMBERSHIP_getIcon('trash', 'danger') . ' memb-icon-button"'
+    $del_action = '<button name="deletebutton" class="' .
+                MEM_getIcon('trash', 'danger') . ' memb-icon-button tooltip"'
             . ' style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
             . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['q_del_member']
             . '\');" ></button>'
             . $LANG_ADMIN['delete'];
-        $renew_action = '<button name="renewbutton" class="'
-            . MEMBERSHIP_getIcon('refresh') . ' memb-icon-button"'
+    $renew_action = '<button name="renewbutton" class="'
+            . MEM_getIcon('refresh', 'ok') . ' memb-icon-button tooltip"'
             . ' style="vertical-align:text-bottom;" title="'
             . $LANG_MEMBERSHIP['renew_all']
             . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
             . '\');" ></button>' . $LANG_MEMBERSHIP['renew'];
-    } else {
+    /*} else {
         $del_action = '<input name="deletebutton" type="image" src="'
             . $_CONF['layout_url'] . '/images/admin/delete.' . $_IMAGE_TYPE
             . '" style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
@@ -410,7 +409,7 @@ function MEMBERSHIP_listMembers()
             . '" class="gl_mootip"' 
             . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
             . '\');" />&nbsp;' . $LANG_MEMBERSHIP['renew'];
-    }
+    }*/
     $options = array(
         'chkdelete' => 'true',
         'chkfield' => 'mem_uid',
@@ -428,7 +427,7 @@ function MEMBERSHIP_listMembers()
             . '\');" />&nbsp;' . $LANG_MEMBERSHIP['regen_mem_numbers'];
     }
 
-     $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_member', 
+     $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 $options, $form_arr);
     return $retval;
@@ -454,7 +453,7 @@ function MEMBERSHIP_listPlans()
             'field' => 'plan_id', 'sort' => true),
         array('text' => $LANG_MEMBERSHIP['short_name'],
             'field' => 'name', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['enabled'], 
+        array('text' => $LANG_MEMBERSHIP['enabled'],
                 'field' => 'enabled', 'sort' => false,
                 'align' => 'center'),
     );
@@ -462,8 +461,7 @@ function MEMBERSHIP_listPlans()
     $defsort_arr = array('field' => 'plan_id', 'direction' => 'asc');
 
     $query_arr = array('table' => 'membership_plans',
-        'sql' => "SELECT * 
-                FROM {$_TABLES['membership_plans']} ",
+        'sql' => "SELECT * FROM {$_TABLES['membership_plans']} ",
         'query_fields' => array('name', 'description'),
         'default_filter' => ''
     );
@@ -473,7 +471,7 @@ function MEMBERSHIP_listPlans()
         'help_url'   => ''
     );
 
-    $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_plan', 
+    $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_plan',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, '', '',
                 '', $form_arr);
     return $retval;
@@ -491,30 +489,24 @@ function MEMBERSHIP_listPlans()
 */
 function MEMBERSHIP_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 {
-    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_SYSTEM;
+    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
     $retval = '';
 
     $pi_admin_url = MEMBERSHIP_ADMIN_URL;
     switch($fieldname) {
     case 'edit':
-        if ($_SYSTEM['framework'] == 'uikit') {
-            $retval = COM_createLink('',
-                MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' .
-                $A['plan_id'],
-                array('class' => 'uk-icon uk-icon-edit') );
-        } else {
-            $retval = COM_createLink($icon_arr['edit'],
-                MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' .
-                $A['plan_id'] );
-        }
+        $retval = COM_createLink(
+            '<i class="' . MEM_getIcon('edit', 'info') . '"></i>',
+            MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
+        );
         break;
 
     case 'delete':
         // Deprecated
         if (!MembershipPlan::hasMembers($A['plan_id'])) {
             $retval = COM_createLink(
-                "<img src=\"{$_CONF['layout_url']}/images/admin/delete.png\" 
+                "<img src=\"{$_CONF['layout_url']}/images/admin/delete.png\"
                     height=\"16\" width=\"16\" border=\"0\"
                     onclick=\"return confirm('{$LANG_MEMBERSHIP['q_del_member']}');\"
                     >",
@@ -565,64 +557,51 @@ function MEMBERSHIP_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 */
 function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 {
-    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_SYSTEM;
+    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
     $retval = '';
 
     $pi_admin_url = MEMBERSHIP_ADMIN_URL;
     switch($fieldname) {
     case 'editpos':
-        if ($_SYSTEM['framework'] == 'uikit') {
-            $retval = COM_createLink('',
-                MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'],
-                array('class' => 'uk-icon uk-icon-edit') );
-        } else {
-            $retval = COM_createLink($icon_arr['edit'],
-                MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'] );
-        }
+        $retval = COM_createLink(
+            '<i class="' . MEM_getIcon('edit', 'info') . '"></i>',
+            MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'],
+            array(
+                'class' => 'tooltip',
+                'title' => $LANG_MEMBERSHIP['edit'],
+            )
+        );
         break;
 
     case 'move':
-        if ($_SYSTEM['framework'] == 'uikit') {
-            $retval .= COM_createLink('',
-                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=up&id=' . $A['id'],
-                array('class' => 'uk-icon uk-icon-sort-up')
-                );
-            $retval .= '&nbsp;' . COM_createLink('',
-                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=down&id=' . $A['id'],
-                array('class' => 'uk-icon uk-icon-sort-down')
-                );
-        } else {
-            $retval = '<a href="' . MEMBERSHIP_ADMIN_URL . '/index.php' . 
-                "?type={$A['type']}&reorderpos=x&where=up&id={$A['id']}\">" .
-                "<img src=\"" . $_CONF['layout_url'] . 
-                '/images/up.png" height="16" width="16" border="0" /></a>'."\n";
-            $retval .= '<a href="' . MEMBERSHIP_ADMIN_URL . '/index.php' . 
-                "?type={$A['type']}&reorderpos=x&where=down&id={$A['id']}\">" .
-                "<img src=\"" . $_CONF['layout_url'] .
-                '/images/down.png" height="16" width="16" border="0" /></a>' . "\n";
-        }
+        $retval .= COM_createLink(
+            '<i class="' . MEM_getIcon('arrow-up', 'info') . '"></i>',
+            MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=up&id=' . $A['id']
+        );
+        $retval .= '&nbsp;' . COM_createLink(
+            '<i class="' . MEM_getIcon('arrow-down', 'info') . '"></i>',
+            MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=down&id=' . $A['id']
+        );
         break;
 
     case 'deletepos':
-        if ($_SYSTEM['framework'] == 'uikit') {
-            $retval = COM_createLink('',
-                MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
-                array('class' => MEMBERSHIP_getIcon('trash', 'danger'),
-                    'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');" ) );
-        } else {
-            $retval = COM_createLink(
-                "<img src=\"{$_CONF['layout_url']}/images/admin/delete.png\" 
-                    height=\"16\" width=\"16\" border=\"0\"
-                    onclick=\"return confirm('{$LANG_MEMBERSHIP['q_del_item']}');\"
-                    >",
-                MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id']
-            );
-        }
+        $retval = COM_createLink(
+            '<i class="' . MEM_getIcon('trash', 'danger') . '"></i>',
+            MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
+            array(
+                'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');",
+                'class' => 'tooltip',
+                'title' => $LANG_MEMBERSHIP['hlp_delete'],
+            )
+        );
        break;
 
     case 'type':
-        $retval = COM_createLink($fieldvalue, MEMBERSHIP_PI_URL . '/group.php?type=' . $fieldvalue);
+        $retval = COM_createLink(
+            $fieldvalue,
+            MEMBERSHIP_PI_URL . '/group.php?type=' . $fieldvalue
+        );
         break;
 
     case 'fullname':
@@ -642,10 +621,13 @@ function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
             $chk = '';
             $enabled = 0;
         }
-        $retval = "<input name=\"{$fieldname}_{$A['id']}\" " .
-                "id=\"{$fieldname}_{$A['id']}\" ".
-                "type=\"checkbox\" $chk " .
-                "onclick='MEMB_toggle(this, \"{$A['id']}\", \"position\", \"{$fieldname}\", \"{$pi_admin_url}\");' />\n";
+        $retval = '<input name="' . $fieldname . '_' . $A['id'] .
+                '" id="' . $fieldname . '_' . $A['id'] .
+                '" type="checkbox" ' . $chk .
+                ' title="' . $LANG_MEMBERSHIP['hlp_' . $fieldname] .
+                '" class="tooltip" ' .
+                'onclick=\'MEMB_toggle(this, "' . $A['id'] . '", "position", "' .
+                    $fieldname . '", "' . $pi_admin_url . '");\' />' . LB;
         break;
 
     default:
@@ -668,7 +650,8 @@ function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 */
 function MEMBERSHIP_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 {
-    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES, $_SYSTEM;
+    global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES,
+            $LANG_ADMIN;
 
     static $link_names = array();
     $retval = '';
@@ -677,14 +660,11 @@ function MEMBERSHIP_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
     switch($fieldname) {
     case 'edit':
         $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
-        if ($_SYSTEM['framework'] == 'uikit') {
-            $retval = COM_createLink('',
-                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
-                array('class' => 'uk-icon uk-icon-edit'));
-        } else {
-            $retval = COM_createLink($icon_arr['edit'],
-                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp);
-        }
+        $retval = COM_createLink(
+            '<i class="' . MEM_getIcon('edit', 'info') . ' tooltip" title="' .
+            $LANG_ADMIN['edit'] . '"></i>',
+            MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp
+        );
         break;
 
     case 'tx_fullname':
@@ -822,6 +802,15 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
 }
 
 
+/**
+*   Display the member's full name in the "Last, First" format with a link.
+*   Also sets class and javascript to highlight the same user's name elsewhere
+*   on the page.
+*
+*   @param  integer $uid    User ID, used to get the full name if not supplied.
+*   @paramq string  $fullname   Full name from the Users table.
+*   @return string      HTML for the styled user name.
+*/
 function MEMBER_CreateNameLink($uid, $fullname='')
 {
     global $_CONF;
@@ -830,13 +819,6 @@ function MEMBER_CreateNameLink($uid, $fullname='')
         $fullname = COM_getDisplayName($uid);
     }
     $fullname = NameParser::LCF($fullname);
-        /*$spc = strrpos($fullname, ' ');
-        if ($spc > 0) {
-            $lname = substr($fullname, $spc + 1);
-            $fname = substr($fullname, 0, $spc);
-            $fullname = $lname . ', ' . $fname;
-        }*/
-    //}
     $retval = '<span rel="rel_' . $uid .
         '" onmouseover="MEM_highlight(' . $uid . 
         ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
@@ -847,6 +829,11 @@ function MEMBER_CreateNameLink($uid, $fullname='')
 }
 
 
+/**
+*   Display a summary of memberships by plan
+*
+*   @return string  HTML output for the page
+*/
 function MEMBERSHIP_summaryStats()
 {
     global $_CONF_MEMBERSHIP, $_TABLES;
@@ -855,7 +842,6 @@ function MEMBERSHIP_summaryStats()
     $sql = "SELECT DISTINCT(mem_guid), mem_plan_id, mem_expires
             FROM {$_TABLES['membership_members']}
             WHERE mem_expires > '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
-//echo $sql;die;
     $rAll = DB_query($sql);
     $stats = array();
     $template = array('current' => 0, 'arrears' => 0);
@@ -899,6 +885,11 @@ function MEMBERSHIP_summaryStats()
 }
 
 
+/**
+*   List transactions
+*
+*   @return string  HTML output for the page
+*/
 function MEMBERSHIP_listTrans()
 {
     global $_TABLES, $LANG_MEMBERSHIP, $_CONF;
@@ -1070,7 +1061,6 @@ function MEMBERSHIP_listPositions()
 
     $display .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
     return $display;
-
 }
 
 ?>

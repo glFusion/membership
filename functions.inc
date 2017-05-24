@@ -89,6 +89,7 @@ if (file_exists(MEMBERSHIP_PI_PATH . '/config.php')) {
 
 // This is temporary, and will be included in glFusion 1.6.0
 $_CONF_MEMBERSHIP['_is_uikit'] = $_SYSTEM['framework'] == 'uikit' ? true : false;
+$_CONF_MEMBERSHIP['_iconset'] = $_CONF_MEMBERSHIP['_is_uikit'] ? 'uk-icon' : 'fa fa';
 
 $_CONF_MEMBERSHIP['now'] = new Date('now', $_CONF['timezone']);
 $_CONF_MEMBERSHIP['today'] = $_CONF_MEMBERSHIP['now']->format('Y-m-d', true);
@@ -1190,18 +1191,13 @@ function MEMBERSHIP_getTemplate($name, $id, $path='')
 *   @param  string  $style  Style name from local CSS
 *   @return string      Class names for icon
 */
-function MEMBERSHIP_getIcon($name, $style='info')
+function MEM_getIcon($name, $style='info')
 {
     global $_CONF_MEMBERSHIP;
 
     if ($style != '')
         $style = ' mbr-icon-' . $style;
-
-    if ($_CONF_MEMBERSHIP['_is_uikit']) {
-        return ' uk-icon-' . $name . $style;
-    } else {
-        return 'fa fa-' . $name . $style;
-    }
+    return $_CONF_MEMBERSHIP['_iconset'] . '-' . $name . $style;
 }
 
 function MEMBERSHIP_iconPrefix()

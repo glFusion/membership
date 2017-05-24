@@ -156,6 +156,9 @@ $LANG_MEMBERSHIP = array(
     '</ul>',
 'hlp_transfer_plan' => 'Select a plan to which all members will be converted.  This is required before a plan can be deleted that has current members.',
 'hlp_renew' => 'To add or renew a membership, set the expiration date above and add the payment information below.',
+'hlp_show_vacant' => 'If checked, vacant positions will be included in the &quot;positions&quot; page and shown as &quotVacant&quot.',
+'hlp_enabled' => 'Check or uncheck to enable or disable this item.',
+'hlp_delete' => 'Click to delete this item.',
 
 'msg_plan_has_members' => 'The selected plan has members and cannot be deleted without selecting a new plan for those members.',
 'msg_plan_deleted' => 'Membership plan was deleted',
