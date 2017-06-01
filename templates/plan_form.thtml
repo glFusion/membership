@@ -8,7 +8,7 @@
 
 <p>
   <label for="f_plan_id">{$LANG_MEMBERSHIP['plan_id']}:
-    <a href="#" onclick="popupWindow('{doc_url}#desc_plan_id', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_plan_id', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <input class="fValidate['required']" size="50"
@@ -17,7 +17,7 @@
 
 <p>
   <label for="f_name">{$LANG_MEMBERSHIP['short_name']}:
-    <a href="#" onclick="popupWindow('{doc_url}#desc_short_name', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_short_name', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <input class="fValidate['required']"  size="50"
@@ -26,7 +26,7 @@
 
 <p id="html_editarea">
   <label for="html_content">{$LANG_MEMBERSHIP['description']}:
-    <a href="#" onclick="popupWindow('{doc_url}#desc_description', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_description', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <textarea id="html_content" 
@@ -36,7 +36,7 @@
 
 <p>
   <label for="enabled">{$LANG_MEMBERSHIP['enabled']}?
-    <a href="#" onclick="popupWindow('{doc_url}#desc_enabled', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_enabled', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <input type="checkbox" name="enabled" value="1" {ena_chk} />
@@ -44,7 +44,7 @@
 
 <p>
   <label for="enabled">{$LANG_MEMBERSHIP['upd_links']}?
-    <a href="#" onclick="popupWindow('{doc_url}#desc_upd_links', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_upd_links', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <input type="checkbox" name="upd_links" value="1" {upd_links_chk} />
@@ -52,7 +52,7 @@
 
 <p>
   <label for="enabled">{$LANG_MEMBERSHIP['purch_access']}?
-    <a href="#" onclick="popupWindow('{doc_url}#desc_access', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_access', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <select name="grp_access">
@@ -62,7 +62,7 @@
 
 <p>
   <label for="period_start">{$LANG_MEMBERSHIP['period_start']}:
-    <a href="#" onclick="popupWindow('{doc_url}#desc_period_start', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_period_start', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   {period_start_text}
@@ -70,7 +70,7 @@
 
 <p>
   <label for="feeschedule">{$LANG_MEMBERSHIP['fee_schedule']}:
-    <a href="#" onclick="popupWindow('{doc_url}#desc_fee_schedule', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_fee_schedule', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
 
@@ -160,7 +160,7 @@
 
 <p>
   <label for="name">{$LANG_MEMBERSHIP['fixed_fee']}:
-    <a href="#" onclick="popupWindow('{doc_url}#desc_fixed_fee', 'Help', 640, 480, 1);return false;" class="toolbar">
+    <a href="#!" onclick="popupWindow('{doc_url}#desc_fixed_fee', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <input size="10" type="text" name="fixed_fee" value="{fixed_fee}" />
@@ -174,7 +174,7 @@
 <p>{$LANG_MEMBERSHIP['hlp_transfer_plan']}</p>
 <p>
   <label for="transfer_plan">{$LANG_MEMBERSHIP['transfer_plan']}:
-  <a href="#" onclick="popupWindow('{doc_url}#desc_transfer_plan', 'Help', 640, 480, 1);return false;" class="toolbar">
+  <a href="#!" onclick="popupWindow('{doc_url}#desc_transfer_plan', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
   <select name="transfer_plan">

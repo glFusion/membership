@@ -259,7 +259,7 @@ function togglePmtDiv()
           <!-- BEGIN LinkBlock -->
           <li id="link{uid}">
             <a href="{site_url}/users.php?mode=profile&amp;uid={uid}">{uname}</a>&nbsp;&nbsp;
-            <a href="#" onclick='MEMremoveElement({uid},"{uname}")'>
+            <a href="#!" onclick='MEMremoveElement({uid},"{uname}")'>
               <i class="{iconset}-trash mbr-icon-danger tooltip"
                 title="{$LANG_MEMBERSHIP['rem_this_item']}"></i>
             </a>

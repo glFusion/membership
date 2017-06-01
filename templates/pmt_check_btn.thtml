@@ -1,3 +1,3 @@
 {# begin {templatelocation} #}
-<a href="#" onclick="popupWindow('{site_url}/membership/index.php?pmtform&plan_id={plan_id}', '{$LANG_MEMBERSHIP['pmt_form']}', 800, 600, 1)" class="lgButton green">{$LANG_MEMBERSHIP['pay_by_check']}</a>
+<a href="#!" onclick="popupWindow('{site_url}/membership/index.php?pmtform&plan_id={plan_id}', '{$LANG_MEMBERSHIP['pmt_form']}', 800, 600, 1)" class="lgButton green">{$LANG_MEMBERSHIP['pay_by_check']}</a>
 {# end {templatelocation} #}

@@ -8,7 +8,7 @@
 
   <p>
     <label>{$LANG_MEMBERSHIP['position']}:
-      <a href="#" onclick="popupWindow('{doc_url}#desc_position', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_position', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" 
             alt="{$LANG_MEMBERSHIP['clk_help']}" />
       </a>
@@ -18,7 +18,7 @@
 
   <p>
     <label>{$LANG_MEMBERSHIP['position_type']}:
-      <a href="#" onclick="popupWindow('{doc_url}#desc_type', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_type', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" 
             alt="{$LANG_MEMBERSHIP['clk_help']}" />
       </a>
@@ -33,7 +33,7 @@
 
   <p>
     <label>{$LANG_MEMBERSHIP['current_user']}:
-      <a href="#" onclick="popupWindow('{doc_url}#desc_current_user', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_current_user', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" 
             alt="{$LANG_MEMBERSHIP['clk_help']}" />
       </a>
@@ -46,7 +46,7 @@
 
   <p>
     <label>{$LANG_MEMBERSHIP['contact_info']}:
-      <a href="#" onclick="popupWindow('{doc_url}#desc_contact', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_contact', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" 
             alt="{$LANG_MEMBERSHIP['clk_help']}" />
       </a>
@@ -56,7 +56,7 @@
 
   <p>
     <label>{$LANG_MEMBERSHIP['order']}:
-      <a href="#" onclick="popupWindow('{doc_url}#desc_orderby', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_orderby', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" 
             alt="{$LANG_MEMBERSHIP['clk_help']}" />
       </a>
@@ -67,7 +67,7 @@
 
   <p>
     <label>{$LANG_MEMBERSHIP['enabled']}?
-      <a href="#" onclick="popupWindow('{doc_url}#desc_enabled', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_enabled', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" 
             alt="{$LANG_MEMBERSHIP['clk_help']}" />
       </a>
@@ -77,7 +77,7 @@
 
   <p>
     <label>{$LANG_MEMBERSHIP['show_vacant']}:
-      <a href="#" onclick="popupWindow('{doc_url}#desc_show_vacant', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_show_vacant', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" 
             alt="{$LANG_MEMBERSHIP['clk_help']}" />
       </a>
@@ -88,7 +88,7 @@
   <p>
     <label for="group">
       {$LANG_ACCESS['group']}
-      <a href="#" onclick="popupWindow('{doc_url}#desc_group', 'Help', 640, 480, 1);return false;" class="toolbar">
+      <a href="#!" onclick="popupWindow('{doc_url}#desc_group', 'Help', 640, 480, 1);return false;" class="toolbar">
         <img src="{layout_url}/images/button_help.png" alt="Help" />
       </a>
     </label>
