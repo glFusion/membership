@@ -11,7 +11,7 @@ var MEMaddElement = function(selid) {
   str = str + "&nbsp;&nbsp;<a href=\"#\" onclick='MEMremoveElement(" +
         uid + ",\"" + uname + "\")'>" +
         "<img src=\"{layout_url}/images/admin/delete.png\" " +
-        "title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"gl_mootip\" /></a>";
+        "title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"tooltip\" /></a>";
   new_elem.innerHTML = str;
   new_elem.id = "link"+uid;
   lst.appendChild(new_elem);
@@ -234,7 +234,7 @@ var MEMremoveElement = function(uid, uname) {
                 <a href="#!" onclick='MEMremoveElement({uid},"{uname}")'>
                   <img src="{layout_url}/images/admin/delete.png" 
                   title="{$LANG_MEMBERSHIP['rem_this_item']}"
-                  class="gl_mootip" />
+                  class="tooltip" />
                 </a>
               </li>
             <!-- END LinkBlock -->

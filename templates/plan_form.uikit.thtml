@@ -12,6 +12,8 @@
     <div class="uk-form-controls">
       <input required size="50"
         type="text" name="plan_id" value="{plan_id}" id="f_plan_id" />
+      <i class="uk-icon-exclamation-triangle mbr-icon-danger tooltip"
+            title="{$LANG_MEMBERSHIP['required']}"></i>
     </div>
   </div>
 
@@ -20,8 +22,9 @@
       <span id="short_name" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
-      <input class="fValidate['required']"  size="50"
-        type="text" name="name" value="{name}" id="f_name" />
+      <input required size="50" type="text" name="name" value="{name}" id="f_name" />
+      <i class="uk-icon-exclamation-triangle mbr-icon-danger tooltip"
+            title="{$LANG_MEMBERSHIP['required']}"></i>
     </div>
   </div>
 

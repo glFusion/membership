@@ -11,8 +11,9 @@
     <a href="#!" onclick="popupWindow('{doc_url}#desc_plan_id', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
-  <input class="fValidate['required']" size="50"
-    type="text" name="plan_id" value="{plan_id}" id="f_plan_id" />
+  <input required size="50" type="text" name="plan_id" value="{plan_id}" id="f_plan_id" />
+  <i class="fa fa-exclamation-triangle mbr-icon-danger tooltip"
+    title="{$LANG_MEMBERSHIP['required']}"></i>
 </p>
 
 <p>
@@ -20,8 +21,9 @@
     <a href="#!" onclick="popupWindow('{doc_url}#desc_short_name', 'Help', 640, 480, 1);return false;" class="toolbar">
     <img src="{layout_url}/images/button_help.png" alt="" /></a>
   </label>
-  <input class="fValidate['required']"  size="50"
-    type="text" name="name" value="{name}" id="f_name" />
+  <input required size="50" type="text" name="name" value="{name}" id="f_name" />
+  <i class="fa fa-exclamation-triangle mbr-icon-danger tooltip"
+    title="{$LANG_MEMBERSHIP['required']}"></i>
 </p>
 
 <p id="html_editarea">
@@ -200,11 +202,6 @@
 </form>
 
 <script language="javascript" type="text/javascript">
-window.addEvent('domready',function() {
-    var myValidator = new fValidator("planform");
-    //period_chg("{period_start}");
-});
-
 function period_chg(value)
 {
     switch(value) {
@@ -218,7 +215,5 @@ function period_chg(value)
         break;
     }
 }
-
 </script>
-
 {# end {templatelocation} #}
