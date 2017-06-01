@@ -71,7 +71,7 @@ case 'regenbutton':
     // Generate membership numbers for all members
     // Only if configured and valid data is received in delitem variable.
     $view = 'listmembers';
-    if ($_CONF_MEMBERSHIP['use_mem_num'] != 2 ||
+    if ($_CONF_MEMBERSHIP['use_mem_number'] != 2 ||
         !is_array($_POST['delitem']) ||
         empty($_POST['delitem'])) {
         break;
@@ -344,7 +344,7 @@ function MEMBERSHIP_listMembers()
     $header_arr = array(
         array('text' => $LANG_ADMIN['edit'],
                 'field' => 'edit', 'sort' => false, 'align'=>'center'));
-    if ($_CONF_MEMBERSHIP['use_mem_number']) {
+    if ($_CONF_MEMBERSHIP['use_mem_number'] > 0) {
         $header_arr[] = array('text' => $LANG_MEMBERSHIP['mem_number'],
                 'field' => 'mem_number', 'sort' => true);
     }
@@ -387,45 +387,29 @@ function MEMBERSHIP_listMembers()
                 MEM_getIcon('trash', 'danger') . ' memb-icon-button tooltip"'
             . ' style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
             . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['q_del_member']
-            . '\');" ></button>'
+            . '\');"></button>'
             . $LANG_ADMIN['delete'];
     $renew_action = '<button name="renewbutton" class="'
             . MEM_getIcon('refresh', 'ok') . ' memb-icon-button tooltip"'
             . ' style="vertical-align:text-bottom;" title="'
             . $LANG_MEMBERSHIP['renew_all']
             . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
-            . '\');" ></button>' . $LANG_MEMBERSHIP['renew'];
-    /*} else {
-        $del_action = '<input name="deletebutton" type="image" src="'
-            . $_CONF['layout_url'] . '/images/admin/delete.' . $_IMAGE_TYPE
-            . '" style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
-            . '" class="gl_mootip"'
-            . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['q_del_member']
-            . '\');" />&nbsp;'
-            . $LANG_ADMIN['delete'];
-        $renew_action = '<input name="renewbutton" type="image" src="'
-            . MEMBERSHIP_PI_URL . '/images/renew.png'
-            . '" style="vertical-align:text-bottom;" title="'
-            . $LANG_MEMBERSHIP['renew_all'] 
-            . '" class="gl_mootip"' 
-            . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
-            . '\');" />&nbsp;' . $LANG_MEMBERSHIP['renew'];
-    }*/
+            . '\');"></button>' . $LANG_MEMBERSHIP['renew'];
     $options = array(
         'chkdelete' => 'true',
         'chkfield' => 'mem_uid',
         'chkactions' => $del_action . '&nbsp;&nbsp;' . $renew_action . '&nbsp;&nbsp;',
     );
 
-    if ($_CONF_MEMBERSHIP['use_mem_number']) {
+    if ($_CONF_MEMBERSHIP['use_mem_number'] == 2) {
         $options['chkactions'] .=
-            '<input name="regenbutton" type="image" src="'
-            . MEMBERSHIP_PI_URL . '/images/regen_mem_number.png" '
-            . 'style="vertical-align:text-bottom;" title-"'
-            . $LANG_MEMBERSHIP['regen_mem_numbers']
-            . '" class="gl_mootip"'
-            . ' onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen']
-            . '\');" />&nbsp;' . $LANG_MEMBERSHIP['regen_mem_numbers'];
+            '<button name="regenbutton" class="'
+            . MEM_getIcon('cogs', 'ok') . ' memb-icon-button tooltip"'
+            . ' title="' . $LANG_MEMBERSHIP['regen_mem_numbers']
+            . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen'] . '\');"'
+            . ' style="cursor:pointer;vertical-align:text-bottom;"'
+            . '"></button>'
+            . $LANG_MEMBERSHIP['regen_mem_numbers'];
     }
 
      $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
@@ -819,7 +803,7 @@ function MEMBER_CreateNameLink($uid, $fullname='')
     if ($fullname == '') {
         $fullname = COM_getDisplayName($uid);
     }
-    $fullname = NameParser::LCF($fullname);
+    $fullname = \NameParser::LCF($fullname);
     $retval = '<span rel="rel_' . $uid .
         '" onmouseover="MEM_highlight(' . $uid . 
         ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .

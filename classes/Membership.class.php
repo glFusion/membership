@@ -154,14 +154,14 @@ class Membership
             // Will be set via DB read, probably not via form
             $this->uid      = $A['mem_uid'];
         }
-        $this->paid     = $A['mem_paid'];
-        $this->joined   = $A['mem_joined'];
-        $this->expires  = $A['mem_expires'];
-        $this->plan_id  = $A['mem_plan_id'];
-        $this->status   = $A['mem_status'];
-        $this->notified = isset($A['mem_notified']) ? $A['mem_notified'] : 0;
-        $this->mem_number = $A['mem_number'];
-        $this->istrial = $A['mem_istrial'];
+        if (isset($A['mem_paid'])) $this->paid = $A['mem_paid'];
+        if (isset($A['mem_joined'])) $this->joined = $A['mem_joined'];
+        if (isset($A['mem_expires'])) $this->expires = $A['mem_expires'];
+        if (isset($A['mem_plan_id'])) $this->plan_id = $A['mem_plan_id'];
+        if (isset($A['mem_status'])) $this->status = $A['mem_status'];
+        if (isset($A['mem_notified'])) $this->notified = $A['mem_notified'];
+        if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
+        if (isset($A['mem_istrial'])) $this->istrial = $A['mem_istrial'];
     }
 
 
@@ -307,7 +307,7 @@ class Membership
         global $_TABLES, $_CONF_MEMBERSHIP;
 
         $old_status = $this->status;  // track original status
-        if (is_array($A)) {
+        if (is_array($A) && !empty($A)) {
             if ($A['mem_plan_id'] == '') {
                 // remove membership, leave record
                 self::Cancel($this->uid);
@@ -842,6 +842,9 @@ class Membership
         if (!$this->istrial && $this->Plan !== NULL && !$this->isNew) {
             $this->expires = isset($args['exp']) ? $args['exp'] :
                     $this->Plan->calcExpiration($this->expires);
+            // Set the plan ID so this isn't seen as a cancellation by Save()
+            if (!isset($args['mem_plan_id']))
+                $args['mem_plan_id'] = $this->plan_id;
             $args['mem_expires'] = $this->expires;
             $this->Save($args);
             return true;
@@ -1003,7 +1006,8 @@ class Membership
     *   Calls CUSTOM_createMemberNumber() if defined, otherwise
     *   uses sprintf() and the member's uid to create the ID.
     *
-    *   @return string  Membership number
+    *   @param  integer $uid    User ID or other numeric key
+    *   @return string          Membership number
     */
     public static function createMemberNumber($uid)
     {
