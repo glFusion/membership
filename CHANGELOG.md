@@ -4,6 +4,7 @@
 - Require glFusion 1.6.0+
 - Change AJAX to use Jquery
 - Implement Membership namespace
+- Fix default date for quick renewal in user profile
 
 ## 0.1.1
 - Add option to remove "Buy Now" button from purchase options

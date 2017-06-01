@@ -209,7 +209,7 @@ class Membership
             'notified_orig' => $this->notified == 1 ? 1 : 0,
             'plan_id_orig' => $this->plan_id,
             'is_member' => $this->isNew ? '' : 'true',
-            'pmt_date'  => date('Y-m-d H:i:s'),
+            'pmt_date'  => $_CONF_MEMBERSHIP['now']->toMySQL(true),
             'mem_number' => $this->mem_number,
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
             'mem_istrial' => $this->istrial,
@@ -890,12 +890,12 @@ class Membership
     */
     public function AddTrans($gateway, $amt, $txn_id='', $dt = '', $by = -1)
     {
-        global $_TABLES, $_USER;
+        global $_TABLES, $_USER, $_CONF_MEMBERSHIP;
 
         $gateway = DB_escapeString($gateway);
         $amt = (float)$amt;
         $txn_id = DB_escapeString($txn_id);
-        $now = empty($dt) ? date('Y-m-d H:i:s') : DB_escapeString($dt);
+        $now = empty($dt) ? $_CONF_MEMBERSHIP['now']->toMySQL(true) : DB_escapeString($dt);
         $by = $by == -1 ? (int)$_USER['uid'] : (int)$by;
         $sql = "INSERT INTO {$_TABLES['membership_trans']} SET
             tx_date = '{$now}',
