@@ -3,9 +3,9 @@
 *   Public API functions for the Membership plugin for glFusion.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.1.1
+*   @version    0.1.3
 *   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
@@ -115,20 +115,20 @@ function USES_membership_functions()
 
 /** Import member class */
 function USES_membership_class_membership()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/membership.class.php'; }
+{   require_once MEMBERSHIP_PI_PATH . '/classes/Membership.class.php'; }
 
 /** Import membership plan class */
 function USES_membership_class_plan()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/plan.class.php'; }
+{   require_once MEMBERSHIP_PI_PATH . '/classes/Plan.class.php'; }
 
 function USES_membership_class_link()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/link.class.php'; }
+{   require_once MEMBERSHIP_PI_PATH . '/classes/Link.class.php'; }
 
 function USES_membership_class_app()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/app.class.php'; }
+{   require_once MEMBERSHIP_PI_PATH . '/classes/App.class.php'; }
 
 function USES_membership_class_position()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/position.class.php'; }
+{   require_once MEMBERSHIP_PI_PATH . '/classes/Position.class.php'; }
 
 // Determine if the paypal plugin is installed and integration is enabled
 if (!is_array($_PLUGINS) || !in_array('paypal', $_PLUGINS)) {
@@ -159,10 +159,11 @@ function plugin_chkVersion_membership()
 */
 function plugin_getmenuitems_membership()
 {
-    global $LANG_MEMBERSHIP;
+    global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
+    $icon = '&nbsp;<i class="' . $_CONF_MEMBERSHIP['_iconset'] . '-group"></i>';
     $menuitems = array(
-        $LANG_MEMBERSHIP['block_title'] => MEMBERSHIP_PI_URL . '/index.php',
+        $LANG_MEMBERSHIP['block_title'] . $icon => MEMBERSHIP_PI_URL . '/index.php',
     );
     return $menuitems;
 }
@@ -352,7 +353,7 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
 
     if (($panel == '' || $panel == 'useredit') && $fieldset == '') {
         USES_membership_class_membership();
-        $M = new Membership($uid);
+        $M = new \Membership\Membership($uid);
         if (MEMBERSHIP_isManager()) {
             $retval .= $M->Editform();
         } else {
@@ -377,7 +378,7 @@ function plugin_user_changed_membership($uid=0)
     if (!MEMBERSHIP_isManager()) return;
 
     USES_membership_class_membership();
-    $M = new Membership($uid);
+    $M = new \Membership\Membership($uid);
     $op = '';
     $need_save = false; // assume nothing to do
     $joined = isset($_POST['mem_joined']) ? $_POST['mem_joined'] : '';
@@ -409,7 +410,7 @@ function plugin_user_changed_membership($uid=0)
         // Check the linked accounts for changes. If changed, just call
         // the membership Save() function.
         if (!$need_save) {  // if we don't already need to save
-            $new_links = Membership::getRelatives($uid);
+            $new_links = \Membership\Membership::getRelatives($uid);
             $old_links = json_decode($_POST['mem_old_links'], true);
             if (is_array($old_links)) { // check for valid json
                 foreach ($new_links as $uid=>$name) {
@@ -490,7 +491,7 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
         return '';
 
     USES_membership_class_membership();
-    $M = new MemberShip($uid);
+    $M = new \Membership\Membership($uid);
     $existingFields = $T->get_var('plugin_fields');
     $T->set_var('plugin_fields', $existingFields . $M->ShowInfo(false, $uid));
 }
@@ -787,7 +788,7 @@ function MEMBERSHIP_notifyExpiration()
             // Create a notification email message.
             $username = COM_getDisplayName($row['mem_uid']);
             if (!isset($Plans[$row['plan_id']])) {
-                $Plans[$row['plan_id']] = new MembershipPlan($row['plan_id']);
+                $Plans[$row['plan_id']] = new \Membership\Plan($row['plan_id']);
             }
             $P = $Plans[$row['plan_id']];   // shortcut variable
 
@@ -1007,7 +1008,7 @@ function plugin_user_delete_membership($uid)
     MEMBERSHIP_auditLog('Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.');
 
-    Membership::Delete($uid);
+    \Membership\Membership::Delete($uid);
     // In case the member never logged in
     //DB_delete($_TABLES['membership_newusers'], 'uid', $uid);
 }
@@ -1131,7 +1132,7 @@ function MEMBERSHIP_currentMembership()
 
     if ($current === NULL) {
         USES_membership_class_membership();
-        $current = new Membership();
+        $current = new \Membership\Membership();
     }
     return $current;
 }

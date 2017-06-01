@@ -1,8 +1,9 @@
 # glFusion Membership Plugin - Change Log
 
-## 0.2.2
+## 0.2.0
 - Require glFusion 1.6.0+
 - Change AJAX to use Jquery
+- Implement Membership namespace
 
 ## 0.1.1
 - Add option to remove "Buy Now" button from purchase options

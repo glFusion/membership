@@ -11,6 +11,7 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
+namespace Membership;
 
 /** Import core glFusion libraries */
 require_once '../lib-common.php';
@@ -109,7 +110,7 @@ case 'edit':
     $status = LGLIB_invokeService('profile', 'renderForm',
                 array('uid'=>$uid), $output, $svc_msg);
     if ($status == PLG_RET_OK && !empty($output)) {
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('app', 'app_form.thtml');
         $T->set_var(array(
             'mem_uid'       => $uid,

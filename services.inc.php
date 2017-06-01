@@ -47,7 +47,7 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
 
     if (isset($A[1]) && !empty($A[1])) {
         USES_membership_class_plan();
-        $P = new MembershipPlan($A[1]);
+        $P = new \Membership\Plan($A[1]);
         if ($P->plan_id != '') {
             $isnew = isset($A[2]) && $A[2] == 'renewal' ? false : true;
             $output['short_description'] = $P->name;
@@ -98,16 +98,16 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 
     // Retrieve or create a membership record.
     USES_membership_class_membership();
-    $M = new Membership($uid);
+    $M = new \Membership\Membership($uid);
 
     if ($M->Plan === NULL && $_CONF_MEMBERSHIP['use_mem_num'] == 2) {
         // New member, apply membership number if configured
-        $M->mem_number = Membership::createMemberNumber($uid);
+        $M->mem_number = \Membership\Membership::createMemberNumber($uid);
     }
 
     if ($M->plan_id != $id[1]) {
         // Changed membership plans
-        $M->Plan = new MembershipPlan($id[1]);
+        $M->Plan = new \Membership\Plan($id[1]);
     }
 
     if (!SEC_inGroup($M->Plan->grp_access, $uid)) {

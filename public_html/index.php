@@ -10,6 +10,7 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
+namespace Membership;
 
 /** Import core glFusion libraries */
 require_once '../lib-common.php';
@@ -64,7 +65,7 @@ case 'cancelapp':
     exit;
 case 'saveapp':
     USES_membership_class_app();
-    $status = MembershipApp::Save();
+    $status = App::Save();
     if ($status == PLG_RET_OK) {
         LGLIB_storeMessage(array(
                 'message' => $LANG_MEMBERSHIP['your_info_updated'],
@@ -106,7 +107,7 @@ switch ($view) {
 case 'detail':
     if (!empty($_GET['plan_id'])) {
         USES_membership_class_plan();
-        $P = new MembershipPlan($_GET['plan_id']);
+        $P = new Plan($_GET['plan_id']);
         if ($P->plan_id == '') {
             $content .= COM_showMessageText($LANG_MEMBERSHIP['err_plan_id']);
             $content .= MEMBERSHIP_PlanList();
@@ -124,7 +125,7 @@ case 'app':
 case 'view':
     // Display the application within the normal glFusion site.
     USES_membership_class_app();
-    $content .= MembershipApp::Display($uid);
+    $content .= App::Display($uid);
     if (!empty($content)) {
         $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/index.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
@@ -132,7 +133,7 @@ case 'view':
 case 'editapp':
     USES_membership_class_app();
     if (!COM_isAnonUser()) {
-        $content .= MembershipApp::Edit($uid);
+        $content .= App::Edit($uid);
     } else {
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['must_login'],
@@ -146,9 +147,9 @@ case 'pmtform':
     USES_membership_class_membership();
     USES_membership_class_plan();
     $M = new Membership();
-    $P = new MembershipPlan($_GET['plan_id']);
+    $P = new Plan($_GET['plan_id']);
     if (!$P->isNew) {
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('pmt', 'pmt_form.thtml');
         $price_actual = $P->Price($M->isNew, 'actual');
         if ($_CONF_MEMBERSHIP['ena_checkpay'] == 2) {

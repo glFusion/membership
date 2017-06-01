@@ -10,7 +10,7 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
-
+namespace Membership;
 
 USES_membership_class_plan();
 
@@ -134,7 +134,7 @@ class Membership
         } else {
             $A = DB_fetchArray($res1, false);
             $this->SetVars($A);
-            $this->Plan = new MembershipPlan($this->plan_id);
+            $this->Plan = new Plan($this->plan_id);
             return true;
         }
     }
@@ -173,7 +173,7 @@ class Membership
     */
     public function SetPlan($plan_id)
     {
-        $P = new MembershipPlan($plan_id);
+        $P = new Plan($plan_id);
         if ($P->plan_id == '') {
             return false;
         } else {
@@ -320,10 +320,10 @@ class Membership
         // from the family so we don't update other members incorrectly
         if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
             USES_membership_class_link();
-            MemberLink::Emancipate($this->uid);
+            Link::Emancipate($this->uid);
         }
 
-        $this->Plan = new MembershipPlan($this->plan_id);
+        $this->Plan = new Plan($this->plan_id);
         if ($this->Plan->plan_id == '')
             return false;       // invalid plan requested
 
@@ -497,10 +497,10 @@ class Membership
     {
         // Remove this member from any club positions held
         USES_membership_class_position();
-        $positions = MemPosition::getMemberPositions($uid);
+        $positions = Position::getMemberPositions($uid);
         if (!empty($positions)) {
             foreach ($positions as $pos_id) {
-                $P = new MemPosition($pos_id);
+                $P = new Position($pos_id);
                 $P->setMember(0);
             }
         }
@@ -546,7 +546,7 @@ class Membership
         }
         if (!empty($plan_id)) {
             $this->plan_id = $plan_id;
-            $this->Plan = new MembershipPlan($plan_id);
+            $this->Plan = new Plan($plan_id);
         }
         if ($this->Plan->plan_id == '')
             return false;       // invalid plan requested
@@ -864,7 +864,7 @@ class Membership
 
         // Remove this user from the family
         USES_membership_class_link();
-        MemberLink::Emancipate($uid);
+        Link::Emancipate($uid);
 
         // Remove this user from the membership group
         USER_delGroup($_CONF_MEMBERSHIP['member_group'], $uid);

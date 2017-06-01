@@ -11,6 +11,7 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
+namespace Membership;
 
 /**
 *   Show the site header, with or without left blocks according to config.
@@ -92,7 +93,7 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
     global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
             $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
 
-    $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+    $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
     $T->set_file('planlist', 'plan_list.thtml');
     $T->set_var('is_uikit', $_SYSTEM['framework'] == 'uikit' ? 'true' : '');
     if (COM_isAnonUser()) {
@@ -127,7 +128,7 @@ function MEMBERSHIP_PlanList($allow_purchase = true, $have_app = false, $show_pl
 
     USES_membership_class_membership();
     USES_membership_class_plan();
-    $P = new MembershipPlan();
+    $P = new Plan();
     $M = new Membership();
     if ($M->isNew) {
         // New member, no expiration message

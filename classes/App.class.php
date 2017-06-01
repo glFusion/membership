@@ -5,18 +5,18 @@
 *   @author     Lee Garner <lee@leegarner.com>
 *   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.1.1
+*   @version    0.1.3
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
 */
-
+namespace Membership;
 
 /**
 *   Class for a membership application
 *   @package    membership
 */
-class MembershipApp
+class App
 {
 
     /**
@@ -74,7 +74,7 @@ class MembershipApp
         $status = LGLIB_invokeService('profile', 'getValues',
             array('uid'=>$uid), $output, $svc_msg);
         if ($status == PLG_RET_OK && !empty($output)) {
-            $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+            $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
             $T->set_file('app', 'application.thtml');
             $T->set_block('app', 'DataRow', 'row');
             foreach ($output as $key=>$data) {
@@ -143,7 +143,7 @@ class MembershipApp
                 $sel = $M->plan_id;
             }
 
-            $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+            $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
             $T->set_file('app', 'app_form.thtml');
             $T->set_var(array(
                 'form_id'       => 'membership_profile_form',
@@ -182,7 +182,7 @@ class MembershipApp
             }
 
             $T->set_block('app', 'TypeSelect', 'row');
-            $types = MembershipApp::TypeSelect($sel);
+            $types = self::TypeSelect($sel);
             foreach ($types as $plan=>$type) {
                 $T->set_var(array(
                     'plan_id'   => $plan,
@@ -242,7 +242,7 @@ class MembershipApp
     *   This is a wrapper around other functions; at the moment only
     *   saving the user profile is supported.
     *
-    *   @uses   MembershipApp::SaveProfile()
+    *   @uses   App::SaveProfile()
     *   @return integer     Status from LGLIB_invokeService()
     */
     public static function Save()

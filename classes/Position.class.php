@@ -10,13 +10,13 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
-
+namespace Membership;
 
 /**
 *   Class to handle board and committee positions
 *   @package    membership
 */
-class MemPosition
+class Position
 {
     private $properties;
 
@@ -403,6 +403,6 @@ class MemPosition
         }
     }
 
-}   // class MemPosition
+}   // class Position
 
 ?>

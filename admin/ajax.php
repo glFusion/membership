@@ -5,11 +5,12 @@
 *   @author     Lee Garner <lee@leegarner.com>
 *   @copyright  Copyright (c) 2009-2011 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.4
+*   @version    0.1.0
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
 */
+namespace Membership;
 
 /** Include required glFusion common functions */
 require_once '../../../lib-common.php';
@@ -27,17 +28,17 @@ $result = array(
 switch ($_POST['action']) {
 case 'remlinkuser':
     USES_membership_class_link();
-    MemberLink::RemLink($_POST['uid1'], $_POST['uid2']);
+    Link::RemLink($_POST['uid1'], $_POST['uid2']);
     break;
 
 case 'addlinkuser':
     USES_membership_class_link();
-    MemberLink::AddLink($_POST['uid1'], $_POST['uid2']);
+    Link::AddLink($_POST['uid1'], $_POST['uid2']);
     break;
 
 case 'emancipate':
     USES_membership_class_link();
-    MemberLink::Emancipate($_POST['uid1']);
+    Link::Emancipate($_POST['uid1']);
     break;
 
 case 'toggle':
@@ -47,12 +48,12 @@ case 'toggle':
         switch ($_POST['type']) {
         case 'plan':
             USES_membership_class_plan();
-            $newval = MembershipPlan::toggleEnabled($_POST['oldval'], $_POST['id']);
+            $newval = Plan::toggleEnabled($_POST['oldval'], $_POST['id']);
             break;
 
         case 'position':
             USES_membership_class_position();
-            $newval = MemPosition::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
+            $newval = Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
             break;
 
          default:
@@ -62,7 +63,7 @@ case 'toggle':
 
     case 'show_vacant':
         USES_membership_class_position();
-        $newval = MemPosition::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
+        $newval = Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
         break;
 
     default:

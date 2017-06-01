@@ -14,6 +14,7 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
+namespace Membership;
 
 /** Import core glFusion libraries */
 require_once '../../../lib-common.php';
@@ -71,7 +72,7 @@ case 'do_import':
         $content .= "Converting {$A['item_id']} for {$A['uid']} to {$plans[$A['item_id']]}<br />";
         // Cancel the subscription, which will remove the group membership.
         // It should be added back right away by the membership.
-        Subscription::Cancel($A['id'], true);
+        \Subscription\Subscription::Cancel($A['id'], true);
         $M = new Membership($A['uid']);
         $M->plan_id = $plans[$A['item_id']];
         $M->expires = $A['expiration'];

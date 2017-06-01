@@ -10,6 +10,7 @@
 *              GNU Public License v2 or later
 *   @filesource
 */
+namespace Membership;
 
 /** Import core glFusion libraries */
 require_once '../../../lib-common.php';
@@ -144,14 +145,14 @@ case 'deleteplan':
     $plan_id = isset($_POST['plan_id']) ? $_POST['plan_id'] : '';
     $xfer_plan = isset($_POST['xfer_plan']) ? $_POST['xfer_plan'] : '';
     if (!empty($plan_id)) {
-        MembershipPlan::Delete($plan_id, $xfer_plan);
+        Plan::Delete($plan_id, $xfer_plan);
     }
     $view = 'listplans';
     break;
 
 case 'saveplan':
     $plan_id = isset($_POST['old_plan_id']) ? $_POST['old_plan_id'] : '';
-    $P = new MembershipPlan($plan_id);
+    $P = new Plan($plan_id);
     $status = $P->Save($_POST);
     if ($status == true) {
         $view = 'listplans';
@@ -166,7 +167,7 @@ case 'saveplan':
 case 'saveposition':
     $pos_id = isset($_POST['pos_id']) ? $_POST['pos_id'] : 0;
     USES_membership_class_position();
-    $P = new MemPosition($pos_id);
+    $P = new Position($pos_id);
     $status = $P->Save($_POST);
     if ($status == true) {
         COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
@@ -185,14 +186,14 @@ case 'reorderpos':
     $where = isset($_GET['where']) ? $_GET['where'] : '';
     if ($type != '' && $id > 0 && $where != '') {
         USES_membership_class_position();
-        $msg = MemPosition::Move($id, $type, $where);
+        $msg = Position::Move($id, $type, $where);
     }
     $view = 'positions';
     break;
 
 case 'deletepos':
     USES_membership_class_position();
-    $P = new MemPosition($actionval);
+    $P = new Position($actionval);
     $P->Remove();
     COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
     exit;
@@ -223,7 +224,7 @@ case 'importform':
     //require_once MEMBERSHIP_PI_PATH . '/import_members.php';
     $content .= MEMBERSHIP_adminMenu('importform', '');
     $LT = MEMBERSHIP_getTemplate('import_form', 'form');
-    //$LT = new Template(MEMBERSHIP_PI_PATH . '/templates');
+    //$LT = new \Template(MEMBERSHIP_PI_PATH . '/templates');
     //$LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
         $content .= "Imported $successes successfully<br />\n";
@@ -262,14 +263,14 @@ case 'editmember':
 case 'editplan':
     $plan_id = isset($_REQUEST['plan_id']) ? $_REQUEST['plan_id'] : '';
     USES_membership_class_plan();
-    $P = new MembershipPlan($plan_id);
+    $P = new Plan($plan_id);
     $content .= MEMBERSHIP_adminMenu($view, '');
     $content .= $P->Edit();
     break;
 
 case 'editpos':
     USES_membership_class_position();
-    $P = new MemPosition($actionval);
+    $P = new Position($actionval);
     $content .= MEMBERSHIP_adminMenu($view, '');
     $content .= $P->Edit();
     break;
@@ -298,7 +299,7 @@ case 'positions':
         // Delete some checked attributes
         USES_membership_class_position();
         foreach ($_POST['delitem'] as $id) {
-            MemPosition::Delete($id);
+            Position::Delete($id);
         }
     }
     $content .= MEMBERSHIP_adminMenu($view, '');
@@ -314,7 +315,7 @@ default:
 
 }
 $output = MEMBERSHIP_siteHeader();
-$T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+$T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
 $T->set_file('page', 'admin_header.thtml');
 $T->set_var(array(
     'header'    => $LANG_MEMBERSHIP['admin_title'],
@@ -427,7 +428,7 @@ function MEMBERSHIP_listMembers()
             . '\');" />&nbsp;' . $LANG_MEMBERSHIP['regen_mem_numbers'];
     }
 
-     $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_member',
+     $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 $options, $form_arr);
     return $retval;
@@ -471,7 +472,7 @@ function MEMBERSHIP_listPlans()
         'help_url'   => ''
     );
 
-    $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_plan',
+    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_plan',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, '', '',
                 '', $form_arr);
     return $retval;
@@ -487,7 +488,7 @@ function MEMBERSHIP_listPlans()
 *   @param  array   $icon_arr   Array of system icons
 *   @return string              HTML for the field cell
 */
-function MEMBERSHIP_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
+function getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
@@ -504,7 +505,7 @@ function MEMBERSHIP_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 
     case 'delete':
         // Deprecated
-        if (!MembershipPlan::hasMembers($A['plan_id'])) {
+        if (!Plan::hasMembers($A['plan_id'])) {
             $retval = COM_createLink(
                 "<img src=\"{$_CONF['layout_url']}/images/admin/delete.png\"
                     height=\"16\" width=\"16\" border=\"0\"
@@ -555,7 +556,7 @@ function MEMBERSHIP_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 *   @param  array   $icon_arr   Array of system icons
 *   @return string              HTML for the field cell
 */
-function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
+function getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
@@ -648,7 +649,7 @@ function MEMBERSHIP_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 *   @param  array   $icon_arr   Array of system icons
 *   @return string              HTML for the field cell
 */
-function MEMBERSHIP_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
+function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES,
             $LANG_ADMIN;
@@ -855,7 +856,7 @@ function MEMBERSHIP_summaryStats()
         }
     }
 
-    $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+    $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
     $T->set_file('stats', 'admin_stats.thtml');
     $T->set_block('stats', 'statrow', 'srow');
     $linetotal = 0;
@@ -981,7 +982,7 @@ function MEMBERSHIP_listTrans()
         array('text' => $LANG_MEMBERSHIP['txn_id'],
                 'field' => 'tx_txn_id', 'sort' => true),
     );
-    $retval .= ADMIN_list('membership', 'MEMBERSHIP_getField_member', 
+    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member', 
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 '', $form_arr);
     return $retval;
@@ -1055,7 +1056,7 @@ function MEMBERSHIP_listPositions()
         $_GET['query_limit'] = 20;
 */
     $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
-    $display .= ADMIN_list('membership', 'MEMBERSHIP_getField_positions',
+    $display .= ADMIN_list('membership', __NAMESPACE__ . '\getField_positions',
             $header_arr, $text_arr, $query_arr, $defsort_arr,
             $filter, '', $options, '');
 

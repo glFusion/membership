@@ -10,13 +10,13 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
-
+namespace Membership;
 
 /**
 *   Class for membership plan
 *   @package membership
 */
-class MembershipPlan
+class Plan
 {
     /** Property fields.  Accessed via __set() and __get()
     *   @var array */
@@ -505,7 +505,7 @@ class MembershipPlan
         $buttons = '';
 
         // Create product template
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('detail', 'plan_detail.thtml');
 
         USES_membership_class_membership();
@@ -667,7 +667,7 @@ class MembershipPlan
             }
         }
         if ($_CONF_MEMBERSHIP['ena_checkpay']) {
-            $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+            $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
             $T->set_file('checkpay', 'pmt_check_btn.thtml');
             $T->set_var('plan_id', $this->plan_id);
             $retval[] = $T->parse('output', 'checkpay');
@@ -746,7 +746,7 @@ class MembershipPlan
             // add a year. If not yet expired, add a year to the current
             // expiration.
             list($year, $month, $day) = explode('-', $exp);
-            list($c_year, $c_month, $c_day) = 
+            list($c_year, $c_month, $c_day) =
                     explode('-', $_CONF_MEMBERSHIP['today']);
             $exp_month = $_CONF_MEMBERSHIP['period_start'] - 1;
             if ($exp_month == 0) $exp_month = 12;
@@ -782,36 +782,6 @@ class MembershipPlan
         return $currency;
     }
 
-
-    /**
-    *   Get the number of days in the given month.
-    *
-    *   @param integer  $month  Month
-    *   @param integer  $year   Year
-    *   @return integer     Number of days in month
-    */
-    private static function X_daysInMonth($month, $year)
-    {
-        switch ($month) {
-        case 4:
-        case 6:
-        case 9:
-        case 11:
-            $days = 30;
-            break;
-        case 2:
-            if (($year % 4 == 0 && $year % 100 != 0) || $year % 400 == 0)
-                $days = 29;
-            else
-                $days = 28;
-            break;
-        default:
-            $days = 31;
-            break;
-        }
-        return $days;
-    }
-
-}   // class MembershipPlan
+}   // class Plan
 
 ?>

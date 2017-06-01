@@ -10,13 +10,13 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
-
+namespace Membership;
 
 /**
 *   Class for a membership link between accounts
 *   @package    membership
 */
-class MemberLink
+class Link
 {
     /**
     *   Link membership accounts.
