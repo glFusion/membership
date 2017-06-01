@@ -738,7 +738,7 @@ class Plan
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
             if ($_CONF_MEMBERSHIP['expire_eom']) {
-                $exp_day = Date_Calc::daysInMonth($month, $year);
+                $exp_day = \Date_Calc::daysInMonth($month, $year);
             }
         } else {
             // If there's a fixed month for renewal, check if the membership
@@ -756,7 +756,7 @@ class Plan
                     $exp_year = $c_year - 1;
             }
             $exp_year += 1;
-            $exp_day = Date_Calc::daysInMonth($exp_month, $exp_year);
+            $exp_day = \Date_Calc::daysInMonth($exp_month, $exp_year);
         }
         return sprintf('%d-%02d-%02d', $exp_year, $exp_month, $exp_day);
     }
