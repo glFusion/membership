@@ -59,7 +59,7 @@ $LANG_MEMBERSHIP = array(
 'joined'    => 'Joined',
 'expires'   => 'Expires',
 'na'        => 'N/A',
-'upd_links' => 'Update Linkes',
+'upd_links' => 'Update Links',
 'q_del_item'    => 'Are you sure that you want to delete this item?',
 'q_del_member'  => 'Are you sure that you want to delete these members? ' .
 'The member will be unlinked from any linked accounts, and the membership record will be permanently deleted.',
