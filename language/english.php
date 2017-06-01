@@ -128,6 +128,9 @@ $LANG_MEMBERSHIP = array(
 'contact'       => 'Contact',
 'vacant'        => 'Vacant',
 'title_positionpage' => '%s Positions',
+'select'        => 'Select',
+'expand_pmt_div' => 'Expand and view payment options',
+'collapse_pmt_div' => 'Collaps the quick-renewal section',
 
 //'duration_type' => 'Duration Type',
 //'show_in_block' => 'Show in Block',

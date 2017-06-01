@@ -144,4 +144,7 @@ div.grouplist .vacant {
     color: #530E53;
 }
 
-
+.mbr-tooltip {
+    max-width: 25%;
+    word-break: keep-all;
+}
