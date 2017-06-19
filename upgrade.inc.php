@@ -33,7 +33,13 @@ function MEMBERSHIP_do_upgrade()
     global $_PLUGIN_INFO, $_CONF_MEMBERSHIP;
 
     if (isset($_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']])) {
-        $current_ver = $_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']];
+        if (is_array($_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']])) {
+            // glFusion > 1.6.5
+            $current_ver = $_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']]['pi_version'];
+        } else {
+            // legacy
+            $current_ver = $_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']];
+        }
     } else {
         return false;
     }

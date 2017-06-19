@@ -258,6 +258,7 @@ $LANG_confignames['membership'] = array(
     'mem_num_fmt' => 'Format for membership numbers',
     'use_mem_number' => 'Use membership numbers?',
     'disable_expired' => 'Disable account upon expiration',
+    'redir_after_purchase' => 'Redirect URL after purchase',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']
