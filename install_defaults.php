@@ -114,6 +114,10 @@ $_MEMBERSHIP_DEFAULT = array(
 
     // Disable expired member accounts
     'disable_expired' => 0,
+
+    // Redirect to another page after the "Add to Cart" button is clicked.
+    // Requires Paypal integration.
+    'redir_after_purchase' => '',
 );
 
 
@@ -230,6 +234,8 @@ function plugin_initconfig_membership($group_id = 0)
                 $_CONF_MEMBERSHIP['pi_name']);
         $c->add('enable_paypal', $_MEMBERSHIP_DEFAULT['enable_paypal'],
                 'select', 20, 30, 20, 10, true, $_CONF_MEMBERSHIP['pi_name']);
+        $c->add('redir_after_purchase', $_MEMBERSHIP_DEFAULT['redir_after_purchase'],
+                'text', 20, 30, 0, 20, true, $_CONF_MEMBERSHIP['pi_name']);
      }
 
      return true;

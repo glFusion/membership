@@ -86,6 +86,16 @@ function MEMBERSHIP_do_upgrade()
         if (!MEMBERSHIP_do_set_version($current_ver)) return false;
     }
 
+    if (!COM_checkVersion($current_ver, '0.2.0')) {
+        $current_ver = '0.2.0';
+        $c = config::get_instance();
+        if ($c->group_exists($_CONF_MEMBERSHIP['pi_name'])) {
+            $c->add('redir_after_purchase', $_MEMBERSHIP_DEFAULT['redir_after_purchase'],
+                'text', 20, 30, 0, 20, true, $_CONF_MEMBERSHIP['pi_name']);
+        }
+        if (!MEMBERSHIP_do_set_version($current_ver)) return false;
+    }
+
     COM_errorLog("Successfully updated the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin", 1);
     return true;
 }
