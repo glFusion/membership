@@ -246,6 +246,7 @@ case 'importform':
     $LT->set_var(array(
         'frm_grp_options' => $grp_options,
         'plan_sel'      => $plan_sel,
+        'iconset'       => $_CONF_MEMBERSHIP['_iconset'],
     ) );
     $LT->parse('import_form','form');
     $content .= $LT->finish($LT->get_var('import_form'));

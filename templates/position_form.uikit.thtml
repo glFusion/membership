@@ -8,10 +8,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="descr">{$LANG_MEMBERSHIP['position']}:
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_position', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" 
-            alt="{$LANG_MEMBERSHIP['clk_help']}" />
-      </a>
+      <span id="position" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
       <input type="text" id="descr" name="descr" value="{description}" />
@@ -20,10 +17,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="pos_type_sel">{$LANG_MEMBERSHIP['position_type']}:
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_type', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" 
-            alt="{$LANG_MEMBERSHIP['clk_help']}" />
-      </a>
+      <span id="type" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <select id="pos_type_sel" name="position_type_sel">
@@ -37,10 +31,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="uid">{$LANG_MEMBERSHIP['current_user']}:
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_current_user', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" 
-            alt="{$LANG_MEMBERSHIP['clk_help']}" />
-      </a>
+      <span id="current_user" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <select id="uid" name="uid">
@@ -52,10 +43,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="contact">{$LANG_MEMBERSHIP['contact_info']}:
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_contact', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" 
-            alt="{$LANG_MEMBERSHIP['clk_help']}" />
-      </a>
+      <span id="contact" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <textarea id="contact" name="contact">{contact}</textarea>
@@ -64,10 +52,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="orderby">{$LANG_MEMBERSHIP['order']}:
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_orderby', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" 
-            alt="{$LANG_MEMBERSHIP['clk_help']}" />
-      </a>
+      <span id="orderby" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <input id="orderby" type="text" name="orderby" value="{orderby}" 
@@ -77,10 +62,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="enabled">{$LANG_MEMBERSHIP['enabled']}?
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_enabled', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" 
-            alt="{$LANG_MEMBERSHIP['clk_help']}" />
-      </a>
+      <span id="enabled" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <input id="enabled" type="checkbox" name="enabled" value="1" {ena_chk} />
@@ -89,10 +71,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="show_vacant">{$LANG_MEMBERSHIP['show_vacant']}:
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_show_vacant', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" 
-            alt="{$LANG_MEMBERSHIP['clk_help']}" />
-      </a>
+      <span id="show_vacant" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <input type="checkbox" id="show_vacant" name="show_vacant" value="1" {show_vacant_chk} />
@@ -102,9 +81,7 @@
   <div class="uk-form-row">
     <label for="grp_id" class="uk-form-label">
       {$LANG_ACCESS['group']}
-      <a href="#!" onclick="popupWindow('{doc_url}#desc_group', 'Help', 640, 480, 1);return false;" class="toolbar">
-        <img src="{layout_url}/images/button_help.png" alt="Help" />
-      </a>
+      <span id="group" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <select id="grp_id" name="grp_id">
@@ -125,4 +102,33 @@
   </div>
 
 </form>
+<script type="text/javascript">
+var ConfigDocUrl = '{doc_url}';
+$(document).ready(function() {
+    $('.tooltip_cfg').tooltipster({
+        contentAsHTML: true,
+        animation: 'fade',
+        trigger: 'click',
+        iconDesktop: true,
+        iconTouch: true,
+        functionBefore: function(origin, continueTooltip) {
+            continueTooltip();
+            var attrHref = ConfigDocUrl;
+            var ajobj = $(this);
+            $.get(attrHref, function(data) {
+                var confVar = ajobj.attr('id');
+                if (data.indexOf(confVar) > 0) {
+                    var a = $(data).find('a[name=desc_' + confVar + ']');
+                    var tds = a.parent().parent().children("td");
+                    var desc = tds.eq(1).html();
+                    origin.tooltipster('content', desc);
+                } else {
+                    origin.tooltipster('content', 'No Help Text Found');
+                    console.log('Unable to find help text for desc_%s',confVar);
+                }
+            });
+        }
+    });
+});
+</script>
 {# end {templatelocation} #}
