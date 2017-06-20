@@ -194,6 +194,9 @@ $LANG_MEMBERSHIP = array(
 'item_updated' => 'Item has been updated.',
 'item_nochange' => 'Item has not been changed.',
 'rem_this_item' => 'Remove this item',
+'positions' => 'Positions',
+'import' => 'Import',
+'date_selector' => 'Date Selector',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';

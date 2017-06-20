@@ -1,11 +1,11 @@
 <?php
 /**
-*   Entry point to administration functions for the Forms plugin.
+*   Entry point to administration functions for the Membership plugin.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.1.1
+*   @version    0.2.0
 *   @license    http://opensource.org/licenses/gpl-2.0.php
 *              GNU Public License v2 or later
 *   @filesource
@@ -515,11 +515,6 @@ function getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
                 "id=\"{$fieldname}_{$A['plan_id']}\" ".
                 "type=\"checkbox\" $chk " .
                 "onclick='MEMB_toggle(this, \"{$A['plan_id']}\", \"plan\", \"{$fieldname}\", \"{$pi_admin_url}\");' />\n";
-
-        /*$retval = 
-                "<input name=\"{$fieldname}_{$A['id']}\" " .
-                "type=\"checkbox\" $chk " .
-                "onclick='MEMB_toggle(this, \"{$A['plan_id']}\", \"plan\", \"{$fieldname}\", \"{$pi_admin_url}\");' />\n";*/
         break;
 
     default:
@@ -653,15 +648,12 @@ function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
         break;
 
     case 'tx_fullname':
-        //$retval = COM_createLink($fieldvalue,
-        //        $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $A['tx_uid']);
         $retval = COM_createLink($fieldvalue,
                 MEMBERSHIP_ADMIN_URL . '/index.php?listtrans&amp;uid=' . $A['tx_uid']);
         break;
 
     case 'fullname':
         if (!isset($link_names[$A['mem_uid']])) {
-            //$link_names[$A['mem_uid']] = MEMBER_CreateNameLink($A['mem_uid'], $A['fullname']);
             $link_names[$A['mem_uid']] = MEMBER_CreateNameLink($A['mem_uid'], $A['fullname']);
         }
         $retval = $link_names[$A['mem_uid']];
@@ -725,7 +717,7 @@ function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
     /*case 'action':
         $retval = '<select name="action"
             onchange="javascript: document.location.href=\'' .
-            MEMBERSHIP_ADMIN_URL . '/index.php?frm_id=' . $A['id'] . 
+            MEMBERSHIP_ADMIN_URL . '/index.php?frm_id=' . $A['id'] .
             '&mode=\'+this.options[this.selectedIndex].value">'. "\n";
         $retval .= '<option value="">--Select Action--</option>'. "\n";
         $retval .= '<option value="preview">Preview</option>'. "\n";
@@ -755,33 +747,66 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
     $help_text = isset($LANG_MEMBERSHIP['adm_' . $mode]) ?
             $LANG_MEMBERSHIP['adm_' . $mode] : '';
 
-    $menu_arr = array(
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listplans=x',
-            'text' => $LANG_MEMBERSHIP['list_plans']),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
-            'text' => $LANG_MEMBERSHIP['list_members']),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
-            'text' => $LANG_MEMBERSHIP['transactions']),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?stats',
-            'text' => $LANG_MEMBERSHIP['member_stats']),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
-            'text' => 'Positions'),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?importform',
-            'text' => 'Import'),
-        array('url' => $_CONF['site_admin_url'],
-            'text' => $LANG01[53]),
-    );
+    $plan_active = false;
+    $members_active = false;
+    $trans_active = false;
+    $pos_active = false;
+    $import_active = false;
+    $stats_active = false;
     switch($mode) {
     case 'listplans':
-        $menu_arr[] = array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
+        $new_item_option = array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
             'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_plan']}</span>");
+        $plan_active = true;
         break;
     case 'positions':
-        $menu_arr[] = array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
+        $new_item_option = array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
             'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_position']}</span>");
+        $pos_active = true;
+        break;
+    case 'listmembers':
+        $members_active = true;
+        break;
+    case 'listtrans':
+        $trans_active = true;
+        break;
+    case 'stats':
+        $stats_active = true;
+        break;
+    case 'importform':
+        $import_active = true;
         break;
     }
 
+    $menu_arr = array(
+        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listplans=x',
+            'text' => $LANG_MEMBERSHIP['list_plans'],
+            'active' => $plan_active
+        ),
+        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
+            'text' => $LANG_MEMBERSHIP['list_members'],
+            'active' => $members_active,
+        ),
+        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
+            'text' => $LANG_MEMBERSHIP['transactions'],
+            'active' => $trans_active,
+        ),
+        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?stats',
+            'text' => $LANG_MEMBERSHIP['member_stats'],
+            'active' => $stats_active,
+        ),
+        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
+            'text' => $LANG_MEMBERSHIP['positions'],
+            'active' => $pos_active,
+        ),
+        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?importform',
+            'text' => $LANG_MEMBERSHIP['import'],
+            'active' => $import_active,
+        ),
+        array('url' => $_CONF['site_admin_url'],
+            'text' => $LANG01[53]),
+        $new_item_option,
+    );
     $retval = ADMIN_createMenu($menu_arr, $help_text, plugin_geticon_membership());
     return $retval;
 }
@@ -805,7 +830,7 @@ function MEMBER_CreateNameLink($uid, $fullname='')
     }
     $fullname = \NameParser::LCF($fullname);
     $retval = '<span rel="rel_' . $uid .
-        '" onmouseover="MEM_highlight(' . $uid . 
+        '" onmouseover="MEM_highlight(' . $uid .
         ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
         COM_createLink($fullname,
         $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $uid)
@@ -865,7 +890,7 @@ function MEMBERSHIP_summaryStats()
         'tot_arrears'   => $tot_arrears,
         'grand_total'   => $gtotal,
     ) );
-    $T->parse('output', 'stats');   
+    $T->parse('output', 'stats');
     return $T->get_var('output');
 }
 
@@ -916,24 +941,22 @@ function MEMBERSHIP_listTrans()
         'has_extras' => true,
         'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
     );
-    $filter = $LANG_MEMBERSHIP['from'] . 
+    $filter = $LANG_MEMBERSHIP['from'] .
         ': <input id="f_tx_from" type="text" size="10" name="tx_from" value="' .
-            $tx_from . '" />' .
-          '<img src="' . $_CONF['site_url'] . '/images/datepicker.jpg" 
+            $tx_from . '" />&nbsp;' .
+          '<i class="' . MEM_getIcon('calendar') . ' tooltip"
             id="dtfrom_trigger"
             style="cursor: pointer;"
-            alt="Date Selector"
-            title="Date Selector"
-            />&nbsp;&nbsp;' .
+            alt="' . $LANG_MEMBERSHIP['date_selector'] . '"
+            title="' . $LANG_MEMBERSHIP['date_selector'] . '"></i>&nbsp;&nbsp;' .
         $LANG_MEMBERSHIP['to'] .
         ': <input id="f_tx_to" type="text" size="10" name="tx_to" value="' .
-             $tx_to .'" />' .
-          '<img src="' . $_CONF['site_url'] . '/images/datepicker.jpg" 
+             $tx_to .'" />&nbsp' .
+          '<i class="' . MEM_getIcon('calendar', 'info') . ' tooltip"
             id="dtto_trigger"
             style="cursor: pointer;"
-            alt="Date Selector"
-            title="Date Selector"
-            />&nbsp;' .
+            alt="' . $LANG_MEMBERSHIP['date_selector'] . '"
+            title="' . $LANG_MEMBERSHIP['date_selector'] . '"></i>&nbsp;&nbsp;' .
         '<script type="text/javascript">
     Calendar.setup({
         inputField     :    "f_tx_from",
@@ -966,7 +989,7 @@ function MEMBERSHIP_listTrans()
         array('text' => $LANG_MEMBERSHIP['txn_id'],
                 'field' => 'tx_txn_id', 'sort' => true),
     );
-    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member', 
+    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 '', $form_arr);
     return $retval;
@@ -985,11 +1008,11 @@ function MEMBERSHIP_listPositions()
     $sql = "SELECT p.*,u.fullname
             FROM {$_TABLES['membership_positions']} p
             LEFT JOIN {$_TABLES['users']} u
-            ON u.uid = p.uid 
+            ON u.uid = p.uid
             WHERE 1=1 ";
 
     $header_arr = array(
-        array('text' => 'ID', 
+        array('text' => 'ID',
                 'field' => 'id', 'sort' => true),
         array('text' => $LANG_MEMBERSHIP['edit'],
                 'field' => 'editpos', 'sort' => false,
@@ -1004,7 +1027,7 @@ function MEMBERSHIP_listPositions()
                 'field' => 'type', 'sort' => true),
         array('text' => $LANG_MEMBERSHIP['description'],
                 'field' => 'descr', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['current_user'], 
+        array('text' => $LANG_MEMBERSHIP['current_user'],
                 'field' => 'fullname', 'sort' => true),
         array('text' => $LANG_MEMBERSHIP['order'],
                 'field' => 'orderby', 'sort' => true),
