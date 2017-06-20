@@ -10,12 +10,11 @@
     {plan_sel}
   </select><br />
   {$LANG_MEMBERSHIP['exp_notice']}: <input type="text" id="f_expiration" name="expiration" />
-  <img src="{site_url}/images/datepicker.jpg" 
+  <i class="{iconset}-calendar mbr-icon-normal tooltip"
       id="expiration_trigger"
       style="cursor: pointer;"
-      alt="Date Selector"
-      title="Date Selector"
-      />
+      alt="{$LANG_MEMBERSHIP['date_selector']}"
+      title="{$LANG_MEMBERSHIP['date_selector']}"></i>
   <br />
   <input type="submit" name="importusers" class="lgButton green" value="Submit" /> 
   <input type="submit" name="listmembers" class="lgButton grey" value="Cancel" /> 
