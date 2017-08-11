@@ -669,7 +669,7 @@ class Membership
             $app_link = 'true';
         }
 
-        $LT = new Template(MEMBERSHIP_PI_PATH . '/templates/');
+        $LT = new \Template(MEMBERSHIP_PI_PATH . '/templates/');
         $LT->set_file(array(
             'block' => 'profileblock.thtml',
         ));

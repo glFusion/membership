@@ -5,7 +5,7 @@
 *   @author     Lee Garner <lee@leegarner.com>
 *   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.1.3
+*   @version    0.2.0
 *   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
@@ -25,8 +25,7 @@ if (!isset($_CONF_MEMBERSHIP['member_group'])) {
 require_once 'membership.php';
 
 /** Define the absolute path to the plugin's directory */
-define('MEMBERSHIP_PI_PATH',
-        $_CONF['path'] . 'plugins/' . $_CONF_MEMBERSHIP['pi_name']);
+define('MEMBERSHIP_PI_PATH', __DIR__);
 /** Define the base public url for the plugin */
 define('MEMBERSHIP_PI_URL',
         $_CONF['site_url'] . '/' . $_CONF_MEMBERSHIP['pi_name']);
