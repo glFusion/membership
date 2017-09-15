@@ -14,7 +14,6 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
-namespace Membership;
 
 /** Import core glFusion libraries */
 require_once '../../../lib-common.php';
@@ -66,14 +65,13 @@ case 'do_import':
     $plans = $_POST['sub'];
     $res = DB_query("SELECT id, item_id, uid, expiration
         FROM {$_TABLES['subscr_subscriptions']}");
-    USES_membership_class_membership();
     USES_subscription_class_subscription();
     while ($A = DB_fetchArray($res, false)) {
         $content .= "Converting {$A['item_id']} for {$A['uid']} to {$plans[$A['item_id']]}<br />";
         // Cancel the subscription, which will remove the group membership.
         // It should be added back right away by the membership.
-        \Subscription\Subscription::Cancel($A['id'], true);
-        $M = new Membership($A['uid']);
+        Subscription\Subscription::Cancel($A['id'], true);
+        $M = new Membership\Membership($A['uid']);
         $M->plan_id = $plans[$A['item_id']];
         $M->expires = $A['expiration'];
         if ($_CONF_MEMBERSHIP['use_mem_num'] == 2) {

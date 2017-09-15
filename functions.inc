@@ -108,26 +108,20 @@ $_CONF_MEMBERSHIP['dt_begin_renewal'] = date('Y-m-d',
 //    $_CONF_MEMBERSHIP['member_all_group'] = $_CONF_MEMBERSHIP['member_group'];
 //}
 
+spl_autoload_register(function ($class)
+{
+    if (strpos($class, 'Membership\\') === 0) {
+        $class = str_replace('Membership\\', '', $class);
+        $path = __DIR__ . '/classes/' . $class . '.class.php';
+        if (file_exists($path)) {
+            include $path;
+        }
+    }
+});
+
 // Import plugin-specific functions
 function USES_membership_functions()
 {   require_once MEMBERSHIP_PI_PATH . '/membership_functions.inc.php'; }
-
-/** Import member class */
-function USES_membership_class_membership()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/Membership.class.php'; }
-
-/** Import membership plan class */
-function USES_membership_class_plan()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/Plan.class.php'; }
-
-function USES_membership_class_link()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/Link.class.php'; }
-
-function USES_membership_class_app()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/App.class.php'; }
-
-function USES_membership_class_position()
-{   require_once MEMBERSHIP_PI_PATH . '/classes/Position.class.php'; }
 
 // Determine if the paypal plugin is installed and integration is enabled
 if (!is_array($_PLUGINS) || !in_array('paypal', $_PLUGINS)) {
@@ -246,6 +240,47 @@ function plugin_getheadercss_membership()
 
 
 /**
+*   Disable this plugin's blocks when the plugin is disabled.
+*
+*   @param  boolean $enabled    Plugin's "enabled" state
+*/
+function plugin_enablestatechange_membership($enabled)
+{
+    global $_TABLES, $_PLUGINS;
+
+    $enabled = $enabled == true ? 1 : 0;
+
+    // If trying to enable the plugin but lgLib is not available,
+    // take no action and return
+    if ($enabled && !in_array('lglib', $_PLUGINS)) {
+        // Re-disable the plugin
+        DB_change($_TABLES['plugins'], 'pi_enabled', 0, 'pi_name', 'membership');
+        $enable = false;
+        $enabled = 0;
+    }
+    return $enabled;
+}
+
+
+/**
+*   Receives notification of anothe plugin's deletion
+*
+*   @param  mixed   $id     Item ID
+*   @param  string  $type   Plugin Name
+*/
+function plugin_itemdeleted_membership($id, $type)
+{
+    global $_TABLES;
+
+    // If the lgLib plugin is disabled or removed, disable thie plugin
+    if ($type == 'lglib' && $id == '*') {
+        plugin_enablestatechange_membership(false);
+        DB_change($_TABLES['plugins'], 'pi_enabled', 0, 'pi_name', 'membership');
+    }
+}
+
+
+/**
 *   Update the Membership plugin
 *   @return integer Number of message to display (true = generic success msg)
 */
@@ -351,8 +386,7 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
     $retval = '';
 
     if (($panel == '' || $panel == 'useredit') && $fieldset == '') {
-        USES_membership_class_membership();
-        $M = new \Membership\Membership($uid);
+        $M = new Membership\Membership($uid);
         if (MEMBERSHIP_isManager()) {
             $retval .= $M->Editform();
         } else {
@@ -376,8 +410,7 @@ function plugin_user_changed_membership($uid=0)
     // Only managers can update membership data.
     if (!MEMBERSHIP_isManager()) return;
 
-    USES_membership_class_membership();
-    $M = new \Membership\Membership($uid);
+    $M = new Membership\Membership($uid);
     $op = '';
     $need_save = false; // assume nothing to do
     $joined = isset($_POST['mem_joined']) ? $_POST['mem_joined'] : '';
@@ -392,7 +425,7 @@ function plugin_user_changed_membership($uid=0)
         $op = 'renewed';
     } elseif (isset($_POST['mem_cancel'])) {
         // Cancel the membership
-        Membership::Cancel($uid);
+        Membership\Membership::Cancel($uid);
     } else {
         // Maybe just updating options
         $vars = array('notified', 'expires', 'joined', 'position', 'plan_id',
@@ -409,7 +442,7 @@ function plugin_user_changed_membership($uid=0)
         // Check the linked accounts for changes. If changed, just call
         // the membership Save() function.
         if (!$need_save) {  // if we don't already need to save
-            $new_links = \Membership\Membership::getRelatives($uid);
+            $new_links = Membership\Membership::getRelatives($uid);
             $old_links = json_decode($_POST['mem_old_links'], true);
             if (is_array($old_links)) { // check for valid json
                 foreach ($new_links as $uid=>$name) {
@@ -489,8 +522,7 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
     if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager())
         return '';
 
-    USES_membership_class_membership();
-    $M = new \Membership\Membership($uid);
+    $M = new Membership\Membership($uid);
     $existingFields = $T->get_var('plugin_fields');
     $T->set_var('plugin_fields', $existingFields . $M->ShowInfo(false, $uid));
 }
@@ -693,9 +725,8 @@ function plugin_runScheduledTask_membership()
     //COM_errorLog($sql);
     $r = DB_query($sql, 1);
     if ($r) {
-        USES_membership_class_membership();
         while ($row = DB_fetchArray($r, false)) {
-            Membership::Expire($row['mem_uid'], true);
+            Membership\Membership::Expire($row['mem_uid'], true);
             MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_expired'],
                 $row['mem_uid'], $row['fullname']), true);
         }
@@ -714,9 +745,8 @@ function plugin_runScheduledTask_membership()
     //COM_errorLog($sql);
     $r = DB_query($sql, 1);
     if ($r) {
-        USES_membership_class_membership();
         while ($row = DB_fetchArray($r, false)) {
-            Membership::Arrears($row['mem_uid'], true);
+            Membership\Membership::Arrears($row['mem_uid'], true);
             MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_arrears'],
                 $row['mem_uid'], $row['fullname']), true);
         }
@@ -787,7 +817,7 @@ function MEMBERSHIP_notifyExpiration()
             // Create a notification email message.
             $username = COM_getDisplayName($row['mem_uid']);
             if (!isset($Plans[$row['plan_id']])) {
-                $Plans[$row['plan_id']] = new \Membership\Plan($row['plan_id']);
+                $Plans[$row['plan_id']] = new Membership\Plan($row['plan_id']);
             }
             $P = $Plans[$row['plan_id']];   // shortcut variable
 
@@ -1003,11 +1033,10 @@ function plugin_user_delete_membership($uid)
 {
     global $_TABLES;
 
-    USES_membership_class_membership();
     MEMBERSHIP_auditLog('Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.');
 
-    \Membership\Membership::Delete($uid);
+    Membership\Membership::Delete($uid);
     // In case the member never logged in
     //DB_delete($_TABLES['membership_newusers'], 'uid', $uid);
 }
@@ -1130,8 +1159,7 @@ function MEMBERSHIP_currentMembership()
     static $current = NULL;
 
     if ($current === NULL) {
-        USES_membership_class_membership();
-        $current = new \Membership\Membership();
+        $current = new Membership\Membership();
     }
     return $current;
 }

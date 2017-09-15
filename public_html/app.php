@@ -11,7 +11,6 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
-namespace Membership;
 
 /** Import core glFusion libraries */
 require_once '../lib-common.php';
@@ -68,8 +67,7 @@ case 'saveapp':
         ) );
         if ($_POST['mem_uid'] == $_USER['uid'] && !empty($_POST['purch_url'])) {
             // only redirect members to purchase, not admins.
-            USES_membership_class_membership();
-            $M = new Membership();
+            $M = new Membership\Membership();
             if ($M->canPurchase()) {
                 echo COM_refresh($_POST['purch_url']);
                 exit;
@@ -100,8 +98,7 @@ case 'view':
 default:
     // Display the application within the normal glFusion site.
     //$content .= displayApp($uid);
-    USES_membership_class_app();
-    $content .= MembershipApp::Display();
+    $content .= Membership\App::Display();
     if (!empty($content)) {
         $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/app.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
@@ -110,7 +107,7 @@ case 'edit':
     $status = LGLIB_invokeService('profile', 'renderForm',
                 array('uid'=>$uid), $output, $svc_msg);
     if ($status == PLG_RET_OK && !empty($output)) {
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('app', 'app_form.thtml');
         $T->set_var(array(
             'mem_uid'       => $uid,
@@ -136,8 +133,7 @@ function displayApp($uid = 0)
 {
     global $_USER;
 
-    USES_membership_class_app();
-    $content = MembershipApp::Display($uid);
+    $content = Membership\App::Display($uid);
     if (empty($content)) COM_404();
     else return $content;
 }

@@ -10,7 +10,6 @@
 *               GNU Public License v2 or later
 *   @filesource
 */
-namespace Membership;
 
 /** Include required glFusion common functions */
 require_once '../../../lib-common.php';
@@ -27,18 +26,15 @@ $result = array(
 );
 switch ($_POST['action']) {
 case 'remlinkuser':
-    USES_membership_class_link();
-    Link::RemLink($_POST['uid1'], $_POST['uid2']);
+    Membership\Link::RemLink($_POST['uid1'], $_POST['uid2']);
     break;
 
 case 'addlinkuser':
-    USES_membership_class_link();
-    Link::AddLink($_POST['uid1'], $_POST['uid2']);
+    Membership\Link::AddLink($_POST['uid1'], $_POST['uid2']);
     break;
 
 case 'emancipate':
-    USES_membership_class_link();
-    Link::Emancipate($_POST['uid1']);
+    Membership\Link::Emancipate($_POST['uid1']);
     break;
 
 case 'toggle':
@@ -47,13 +43,11 @@ case 'toggle':
 
         switch ($_POST['type']) {
         case 'plan':
-            USES_membership_class_plan();
-            $newval = Plan::toggleEnabled($_POST['oldval'], $_POST['id']);
+            $newval = Membership\Plan::toggleEnabled($_POST['oldval'], $_POST['id']);
             break;
 
         case 'position':
-            USES_membership_class_position();
-            $newval = Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
+            $newval = Membership\Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
             break;
 
          default:
@@ -62,8 +56,7 @@ case 'toggle':
         break;
 
     case 'show_vacant':
-        USES_membership_class_position();
-        $newval = Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
+        $newval = Membership\Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
         break;
 
     default:

@@ -249,10 +249,8 @@ class Plan
         // plan was selected, rename the plan IDs in the membership table.
         if (!DB_error()) {
             if ($this->xfer_plan != '') {
-                USES_membership_class_membership();
                 Membership::Transfer($this->plan_id, $this->xfer_plan);
             } elseif ($this->plan_id != $this->old_plan_id) {
-                USES_membership_class_membership();
                 Membership::Transfer($this->old_plan_id, $this->plan_id);
             }
         }
@@ -296,7 +294,6 @@ class Plan
 
         if (self::hasMembers($id)) {
             if (!empty($xfer_plan)) {
-                USES_membership_class_membership();
                 if (!Membership::Transfer($id, $xfer_plan)) {
                     LGLIB_storeMessage(array(
                         'message' => $LANG_MEMBERSHIP['msg_unable_xfer_members'],
@@ -415,7 +412,8 @@ class Plan
             'renew_0'       => sprintf('%.2f', $this->fees['renew'][0]),
             'fixed_fee'     => sprintf('%.2f', $this->fees['fixed']),
             'period_start'  => $_CONF_MEMBERSHIP['period_start'],
-            'group_options' => COM_optionList($_TABLES['groups'],
+            'group_options' => '<option value="0">-- ' . $LANG_MEMBERSHIP['none'] .
+                                ' --</option>' . COM_optionList($_TABLES['groups'],
                                 'grp_id,grp_name', $this->grp_access),
         ) );
 
@@ -508,7 +506,6 @@ class Plan
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('detail', 'plan_detail.thtml');
 
-        USES_membership_class_membership();
         $M = new Membership($_USER['uid']);
         if ($M->CanPurchase()) {
             $price = $this->Price($M->isNew);
@@ -782,6 +779,152 @@ class Plan
         return $currency;
     }
 
-}   // class Plan
+
+    /**
+    *   Get all teh plans that can be purchased by the current user.
+    *
+    *   @param  string  $plan_id    Optional specific plan to get
+    *   @return array       Array of plan objects
+    */
+    public static function getPlans($plan_id='')
+    {
+        global $_TABLES;
+
+        $plans = array();
+        $sql = "SELECT plan_id
+                FROM {$_TABLES['membership_plans']}
+                WHERE enabled = 1 " . SEC_buildAccessSql();
+        if (!empty($plan_id)) {
+            $sql .= " AND plan_id = '" . DB_escapeString($show_plan) . "'";
+        }
+        $result = DB_query($sql);
+        while ($A = DB_fetchArray($result, false)) {
+            $plans[$A['plan_id']] = new Plan($A['plan_id']);
+        }
+        return $plans;
+    }
+
+
+    /**
+    *   Display the membership plans available.
+    *   Supports autotags in the plan_list.thtml template.
+    *
+    *   @param  boolean $allow_purchase True to display payment buttons
+    *   @param  boolean $have_app       True if the app has just been updated
+    *   @param  string  $show_plan      A single plan_id to show (selected on app)
+    *   @return string      HTML for product catalog.
+    */
+    public static function List($allow_purchase = true, $have_app = false, $show_plan = '')
+    {
+        global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
+                $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
+
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T->set_file('planlist', 'plan_list.thtml');
+        $T->set_var('is_uikit', $_SYSTEM['framework'] == 'uikit' ? 'true' : '');
+        if (COM_isAnonUser()) {
+            // Anonymous must log in to purchase
+            //$T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
+            //$login_url = "#\" onclick=\"Popup.showModal('loginform',null,null,{'screenColor':'#999999','screenOpacity':.6,'className':'piMembershipLoginForm'});return false;\"";
+            $login_url = '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';';
+            $T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
+                $_CONF['site_url'] . '/users.php?mode=new', $login_url));
+            /*$T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
+                $_CONF['site_url'] . '/users.php?mode=new',
+                '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';'));*/
+            $T->set_var('exp_msg_class', 'alert');
+            $T->set_var('login_form', SEC_loginform());
+            $T->parse('output', 'planlist');
+            return $T->finish($T->get_var('output', 'planlist'));
+        } 
+ 
+        $Plans = self::getPlans();
+        if (empty($Plans)) {
+            $T->parse('output', 'planlist');
+            $retval = $T->finish($T->get_var('output', 'planlist'));
+            $retval .= '<p />' . $LANG_MEMBERSHIP['no_plans_avail'];
+            return $retval;
+        }
+
+        $M = new Membership();
+        if ($M->isNew) {
+            // New member, no expiration message
+            $T->set_var('you_expire', '');
+        } elseif ($M->expires >= $_CONF_MEMBERSHIP['today']) {
+            // Let current members know when they expire
+            $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
+                $M->planDescription(), $M->expires));
+            if ($_CONF_MEMBERSHIP['early_renewal'] > 0) {
+                $T->set_var('early_renewal', sprintf($LANG_MEMBERSHIP['renew_within'],
+                    $_CONF_MEMBERSHIP['early_renewal']));
+            }
+            $T->set_var('exp_msg_class', 'info');
+        }
+        if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
+            if ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_OPTIONAL) {
+                $T->set_var('app_msg',
+                    sprintf($LANG_MEMBERSHIP['please_complete_app'], 
+                            MEMBERSHIP_PI_URL . '/index.php?editapp'));
+            } elseif ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED
+                    && !$have_app) {
+                $T->set_var('app_msg',
+                    sprintf($LANG_MEMBERSHIP['plan_list_app_footer'],
+                            MEMBERSHIP_PI_URL . '/index.php?editapp'));
+            }
+            // Offer a link to return to update the application
+            $T->set_var('footer', $LANG_MEMBERSHIP['return_to_edit']);
+        }
+
+        $status = LGLIB_invokeService('paypal', 'getCurrency', array(),
+                $currency, $svc_msg);
+        if (empty($currency)) $currency = 'USD';
+        $lang_price = $LANG_MEMBERSHIP['price'];
+
+        $T->set_block('planlist', 'PlanBlock', 'PBlock');
+        foreach ($Plans as $P) {
+            $description = $P->description;
+            $price = $P->Price($M->isNew(), 'actual');
+            $fee = $P->Fee();
+            $price_total = $price + $fee;
+            $buttons = '';
+            if ($allow_purchase) {
+                switch($M->CanPurchase()) {
+                case MEMBERSHIP_CANPURCHASE:
+                    $exp_ts = strtotime($M->expires);
+                    $exp_format = strftime($_CONF['shortdate'], $exp_ts);
+                    $output = $P->MakeButton($price_total, $M->isNew(),
+                        $_CONF_MEMBERSHIP['redir_after_purchase']);
+                    if (!empty($output))
+                        $buttons = implode('', $output);
+                    break;
+                case MEMBERSHIP_NEED_APP:
+                    $buttons = sprintf($LANG_MEMBERSHIP['app_required'], MEMBERSHIP_PI_URL . '/app.php');
+                    break;
+                default:
+                    $exp_format = '';
+                    $buttons = '';
+                }
+            }
+            $T->set_var(array(
+                'plan_id'   => $P->plan_id,
+                'name'      => $P->name,
+                'description' => PLG_replacetags($description),
+                'exp_date'  => $exp_format,
+                'price'     => COM_numberFormat($price_total, 2),
+                'price_actual' => COM_numberFormat($price, 2),
+                'fee' => $fee > 0 ? COM_numberFormat($fee, 2) : '',
+                'encrypted' => '',
+                'currency'  => $currency,
+                'purchase_btn' => $buttons,
+                'lang_price' => $lang_price,
+            ) );
+
+            $display .= $T->parse('PBlock', 'PlanBlock', true);
+        }
+        $T->parse('output', 'planlist');
+        return PLG_replacetags($T->finish($T->get_var('output', 'planlist')));
+    }
+
+}
 
 ?>

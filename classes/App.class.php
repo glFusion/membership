@@ -211,14 +211,13 @@ class App
     public static function TypeSelect($sel='')
     {
         global $_TABLES;
-        USES_membership_class_plan();
 
         $sql = "SELECT * FROM {$_TABLES['membership_plans']}";
         if (!MEMBERSHIP_isManager()) {
             $sql .= ' WHERE access = 1';
         }
         $res = DB_query($sql);
-        $P = new MembershipPlan();
+        $P = new Plan();
         $retval = array();
         // If selection is populated, this can't be a new membership
         $isNew = $sel == '' ? true : false;
@@ -308,7 +307,6 @@ class App
     {
         static $members = array();
 
-        USES_membership_class_membership();
         if (!isset($members[$uid])) {
             $members[$uid] = new Membership($uid);
         }

@@ -10,7 +10,6 @@
 *              GNU Public License v2 or later
 *   @filesource
 */
-namespace Membership;
 
 /** Import core glFusion libraries */
 require_once '../../../lib-common.php';
@@ -32,7 +31,6 @@ if (!MEMBERSHIP_isManager()) {
 // Import administration functions
 USES_lib_admin();
 USES_membership_functions();
-USES_membership_class_plan();
 // This is used in several user list functions
 USES_lglib_class_nameparser();
 
@@ -78,13 +76,12 @@ case 'regenbutton':
     }
 
     $members = implode(',', $_POST['delitem']);
-    USES_membership_class_membership();
     $sql = "SELECT mem_uid, mem_number
             FROM {$_TABLES['membership_members']}
             WHERE mem_uid in ($members)";
     $res = DB_query($sql, 1);
     while ($A = DB_fetchArray($res, false)) {
-        $new_mem_num = Membership::createMemberNumber($A['mem_uid']);
+        $new_mem_num = Membership\Membership::createMemberNumber($A['mem_uid']);
         if ($new_mem_num != $A['mem_number']) {
             $sql = "UPDATE {$_TABLES['membership_members']}
                     SET mem_number = '" . DB_escapeString($new_mem_num) . "'
@@ -101,8 +98,7 @@ case 'importusers':
     break;
 
 case 'quickrenew':
-    USES_membership_class_membership();
-    $M = new Membership($_POST['mem_uid']);
+    $M = new Membership\Membership($_POST['mem_uid']);
     $status = $M->Add($uid, $M->Plan->plan_id, 0);
     if ($status !== false) {
         $M->AddTrans('by admin', $_POST['mem_pmtamt']);
@@ -119,9 +115,8 @@ case 'savemember':
 case 'deletebutton_x':
 case 'deletebutton':
     if (is_array($_POST['delitem'])) {
-        USES_membership_class_membership();
         foreach ($_POST['delitem'] as $mem_uid) {
-            $status = Membership::Delete($mem_uid);
+            $status = Membership\Membership::Delete($mem_uid);
         }
     }
     echo COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listmembers');
@@ -130,9 +125,8 @@ case 'deletebutton':
 case 'renewbutton_x':
 case 'renewbutton':
     if (is_array($_POST['delitem'])) {
-        USES_membership_class_membership();
         foreach ($_POST['delitem'] as $mem_uid) {
-            $M = new Membership($mem_uid);
+            $M = new Membership\Membership($mem_uid);
             if ($M->isNew) continue;
             $M->Renew();
         }
@@ -152,7 +146,7 @@ case 'deleteplan':
 
 case 'saveplan':
     $plan_id = isset($_POST['old_plan_id']) ? $_POST['old_plan_id'] : '';
-    $P = new Plan($plan_id);
+    $P = new Membership\Plan($plan_id);
     $status = $P->Save($_POST);
     if ($status == true) {
         $view = 'listplans';
@@ -166,8 +160,7 @@ case 'saveplan':
 
 case 'saveposition':
     $pos_id = isset($_POST['pos_id']) ? $_POST['pos_id'] : 0;
-    USES_membership_class_position();
-    $P = new Position($pos_id);
+    $P = new Membership\Position($pos_id);
     $status = $P->Save($_POST);
     if ($status == true) {
         COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
@@ -185,34 +178,18 @@ case 'reorderpos':
     $id = isset($_GET['id']) ? $_GET['id'] : 0;
     $where = isset($_GET['where']) ? $_GET['where'] : '';
     if ($type != '' && $id > 0 && $where != '') {
-        USES_membership_class_position();
-        $msg = Position::Move($id, $type, $where);
+        $msg = Membership\Position::Move($id, $type, $where);
     }
     $view = 'positions';
     break;
 
 case 'deletepos':
-    USES_membership_class_position();
-    $P = new Position($actionval);
+    $P = new Membership\Position($actionval);
     $P->Remove();
     COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
     exit;
     break;
 
-/*case 'update':
-    // Save or update a membership record
-    USES_membership_class_member();
-    $M = new Member($id);
-    $M->Save($_POST);
-    $view = 'list';
-    break;
-
-case 'delete':
-    // Delete a membership record.
-    $id = (int)$_REQUEST['id'];     // May come in via $_GET
-    DB_delete($_TABLES['membership_members'], 'id', $id);
-    break;
-*/
 default:
     $view = $action;
     break;
@@ -254,8 +231,7 @@ case 'importform':
     break;
 
 case 'editmember':
-    USES_membership_class_membership();
-    $M = new Membership($actionval);
+    $M = new Membership\Membership($actionval);
     $showexp = isset($_GET['showexp']) ? '?showexp' : '';
     $content .= MEMBERSHIP_adminMenu('listmembers', '');
     $content .= $M->Editform(MEMBERSHIP_ADMIN_URL . '/index.php' . $showexp);
@@ -263,15 +239,13 @@ case 'editmember':
 
 case 'editplan':
     $plan_id = isset($_REQUEST['plan_id']) ? $_REQUEST['plan_id'] : '';
-    USES_membership_class_plan();
-    $P = new Plan($plan_id);
+    $P = new Membership\Plan($plan_id);
     $content .= MEMBERSHIP_adminMenu($view, '');
     $content .= $P->Edit();
     break;
 
 case 'editpos':
-    USES_membership_class_position();
-    $P = new Position($actionval);
+    $P = new Membership\Position($actionval);
     $content .= MEMBERSHIP_adminMenu($view, '');
     $content .= $P->Edit();
     break;
@@ -298,9 +272,8 @@ case 'listtrans':
 case 'positions':
     if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
         // Delete some checked attributes
-        USES_membership_class_position();
         foreach ($_POST['delitem'] as $id) {
-            Position::Delete($id);
+            Membership\Position::Delete($id);
         }
     }
     $content .= MEMBERSHIP_adminMenu($view, '');
@@ -315,8 +288,8 @@ default:
     break;
 
 }
-$output = MEMBERSHIP_siteHeader();
-$T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+$output = Membership\siteHeader();
+$T = new Template(MEMBERSHIP_PI_PATH . '/templates');
 $T->set_file('page', 'admin_header.thtml');
 $T->set_var(array(
     'header'    => $LANG_MEMBERSHIP['admin_title'],
@@ -326,7 +299,7 @@ $T->parse('output','page');
 $output .= $T->finish($T->get_var('output'));
 $output .= LGLIB_showAllMessages();
 $output .= $content;
-$output .= MEMBERSHIP_siteFooter();
+$output .= Membership\siteFooter();
 echo $output;
 
 
@@ -866,7 +839,7 @@ function MEMBERSHIP_summaryStats()
         }
     }
 
-    $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+    $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
     $T->set_file('stats', 'admin_stats.thtml');
     $T->set_block('stats', 'statrow', 'srow');
     $linetotal = 0;

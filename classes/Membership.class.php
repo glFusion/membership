@@ -12,8 +12,6 @@
 */
 namespace Membership;
 
-USES_membership_class_plan();
-
 /**
 *   Class for a membership record
 *   @package    membership
@@ -319,7 +317,6 @@ class Membership
         // The first thing is to check to see if we're removing this account
         // from the family so we don't update other members incorrectly
         if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
-            USES_membership_class_link();
             Link::Emancipate($this->uid);
         }
 
@@ -496,7 +493,6 @@ class Membership
     public static function Expire($uid=0, $cancel_relatives=true)
     {
         // Remove this member from any club positions held
-        USES_membership_class_position();
         $positions = Position::getMemberPositions($uid);
         if (!empty($positions)) {
             foreach ($positions as $pos_id) {
@@ -866,7 +862,6 @@ class Membership
         global $_CONF_MEMBERSHIP, $_TABLES;
 
         // Remove this user from the family
-        USES_membership_class_link();
         Link::Emancipate($uid);
 
         // Remove this user from the membership group

@@ -35,7 +35,7 @@ id="terms_accept" type="checkbox" name="terms_accept" value="1" />
         size="5" maxlength="5" value="" />
  {terms_link}
 {!if terms_required}
-<img src="{site_url}/membership/images/required.png" width="16" height="16" class="gl_mootip" title="{$LANG_MEMBERSHIP['field_required']}" />
+<img src="{site_url}/membership/images/required.png" width="16" height="16" class="tooltip" title="{$LANG_MEMBERSHIP['field_required']}" />
 {!endif}
 </p>
 <p>&nbsp;</p>

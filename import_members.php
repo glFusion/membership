@@ -21,8 +21,6 @@ function MEMBERSHIP_import()
 {
     global $_TABLES, $_CONF;
 
-    USES_membership_class_membership();
-
     $from_grp = (int)$_POST['from_group'];
     $exp = $_POST['expiration'];
     $plan_id = $_POST['plan'];
@@ -39,7 +37,7 @@ function MEMBERSHIP_import()
     $existing = 0;
     $failed = '';
     while ($A = DB_fetchArray($res, false)) {
-        $M = new Membership($A['ug_uid']);
+        $M = new Membership\Membership($A['ug_uid']);
         if ($M->plan_id !== '') {
             $existing++;
             continue;
