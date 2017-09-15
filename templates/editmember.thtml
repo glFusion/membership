@@ -8,7 +8,7 @@ var MEMaddElement = function(selid) {
   var new_elem = document.createElement('li');
   var str = "<a href=\"{site_url}/users.php?mode=profile&uid=" + uid +
         "\">" + uname + " (" + uid + ")</a>";
-  str = str + "&nbsp;&nbsp;<a href=\"#\" onclick='MEMremoveElement(" +
+  str = str + "&nbsp;&nbsp;<a href=\"#!\" onclick='MEMremoveElement(" +
         uid + ",\"" + uname + "\")'>" +
         "<img src=\"{layout_url}/images/admin/delete.png\" " +
         "title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"tooltip\" /></a>";
