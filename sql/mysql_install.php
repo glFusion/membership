@@ -26,7 +26,7 @@ $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_istrial` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`mem_uid`),
   KEY `plan_guid` (`mem_plan_id`,`mem_guid`)
-)";
+) ENGINE=MyISAM";
 
 $_SQL['membership_plans'] = "CREATE TABLE `{$_TABLES['membership_plans']}` (
   `plan_id` varchar(40) NOT NULL,
@@ -38,13 +38,13 @@ $_SQL['membership_plans'] = "CREATE TABLE `{$_TABLES['membership_plans']}` (
   `upd_links` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `grp_access` int(11) unsigned NOT NULL DEFAULT '2',
   PRIMARY KEY (`plan_id`)
-)";
+) ENGINE=MyISAM";
 
 $_SQL['membership_links'] = "CREATE TABLE `{$_TABLES['membership_links']}` (
   `uid1` int(11) unsigned NOT NULL,
   `uid2` int(11) unsigned NOT NULL,
   UNIQUE KEY `uid` (`uid1`,`uid2`)
-)";
+) ENGINE=MyISAM";
 
 $_SQL['membership_trans'] = "CREATE TABLE `{$_TABLES['membership_trans']}` (
   `tx_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -59,7 +59,7 @@ $_SQL['membership_trans'] = "CREATE TABLE `{$_TABLES['membership_trans']}` (
   PRIMARY KEY (`tx_id`),
   KEY `uid_exp` (`tx_uid`,`tx_exp`),
   KEY `exp` (`tx_exp`)
-)";
+) ENGINE=MyISAM";
 
 $_SQL['membership_log'] = "CREATE TABLE {$_TABLES['membership_log']} (
     id int(11) unsigned NOT NULL auto_increment,
@@ -69,7 +69,7 @@ $_SQL['membership_log'] = "CREATE TABLE {$_TABLES['membership_log']} (
     data text,
   PRIMARY KEY (`id`),
   key `uid_dt` ( uid, dt )
-)";
+) ENGINE=MyISAM";
 
 $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']} (
   id int(11) unsigned NOT NULL auto_increment,
@@ -83,7 +83,7 @@ $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']}
   grp_id int(11) unsigned not null default 0,
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`)
-)";
+) ENGINE=MyISAM";
  
 $_UPGRADE_SQL = array(
 '0.0.2' => array(
@@ -95,7 +95,7 @@ $_UPGRADE_SQL = array(
     data text,
     PRIMARY KEY (`id`),
     key `uid_dt` ( uid, dt )
-    )",
+    ) ENGINE=MyISAM",
   ),
 '0.0.5' => array(
   "CREATE TABLE {$_TABLES['membership_positions']} (
@@ -109,7 +109,7 @@ $_UPGRADE_SQL = array(
     show_vacant tinyint(1) unsigned NOT NULL default 1,
     PRIMARY KEY (`id`),
     KEY `uid` (`uid`)
-    )",
+    ) ENGINE=MyISAM",
     "INSERT INTO {$_TABLES['membership_positions']}
       (id, type, orderby, descr)  VALUES
         (0, 'Board', 10, 'President'),
