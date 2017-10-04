@@ -6,7 +6,7 @@
   <fieldset>
   <legend>{$LANG_MEMBERSHIP['plan_info']}</legend>
   <div class="uk-form-row">
-    <label for="f_plan_id" class="uk-form-label">{$LANG_MEMBERSHIP['plan_id']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['plan_id']}
       <span id="plan_id" class="tooltip_cfg tooltipstered"></span> 
     </label>
     <div class="uk-form-controls">
@@ -18,7 +18,7 @@
   </div>
 
   <div class="uk-form-row">
-    <label for="f_name" class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
       <span id="short_name" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
@@ -29,7 +29,7 @@
   </div>
 
   <div id="html_editarea" class="uk-form-row">
-    <label for="html_content" class="uk-form-label">{$LANG_MEMBERSHIP['description']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['description']}
       <span id="description" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
@@ -39,7 +39,7 @@
   </div>
 
   <div class="uk-form-row">
-    <label for="f_enabled" class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}
     </label>
     <div class="uk-form-controls">
       <input type="checkbox" id="f_enabled" name="enabled" value="1" {ena_chk} />
@@ -48,7 +48,7 @@
   </div>
 
   <div class="uk-form-row">
-    <label for="f_upd_links" class="uk-form-label">{$LANG_MEMBERSHIP['upd_links']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['upd_links']}
     </label>
     <div class="uk-form-controls">
       <input type="checkbox" id="f_upd_links" name="upd_links" value="1" {upd_links_chk} />
@@ -57,7 +57,7 @@
   </div>
 
   <div class="uk-form-row">
-    <label for="f_access" class="uk-form-label">{$LANG_MEMBERSHIP['purch_access']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['purch_access']}
       <span id="access" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
@@ -69,7 +69,7 @@
 
   {!if 0}
   <div class="uk-form-row">
-    <label for="f_period_start" class="uk-form-label">{$LANG_MEMBERSHIP['period_start']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['period_start']}
     <span id="period_start" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
@@ -80,9 +80,9 @@
 
   <div class="uk-form-row">
     {!if fee_rolling}
-    <label for="fee_rolling" class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
     {!else}
-    <label for="feeschedule" class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
     {!endif}
       <span id="fee_schedule" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -173,7 +173,7 @@
   </div>
 
   <div class="uk-form-row">
-    <label for="f_fixed_fee" class="uk-form-label">{$LANG_MEMBERSHIP['fixed_fee']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['fixed_fee']}
       <span id="fixed_fee" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
@@ -188,7 +188,7 @@
   <legend>{$LANG_MEMBERSHIP['fs_deleteplan']}</legend>
   <div class="uk-form-row"{$LANG_MEMBERSHIP['hlp_transfer_plan']}</div>
   <div class="uk-form-row">
-    <label for="f_transfer_plan" class="uk-form-label">{$LANG_MEMBERSHIP['transfer_plan']}
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['transfer_plan']}
       <span id="transfer_plan" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
