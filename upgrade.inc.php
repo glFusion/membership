@@ -43,6 +43,7 @@ function MEMBERSHIP_do_upgrade()
     } else {
         return false;
     }
+    $installed_ver = plugin_chkVersion_membership();
 
     if (!COM_checkVersion($current_ver, '0.0.2')) {
         // upgrade from 0.0.1 to 0.0.2
@@ -102,6 +103,11 @@ function MEMBERSHIP_do_upgrade()
         if (!MEMBERSHIP_do_set_version($current_ver)) return false;
     }
 
+    // Final version update to catch updates that don't go through
+    // any of the update functions, e.g. code-only updates
+    if (!COM_checkVersion($current_ver, $installed_ver)) {
+        if (!MEMBERSHIP_do_set_version($current_ver)) return false;
+    } 
     COM_errorLog("Successfully updated the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin", 1);
     return true;
 }
