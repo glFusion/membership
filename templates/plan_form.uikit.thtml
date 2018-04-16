@@ -7,7 +7,7 @@
   <legend>{$LANG_MEMBERSHIP['plan_info']}</legend>
   <div class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['plan_id']}
-      <span id="plan_id" class="tooltip_cfg tooltipstered"></span> 
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_id']}"></i>
     </label>
     <div class="uk-form-controls">
       <input required size="50"
@@ -19,7 +19,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
-      <span id="short_name" class="tooltip_cfg tooltipstered"></span>
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_name']}"></i>
     </label>
     <div class="uk-form-controls">
       <input required size="50" type="text" name="name" value="{name}" id="f_name" />
@@ -30,7 +30,7 @@
 
   <div id="html_editarea" class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['description']}
-      <span id="description" class="tooltip_cfg tooltipstered"></span>
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_dscp']}"></i>
     </label>
     <div class="uk-form-controls">
       <textarea id="html_content" name="description" cols="35" rows="5" 
@@ -40,25 +40,25 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_ena']}"></i>
     </label>
     <div class="uk-form-controls">
       <input type="checkbox" id="f_enabled" name="enabled" value="1" {ena_chk} />
-      <span id="enabled" class="tooltip_cfg tooltipstered"></span>
     </div>
   </div>
 
   <div class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['upd_links']}
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_upd_links']}"></i>
     </label>
     <div class="uk-form-controls">
       <input type="checkbox" id="f_upd_links" name="upd_links" value="1" {upd_links_chk} />
-      <span id="upd_links" class="tooltip_cfg tooltipstered"></span>
     </div>
   </div>
 
   <div class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['purch_access']}
-      <span id="access" class="tooltip_cfg tooltipstered"></span>
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_purch_access']}"></i>
     </label>
     <div class="uk-form-controls">
       <select name="grp_access" id="f_access">
@@ -84,7 +84,7 @@
     {!else}
     <label class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
     {!endif}
-      <span id="fee_schedule" class="tooltip_cfg tooltipstered"></span>
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_fees']}"></i>
     </label>
     <div class="uk-form-controls">
     {!if fee_rolling}
@@ -174,7 +174,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['fixed_fee']}
-      <span id="fixed_fee" class="tooltip_cfg tooltipstered"></span>
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_fixed_fee']}"></i>
     </label>
     <div class="uk-form-controls">
       <input id="f_fixed_fee" size="10" type="text" name="fixed_fee" value="{fixed_fee}" />
@@ -189,7 +189,7 @@
   <div class="uk-form-row"{$LANG_MEMBERSHIP['hlp_transfer_plan']}</div>
   <div class="uk-form-row">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['transfer_plan']}
-      <span id="transfer_plan" class="tooltip_cfg tooltipstered"></span>
+      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['plan_transfer']}"></i>
     </label>
     <div class="uk-form-controls">
       <select id="f_transfer_plan" name="transfer_plan">
@@ -231,34 +231,5 @@ function period_chg(value)
         break;
     }
 }
-
-var ConfigDocUrl = '{doc_url}';
-$(document).ready(function() {
-    $('.tooltip_cfg').tooltipster({
-        contentAsHTML: true,
-        animation: 'fade',
-        trigger: 'click',
-        iconDesktop: true,
-        iconTouch: true,
-        functionBefore: function(origin, continueTooltip) {
-            continueTooltip();
-            var attrHref = ConfigDocUrl;
-            var ajobj = $(this);
-            $.get(attrHref, function(data) {
-                var confVar = ajobj.attr('id');
-                if (data.indexOf(confVar) > 0) {
-                    var a = $(data).find('a[name=desc_' + confVar + ']');
-                    var tds = a.parent().parent().children("td");
-                    var desc = tds.eq(1).html();
-                    origin.tooltipster('content', desc);
-                } else {
-                    origin.tooltipster('content', 'No Help Text Found');
-                    console.log('Unable to find help text for desc_%s',confVar);
-                }
-            });
-        }
-    });
-});
 </script>
-
 {# end {templatelocation} #}

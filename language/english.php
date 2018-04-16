@@ -199,6 +199,43 @@ $LANG_MEMBERSHIP = array(
 'date_selector' => 'Date Selector',
 );
 
+$LANG_MEMBERSHIP_HELP = array(
+'quick_renew' => 'Check this box and fill out the next four fields to renew this member&apos; membership when the &quot;Save&quot; button is clicked.',
+'pmt_date' => 'Enter the date of this renewal payment.',
+'amt_paid' => 'Enter the amount paid for the renewal.',
+'pmt_method' => 'Select the payment method.',
+'pmt_comment' => 'Enter an optional comment to be associated with this renewal.',
+'sel_plan' => 'Select the membership plan for this member.',
+'dt_joined' => 'Select or enter the date that this member first joined.',
+'dt_exp' => 'Select or enter the date that this member&apos;s membership expires.',
+'is_trial' => 'Check this box if this membership is a &quot;trial&quot; membership. A trial membership is exactly the same as a regular membership, but the price of the membership purchase is the &quot;new&quot; price instead of &quot;renewal&quot;.',
+'notif_sent' => 'This checkbox indicates that an expiration notification has been sent for this membership.
+If you wish to suppress notifications, checking this box will prevent a notification from being sent. Note that renewing a membership, either via online purchase or using the &quot;renew&quot; function in the membership list, will reset this value but changing the expiration date manually will not.',
+'mem_num' => 'If membership numbers are used you can enter the member&apos;s number here.',
+'cancel' => 'Check if this membership should be cancelled. The member&apos;status will be updated and the member will be removed from the membership group.',
+'linked_accts' => 'Any accounts listed here are linked to the current account and to each other to form a &quot;family&quot;. You can remove a family member by clicking the red &quot;Delete&quot; icon. Doing so will remove all links to and from <b>that</b> account and any other family members.<br /><br />
+This action is carried out immediately. You do not need to save this member&apos;s record unless there are other changes made.',
+'add_link' => 'If you&apos;d like to add another account to this member&apos;s &quot;family&quot;, select the account from the dropdown list. The account will be immediately linked to this account and to all other family members, but it&apos;s membership status will not be updated until you click the &quot;Save&quot; button.',
+'rem_link' => 'If you need to remove <b>this</b> account from the family, check this box and click the &quot;Save&quot; button. Do not delete the linked accounts individually as that will remove <b>them</b> from the family rather than removing the current member.',
+'plan_id' => 'Enter the plan ID.  This is required and should not normally be changed.<br />This value will be displayed in several places, so it should be human-readable.',
+'plan_name' => 'Enter a short name for this plan. This is required.',
+'plan_dscp' => 'Enter a description for this plan. This will be shown on the main.',
+'plan_ena' => 'Check this box to enable this plan for purchase; uncheck to disable.',
+'plan_upd_links' => 'When a plan is purchased, all accounts that are linked to the purchaser can be updated.  If this plan should update linked accounts, check this box.<br /><br />For example, a &quot;Family&quot; membership may update all linked accounts (family members) while a &quot;Single&quot; membership may only update the purchaser&apos;s account.',
+'plan_purch_access' => 'Select the glFusion group that is allowed to view and purchase this type of membership. Normally this is probably &quot;All Users&quot; but for special plans, such as free honorary memberships, you may not want the public to be able to purchase them.',
+'plan_fees' => 'Enter the fees for this membership plan in this table.  If the Period Start is &quot;Rolling&quot; (selected in the main plugin configuration), then only a &quot;New&quot; and &quot;Renewal&quot; price need to be entered.<br /><br />If the Period Start is a specific month, you may wish to pro-rate the membership fee by entering different values for each month in which a membership is purchased.',
+'plan_fixed_fee' => 'Enter an optional fixed fee to be added to all online membership purchases. This may be the Paypal processing fee if you elect not to include it in the membership fees. Will not be added to payments by check.',
+'plan_transfer' => 'If you need to transfer all members from the current plan to another plan, select the new plan here. This is required before you can delete a plan that has members.',
+'pos_name' => 'Enter the name of this position. Does not need to be unique.',
+'pos_type' => 'Select or enter the type, or category, for this position. Examples: &quot;Board&quot;, &quot;Committee&quot;.<br />Once a position type is created by typing in the text field it becomes available for future records as part of the dropdown selection.<br />Recommendation: use singular names for position lists, e.g. &quot;Officer&quot; instead of &quot;Officers&quot;.',
+'pos_user' => 'Select the current officeholder. Select &quot;--- Vacant ---&quot; if the office is currently vacant.',
+'pos_contact' => 'Enter the contact information for the position or officeholder. This is the text that will be shown on the group list pages with a link to the contact form. If left blank, the user&apos;s email address will be displayed.',
+'pos_order' => 'Enter a numeric value for the sort order on the group list page.',
+'pos_ena' => 'Normally this should be checked. If you&apos;d like to temporarily disable the display of this position without deleting it, uncheck this box.',
+'pos_show_vacant' => 'If this box is checked, "--- Vacant ---" will be displayed when the position is vacant. If unchecked, the position will not be displayed at all when vacant.',
+'pos_group' => 'Select the site group associated with this position, if any. If selected, users will be added to or removed from this group as they are added to or removed from this position.',
+);
+
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
 
 $PLG_membership_MESSAGE01 = 'Thank you for your application.';
@@ -207,6 +244,12 @@ $PLG_membership_MESSAGE3 = 'You cannot delete a plan that has members without se
 $PLG_membership_MESSAGE4 = 'Empty plan ID provided';
 $PLG_membership_MESSAGE5 = 'Application has been updated.';
 $PLG_membership_MESSAGE6 = 'There was an error updating the application.';
+
+/** Language strings for the plugin configuration section */
+$LANG_configsections['membership'] = array(
+    'label' => 'Membership',
+    'title' => 'Membership Configuration'
+);
 
 $LANG_configsubgroups['membership'] = array(
     'sg_main' => 'Main Settings',
