@@ -136,9 +136,9 @@ class Plan
         $this->plan_id = $row['plan_id'];
         $this->name = $row['name'];
         $this->description = $row['description'];
-        $this->enabled = $row['enabled'];
-        $this->upd_links = $row['upd_links'];
         $this->grp_access = $row['grp_access'];
+        $this->enabled = isset($row['enabled']) ? $row['enabled'] : 0;
+        $this->upd_links = isset($row['upd_links']) ? $row['upd_links'] : 0;
 
         if ($fromDB) {
             $this->fees = @unserialize($row['fees']);
@@ -253,6 +253,9 @@ class Plan
             } elseif ($this->plan_id != $this->old_plan_id) {
                 Membership::Transfer($this->old_plan_id, $this->plan_id);
             }
+            $status = 'OK';
+        } else {
+            $status = 'Error Saving';
         }
 
         MEMBERSHIP_debug('Status of last update: ' . print_r($status,true));
@@ -401,30 +404,38 @@ class Plan
             'name'          => $this->name,
             'description'   => $this->description,
             'pi_admin_url'  => MEMBERSHIP_ADMIN_URL,
-            'pi_url'        => MEMBERSHIP_URL,
+            'pi_url'        => MEMBERSHIP_PI_URL,
             'doc_url'       => MEMBERSHIP_getDocURL('plan_form.html',
                                             $_CONF['language']),
             'ena_chk'       => $this->enabled == 1 ?
                                     'checked="checked"' : '',
             'upd_links_chk' => $this->upd_links == 1 ?
                                     'checked="checked"' : '',
-            'new_0'         => sprintf('%.2f', $this->fees['new'][0]),
-            'renew_0'       => sprintf('%.2f', $this->fees['renew'][0]),
-            'fixed_fee'     => sprintf('%.2f', $this->fees['fixed']),
-            'period_start'  => $_CONF_MEMBERSHIP['period_start'],
+           'period_start'  => $_CONF_MEMBERSHIP['period_start'],
             'group_options' => '<option value="0">-- ' . $LANG_MEMBERSHIP['none'] .
                                 ' --</option>' . COM_optionList($_TABLES['groups'],
                                 'grp_id,grp_name', $this->grp_access),
         ) );
+        if (isset($this->fees['new'])) {
+            $T->set_var('new_0', sprintf('%.2f', $this->fees['new'][0]));
+        }
+        if (isset($this->fees['renew'])) {
+            $T->set_var('renew_0', sprintf('%.2f', $this->fees['renew'][0]));
+        }
+        if (isset($this->fees['fixed'])) {
+            $T->set_var('fixed_fee', sprintf('%.2f', $this->fees['fixed']));
+        }
 
         if ($_CONF_MEMBERSHIP['period_start'] > 0) {
             $T->set_var('period_start_text',
                     $LANG_MONTH[$_CONF_MEMBERSHIP['period_start']]);
             for ($i = 1; $i < 12; $i++) {
-                $T->set_var(array(
-                    'new_' . $i => sprintf('%.2f', $this->fees['new'][$i]),
-                    'renew_' . $i => sprintf('%.2f', $this->fees['renew'][$i]),
-                ) );
+                if (isset($this->fees['new'][$i])) {
+                    $T->set_var('new_' . $i, sprintf('%.2f', $this->fees['new'][$i]));
+                }
+                if (isset($this->fees['renew'][$i])) {
+                    $T->set_var('renew_' . $i, sprintf('%.2f', $this->fees['renew'][$i]));
+                }
             }
         } else {
             $T->set_var(array(
@@ -433,7 +444,7 @@ class Plan
             ) );
         }
 
-        if ($this->hasMembers()) {
+        if (self::hasMembers($this->id)) {
             $sql = "SELECT plan_id, name
                     FROM {$_TABLES['membership_plans']}
                     WHERE plan_id <> '{$this->plan_id}'";
@@ -449,16 +460,14 @@ class Plan
             ) );
         }
 
-        $retval .= $T->parse('output', 'product');
-
         @setcookie($_CONF['cookie_name'].'fckeditor',
                 SEC_createTokenGeneral('advancededitor'),
                 time() + 1200, $_CONF['cookie_path'],
                 $_CONF['cookiedomain'], $_CONF['cookiesecure']);
 
+        $retval .= $T->parse('output', 'product');
         $retval .= COM_endBlock();
         return $retval;
-
     }   // function Edit()
 
 
@@ -469,7 +478,7 @@ class Plan
     *   @param  integer $value New value to set
     *   @return         New value, or old value upon failure
     */
-    function _toggle($oldvalue, $varname, $id)
+    private static function _toggle($oldvalue, $varname, $id)
     {
         global $_TABLES;
 
@@ -531,7 +540,7 @@ class Plan
             // Anonymous must log in to purchase
             $T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
             $T->set_var('exp_msg_class', 'alert');
-        } elseif ($M->expires >= $_CONF_MEMBERSHIP['today'] &&
+        } elseif ($M->expires >= MEMBERSHIP_today() &&
                  $M->plan_id == $this->plan_id) {
             $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
                     $M->plan_id, $M->expires));
@@ -549,16 +558,9 @@ class Plan
     *   @param  integer $value New value to set
     *   @return         New value, or old value upon failure
     */
-    public function toggleEnabled($oldvalue, $id)
+    public static function toggleEnabled($oldvalue, $id)
     {
         $id = COM_sanitizeID($id);
-
-        if ($id == '') {
-            if (is_object($this))
-                $id = $this->plan_id;
-            else
-                return $oldvalue;
-        }
         return self::_toggle($oldvalue, 'enabled', $id);
     }
 
@@ -570,19 +572,9 @@ class Plan
     *
     *   @return boolean True if used, False if not
     */
-    function hasMembers($id = '')
+    public static function hasMembers($id)
     {
         global $_TABLES;
-
-        if ($id == '') {
-            if (is_object($this)) {
-                $id = $this->plan_id;
-            } else {
-                return;
-            }
-        } else {
-            $id = COM_sanitizeID($id, false);
-        }
 
         if (DB_count($_TABLES['membership_members'], 'mem_plan_id', $id) > 0) {
             return true;
@@ -724,14 +716,14 @@ class Plan
 
         USES_lglib_class_datecalc();
 
-        if ($exp == '') $exp = $_CONF_MEMBERSHIP['today'];
+        if ($exp == '') $exp = MEMBERSHIP_today();
 
         // If a rolling membership period, just add a year to today or
         // the current expiration, whichever is greater.
         if ($_CONF_MEMBERSHIP['period_start'] == 0) {
             // Check if within the grace period.
-            if ($exp < $_CONF_MEMBERSHIP['dt_end_grace'])
-                $exp = $_CONF_MEMBERSHIP['today'];
+            if ($exp < MEMBERSHIP_dtEndGrace())
+                $exp = MEMBERSHIP_today();
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
             if ($_CONF_MEMBERSHIP['expire_eom']) {
@@ -744,11 +736,11 @@ class Plan
             // expiration.
             list($year, $month, $day) = explode('-', $exp);
             list($c_year, $c_month, $c_day) =
-                    explode('-', $_CONF_MEMBERSHIP['today']);
+                    explode('-', MEMBERSHIP_today());
             $exp_month = $_CONF_MEMBERSHIP['period_start'] - 1;
             if ($exp_month == 0) $exp_month = 12;
             $exp_year = $year;
-            if ($exp <= $_CONF_MEMBERSHIP['today']) {
+            if ($exp <= MEMBERSHIP_today()) {
                 if ($exp_month > $c_month)
                     $exp_year = $c_year - 1;
             }
@@ -836,8 +828,8 @@ class Plan
             $T->set_var('login_form', SEC_loginform());
             $T->parse('output', 'planlist');
             return $T->finish($T->get_var('output', 'planlist'));
-        } 
- 
+        }
+
         $Plans = self::getPlans();
         if (empty($Plans)) {
             $T->parse('output', 'planlist');
@@ -850,7 +842,7 @@ class Plan
         if ($M->isNew) {
             // New member, no expiration message
             $T->set_var('you_expire', '');
-        } elseif ($M->expires >= $_CONF_MEMBERSHIP['today']) {
+        } elseif ($M->expires >= MEMBERSHIP_today()) {
             // Let current members know when they expire
             $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
                 $M->planDescription(), $M->expires));
@@ -863,7 +855,7 @@ class Plan
         if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
             if ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_OPTIONAL) {
                 $T->set_var('app_msg',
-                    sprintf($LANG_MEMBERSHIP['please_complete_app'], 
+                    sprintf($LANG_MEMBERSHIP['please_complete_app'],
                             MEMBERSHIP_PI_URL . '/index.php?editapp'));
             } elseif ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED
                     && !$have_app) {
@@ -918,8 +910,7 @@ class Plan
                 'purchase_btn' => $buttons,
                 'lang_price' => $lang_price,
             ) );
-
-            $display .= $T->parse('PBlock', 'PlanBlock', true);
+            $T->parse('PBlock', 'PlanBlock', true);
         }
         $T->parse('output', 'planlist');
         return PLG_replacetags($T->finish($T->get_var('output', 'planlist')));

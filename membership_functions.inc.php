@@ -27,7 +27,7 @@ function siteHeader($subject='', $meta='')
 
     $retval = '';
 
-    $title = $LANG_MEMBERSHIP['blocktitle'];
+    $title = $LANG_MEMBERSHIP['block_title'];
     if ($subject != '')
         $title = $subject . ' : ' . $title;
 

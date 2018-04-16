@@ -115,16 +115,16 @@ class Position
         if (isset($A['id'])) $this->id = $A['id'];
         $this->uid      = $A['uid'];
         $this->descr    = $A['descr'];
-        $this->enabled  = $A['enabled'];
-        $this->show_vacant = $A['show_vacant'];
         $this->orderby  = $A['orderby'];
         $this->contact  = $A['contact'];
-        $this->grp_id    = $A['grp_id'];
-        $this->ld_uid  = isset($A['old_uid']) ? $A['old_uid'] : $this->uid;
+        $this->grp_id   = $A['grp_id'];
+        $this->old_uid  = isset($A['old_uid']) ? $A['old_uid'] : $this->uid;
         $this->old_grp_id  = isset($A['old_grp_id']) ? $A['old_grp_id'] : $this->grp_id;
+        $this->enabled  = isset($A['enabled']) ? $A['enabled'] : 0;
+        $this->show_vacant = isset($A['show_vacant']) ? $A['show_vacant'] : 0;
 
         if ($fromDB) {
-            $this->type     = $A['type'];
+            $this->type = $A['type'];
         } else {
             if (isset($A['position_type']) && !empty($A['position_type'])) {
                 $this->type = $A['position_type'];
@@ -296,11 +296,7 @@ class Position
             'old_uid'       => $this->old_uid,
             'doc_url'       => LGLIB_getDocURL('position.html', 'membership'),
          ) );
-
-        $retval .= $T->parse('output', 'editform');
-
-        return $retval;
-
+        return $T->parse('output', 'editform');
     }   // function Edit()
 
 

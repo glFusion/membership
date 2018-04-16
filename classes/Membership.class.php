@@ -6,7 +6,7 @@
 *   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.0.6
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
 */
@@ -42,7 +42,7 @@ class Membership
         $this->plan_id = '';
         $this->Plan = NULL;
         $this->status = MEMBERSHIP_STATUS_ACTIVE;
-        $this->expires = $_CONF_MEMBERSHIP['today'];
+        $this->expires = MEMBERSHIP_today();
         $this->joined = $this->expires;
         $this->paid = '';
         $this->notified = 0;
@@ -122,7 +122,7 @@ class Membership
         if ($uid > 0) $this->uid = $uid;
 
         $sql = "SELECT *
-            FROM {$_TABLES['membership_members']} 
+            FROM {$_TABLES['membership_members']}
             WHERE mem_uid = '{$this->uid}'";
         //echo $sql;die;
         $res1 = DB_query($sql);
@@ -199,7 +199,7 @@ class Membership
             'joined'    => $this->joined,
             'expires'   => $this->expires,
             'hlp_member_edit' => $LANG_MEMBERSHIP['hlp_member_edit'],
-            'doc_url'       => MEMBERSHIP_getDocURL('edit_member.html', 
+            'doc_url'       => MEMBERSHIP_getDocURL('edit_member.html',
                                             $_CONF['language']),
             //'viewApp'   => self::hasApp($this->uid) ? 'true' : '',
             'viewApp'   => 'true',
@@ -272,7 +272,7 @@ class Membership
         }
 
         $sql = "SELECT uid, username, fullname
-            FROM {$_TABLES['users']} WHERE uid > 1 
+            FROM {$_TABLES['users']} WHERE uid > 1
             AND uid <> '{$this->uid}'";
         if (!empty($link_ids))
             $sql .= ' AND uid NOT IN (' . implode(',', $link_ids) . ')';
@@ -327,7 +327,7 @@ class Membership
         // Date has been updated with a later date. If updated to an earlier
         // date then the expiration/arrears will be handled by
         // runScheduledTask
-        if ($this->expires > $_CONF_MEMBERSHIP['today']) {
+        if ($this->expires > MEMBERSHIP_today()) {
             $this->status = MEMBERSHIP_STATUS_ACTIVE;
         }
 
@@ -361,7 +361,7 @@ class Membership
             }
 
             $sql = "INSERT INTO {$_TABLES['membership_members']} SET
-                        mem_uid = '{$key}', 
+                        mem_uid = '{$key}',
                         mem_plan_id = '" . DB_escapeString($this->plan_id) ."',
                         mem_joined = '" . DB_escapeString($this->joined) ."',
                         mem_expires = '" . DB_escapeString($this->expires) ."',
@@ -522,7 +522,7 @@ class Membership
                 MEMBERSHIP_STATUS_ACTIVE, MEMBERSHIP_STATUS_ARREARS);
     }
 
- 
+
     /**
     *   Add a new membership record, or extend an existing one.
     *   Used by Paypal processing to automatically add or update a membership.
@@ -547,7 +547,7 @@ class Membership
         if ($this->Plan->plan_id == '')
             return false;       // invalid plan requested
         $this->notified = 0;
-        $this->status = MEMBER_STATUS_ACTIVE;
+        $this->status = MEMBERSHIP_STATUS_ACTIVE;
         $this->istrial = 0;
         if ($exp == '')  {
             $this->expires = $this->Plan->calcExpiration($this->expires);
@@ -555,7 +555,7 @@ class Membership
             $this->expires = $exp;
         }
         if ($joined != '') $this->joined = $joined;
-        $this->paid = $_CONF_MEMBERSHIP['today'];
+        $this->paid = MEMBERSHIP_today();
         if ($this->Save()) {
             return $this->expires;
         } else {
@@ -567,18 +567,17 @@ class Membership
     /**
     *   Get all related accounts.
     *
-    *   @param  mixed   $uid    Optional user ID, current object id if empty
+    *   @param  mixed   $uid    User ID
     *   @return array       Array of relatives (uid => username)
     */
-    public function getRelatives($uid = '')
+    public static function getRelatives($uid)
     {
-        global $_TABLES;
+        global $_TABLES, $_USER;
 
         // Static array to hold values, save DB lookups
         static $relatives = array();
 
-        // If uid is empty and this is an instantiated object, use the curent id
-        if ($uid == '' && is_object($this)) $uid = $this->uid;
+        // If uid is empty, use the curent id
         $uid = (int)$uid;
         if ($uid < 1) return array();   // invalid user ID requested
 
@@ -627,7 +626,7 @@ class Membership
     *   @param  integer $uid    User ID being displayed, default = current user
     *   @return string      HTML for membership data display
     */
-    public function ShowInfo($panel = false, $uid = 0)
+    public function showInfo($panel = false, $uid = 0)
     {
         global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_USER, $_TABLES, $_SYSTEM;
 
@@ -638,9 +637,9 @@ class Membership
             $joined = $LANG_MEMBERSHIP['na'];
             $expires = $LANG_MEMBERSHIP['na'];
             $plan_name = $LANG_MEMBERSHIP['na'];
-            $plan_desc = $LANG_MEMBERSHIP['na']; 
             $plan_id = $LANG_MEMBERSHIP['na'];
-            $relatives = array(); 
+            $plan_dscp = $LANG_MEMBERSHIP['na'];
+            $relatives = array();
         } else {
             $joined = $this->joined;
             // Get the expiration date from the callback in services.inc.php
@@ -648,9 +647,9 @@ class Membership
             $expires = membership_profilefield_expires('', $this->expires,
                     array(), '', '');
             $plan_name = $this->Plan->name;
-            $plan_desc = $this->Plan->description;
+            $plan_dscp = $this->Plan->description;
             $plan_id = $this->Plan->plan_id;
-            $relatives = $this->getRelatives();
+            $relatives = self::getRelatives($this->uid);
             $mem_number = $this->mem_number;
             $sql = "SELECT descr FROM {$_TABLES['membership_positions']}
                     WHERE uid = $uid";
@@ -674,14 +673,14 @@ class Membership
             'joined'    => $joined,
             'expires'   => $expires,
             'plan_name' => $plan_name,
-            'plan_description' => $plan_description,
+            'plan_description' => $plan_dscp,
             'plan_id'   => $plan_id,
             //'app_link'  => self::hasApp($uid) ? 'true' : '',
             'app_link'  => $app_link,
             'my_uid'    => $uid,
             'panel'     => $panel ? 'true' : '',
             'nolinks'   => empty($relatives) ? 'true' : '',
-            'old_links' => $old_links,
+            //'old_links' => $old_links,
             'position' => $position,
             'mem_number' => SEC_hasRights('membership.admin') ? $this->mem_number : '',
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
@@ -746,7 +745,7 @@ class Membership
         $hasApp = false;
         // Get the application form to provide a link
         if ($_CONF_MEMBERSHIP['view_app'] && $_CONF_MEMBERSHIP['app_form'] != '') {
-            $status = LGLIB_invokeService('forms', 'resultId', 
+            $status = LGLIB_invokeService('forms', 'resultId',
                 array('frm_id' => $_CONF_MEMBERSHIP['app_form'],
                     'uid' => $uid),
                 $output, $msg);
@@ -770,8 +769,8 @@ class Membership
     {
         global $_CONF_MEMBERSHIP;
 
-        $days = COM_dateDiff('d', $exp, $_CONF_MEMBERSHIP['today']);
-        if ($exp < $_CONF_MEMBERSHIP['today']) $days *= -1;
+        $days = COM_dateDiff('d', $exp, MEMBERSHIP_today());
+        if ($exp < MEMBERSHIP_today()) $days *= -1;
         return $days;
     }
 
@@ -787,9 +786,9 @@ class Membership
     {
         global $_CONF_MEMBERSHIP;
 
-        $days = COM_dateDiff('d', $exp, $_CONF_MEMBERSHIP['today']);
+        $days = COM_dateDiff('d', $exp, MEMBERSHIP_today());
         // Undo absolute value conversion done in COM_dateDiff()
-        if ($exp > $_CONF_MEMBERSHIP['today']) $days *= -1;
+        if ($exp > MEMBERSHIP_today()) $days *= -1;
         return $days;
     }
 
@@ -807,7 +806,7 @@ class Membership
         if (COM_isAnonUser()) {
             $canPurchase = MEMBERSHIP_NOPURCHASE;
         } else {
-            if ($this->expires > $_CONF_MEMBERSHIP['dt_begin_renewal']) {
+            if ($this->expires > self::dtBeginRenew()) {
                 $canPurchase = MEMBERSHIP_NO_RENEWAL;
             } else {
                 $canPurchase = MEMBERSHIP_CANPURCHASE;
@@ -828,7 +827,7 @@ class Membership
     *       mem_pmtamt  => Payment amount
     *       mem_pmtdate => Payment date
     *       mem_pmtdesc => Paymetn description
-    *       
+    *
     *   @uses   Plan::calcExpiration()
     *   @param  array   $args   Array of arguments
     *   @return boolean     True on success, False on failure
@@ -928,8 +927,8 @@ class Membership
 
         $retval = PLG_RET_OK;
         $uid = (int)$uid;
-        $new_status = isset($statuses[$mem_status]) ?
-                $statuses[$mem_status] : null;
+        $new_status = isset($statuses[$new_status]) ?
+                $statuses[$new_status] : null;
         if ($new_status === null) {
             // unrecognized status received
             return PLG_RET_ERROR;
@@ -937,7 +936,7 @@ class Membership
 
         // 1. Update the Mailchimp plugin
         if ($_CONF_MEMBERSHIP['update_maillist']) {
-            $status = LGLIB_invokeService('mailchimp', 'updateuser', 
+            $status = LGLIB_invokeService('mailchimp', 'updateuser',
                 array(
                     'uid' => $uid,
                     'params' => array(
@@ -1053,6 +1052,11 @@ class Membership
     }
 
 
+    /**
+    *   Disable a specific user's site account.
+    *
+    *   @param  integer $uid    User ID to disable
+    */
     private static function _disableAccount($uid)
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
@@ -1063,9 +1067,69 @@ class Membership
                     SET status = " . USER_ACCOUNT_DISABLED .
                     " WHERE uid = $uid", 1);
         }
-    } 
+    }
+
+
+    /**
+    *   Shortcut to get the current date object
+    *
+    *   @return object  Date object for current timestamp
+    */
+    public static function Now()
+    {
+        global $_CONF;
+        static $now = NULL;
+        if ($now === NULL) {
+            $now = new \Date('now', $_CONF['timezone']);
+        }
+        return $now;
+    }
+
+
+    /**
+    *   Shortcut function to get the SQL-formatted date
+    *
+    *   @return string  Today's date as "YYYY-MM-DD"
+    */
+    public static function Today()
+    {
+        return self::Now()->format('Y-m-d', true);
+    }
+
+
+    /**
+    *   Get the latest expiration date that allows renewals.
+    *   This works with the early_renewal configuration to allow renewals
+    *   within X days of expiration.
+    *
+    *   @return object  Date object
+    */
+    public static function dtBeginRenew()
+    {
+        global $_CONF_MEMBERSHIP;
+        static $dt = NULL;
+        if ($dt === NULL) {
+            $dt = self::Now()->add(new \DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
+        }
+        return $dt;
+    }
+
+    /**
+    *   Calculate and return the expiration date where the grace has ended.
+    *   This is the date after which memberships have truly expired.
+    *
+    *   @return Object      Expiration date where grace period has ended.
+    */
+    public static function dtEndGrace()
+    {
+        global $_CONF_MEMBERSHIP;
+        static $dt = NULL;
+        if ($dt === NULL) {
+            $dt = self::Now()->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
+        }
+        return $dt;
+    }
 
 }
-   
 
 ?>

@@ -192,6 +192,7 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
         $exp_stat = array();
 
     $get_parms = array();
+    $output['filter'] = '';
     foreach ($opts as $stat=>$txt) {
         if (in_array($stat, $exp_stat)) {
             $sel =  'checked="checked"';
@@ -228,6 +229,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     $positions = $_TABLES['membership_positions'];
     $where = '';
     $exp_stat = array();
+    $incl_exp_stat = 0;
 
     // Does not support remote web services, must be local only.
     if ($args['gl_svc'] !== false) return PLG_RET_PERMISSION_DENIED;
@@ -255,15 +257,15 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
             $grace = (int)$_CONF_MEMBERSHIP['grace_days'];
             $exp_arr = array();
             if ($incl_exp_stat & MEMBERSHIP_STATUS_ENABLED == MEMBERSHIP_STATUS_ENABLED) {
-                $exp_arr[] = "$members.mem_expires >= '{$_CONF_MEMBERSHIP['today']}'";
+                $exp_arr[] = "$members.mem_expires >= '" . MEMBERSHIP_today() . "'";
             }
             if ($incl_exp_stat & MEMBERSHIP_STATUS_ARREARS) {
                 
-                $exp_arr[] = "($members.mem_expires < '{$_CONF_MEMBERSHIP['today']}'
-                    AND $members.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}')";
+                $exp_arr[] = "($members.mem_expires < '" . MEMBERSHIP_today() . "'
+                    AND $members.mem_expires >= '" . MEMBERSHIP_dtEndGract() . "')";
             }
             if ($incl_exp_stat & MEMBERSHIP_STATUS_EXPIRED) {
-                $exp_arr[] = "$members.mem_expires < '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+                $exp_arr[] = "$members.mem_expires < '" . MEMBERSHIP_dtEndGrace() . "'";
             }
             if (!empty($exp_arr)) {
                 $where = "$members.mem_expires > '0000-00-00' AND (" .
@@ -343,9 +345,9 @@ function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
 {
     global $_CONF_MEMBERSHIP;
 
-    if ($fieldvalue >= $_CONF_MEMBERSHIP['today']) {
+    if ($fieldvalue >= MEMBERSHIP_today()) {
         $cls = 'member_current';
-    } elseif ($fieldvalue >= $_CONF_MEMBERSHIP['dt_end_grace']) {
+    } elseif ($fieldvalue >= MEMBERSHIP_dtEndGrace()) {
         $cls = 'member_arrears';
     } else {
         $cls = 'member_expired';
@@ -386,9 +388,9 @@ function service_status_membership($args, &$output, &$svc_msg)
                         WHERE mem_uid = $uid", 1);
         if ($res && DB_numRows($res) == 1) {
             $A = DB_fetchArray($res, false);
-            if ($A['mem_expires'] > $_CONF_MEMBERSHIP['today']) {
+            if ($A['mem_expires'] > MEMBERSHIP_today()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ACTIVE;
-            } elseif ($A['mem_expires'] < $_CONF_MEMBERSHIP['dt_end_grace']) {
+            } elseif ($A['mem_expires'] < MEMBERSHIP_dtEndGrace()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_EXPIRED;
             } else {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ARREARS;
