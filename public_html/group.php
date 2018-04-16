@@ -23,8 +23,8 @@ $autotag = array(
     'parm2' => $_GET['type'],
     'tagstr' => 'tagstr',
 );
-echo MEMBERSHIP_siteHeader();
+echo Membership\siteHeader();
 echo plugin_autotags_membership('parse', 'tagstr', $autotag);
-echo MEMBERSHIP_siteFooter();
+echo Membership\siteFooter();
 
 ?>
