@@ -92,16 +92,14 @@ $_CONF_MEMBERSHIP['_iconset'] = $_CONF_MEMBERSHIP['_is_uikit'] ? 'uk-icon' : 'fa
 
 $_CONF_MEMBERSHIP['now'] = new Date('now', $_CONF['timezone']);
 $_CONF_MEMBERSHIP['today'] = $_CONF_MEMBERSHIP['now']->format('Y-m-d', true);
+
 // Save the date that the grace period ends.  If expiration is earlier than this,
 // the membership has expired
-$_CONF_MEMBERSHIP['dt_end_grace'] = date('Y-m-d',
-        strtotime('-' . $_CONF_MEMBERSHIP['grace_days'] . ' day',
-            strtotime($_CONF_MEMBERSHIP['today'])));
+//$_CONF_MEMBERSHIP['dt_end_grace'] = $_CONF_MEMBERSHIP['now']->sub(new DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
+
 // Save the latest expiration date that qualifies for renewal. If expiration is
 // after this date the user cannot renew yet.
-$_CONF_MEMBERSHIP['dt_begin_renewal'] = date('Y-m-d',
-        strtotime('+' . $_CONF_MEMBERSHIP['early_renewal'] . ' day',
-            strtotime($_CONF_MEMBERSHIP['today'])));
+//$_CONF_MEMBERSHIP['dt_begin_renewal'] = $_CONF_MEMBERSHIP['now']->add(new DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
 
 //if (!isset($_CONF_MEMBERSHIP['member_all_group']) ||
 //        empty($_CONF_MEMBERSHIP['member_all_group'])) {
@@ -390,7 +388,7 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
         if (MEMBERSHIP_isManager()) {
             $retval .= $M->Editform();
         } else {
-            $retval .= $M->ShowInfo('panel');
+            $retval .= $M->showInfo('panel');
         }
     }
     return $retval;
@@ -524,7 +522,7 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
 
     $M = new Membership\Membership($uid);
     $existingFields = $T->get_var('plugin_fields');
-    $T->set_var('plugin_fields', $existingFields . $M->ShowInfo(false, $uid));
+    $T->set_var('plugin_fields', $existingFields . $M->showInfo(false, $uid));
 }
 
 
@@ -540,10 +538,9 @@ function plugin_getconfigelementhelp_membership($option, $doclang='english')
         return false;
 
     if (!empty($option)) {
-        $file .= '#desc_' . $option;
+        $doc_url .= '#desc_' . $option;
     }
-
-    return array($doc_url . $file, 0);
+    return array($doc_url, 0);
 }
 
 
@@ -721,7 +718,7 @@ function plugin_runScheduledTask_membership()
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid
             WHERE mem_status IN ($stat)
-            AND mem_expires < '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+            AND mem_expires < '" . MEMBERSHIP_dtEndGrace()->toMySQL() . "'";
     //COM_errorLog($sql);
     $r = DB_query($sql, 1);
     if ($r) {
@@ -741,7 +738,7 @@ function plugin_runScheduledTask_membership()
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid
             WHERE mem_status IN ($stat)
-            AND mem_expires < '{$_CONF_MEMBERSHIP['today']}'";
+            AND mem_expires < '" . MEMBERSHIP_today() . "'";
     //COM_errorLog($sql);
     $r = DB_query($sql, 1);
     if ($r) {
@@ -757,10 +754,10 @@ function plugin_runScheduledTask_membership()
     if ($days > -1) {
         $sql = "UPDATE {$_TABLES['membership_members']}
             SET mem_status = " . MEMBERSHIP_STATUS_DROPPED . " WHERE
-            '{$_CONF_MEMBERSHIP['today']}' > (expires + interval $days DAY)";
+            '" . MEMBERSHIP_today() . "' > (expires + interval $days DAY)";
         $res = DB_query($sql, 1);
         $num = DB_affectedRows($res);
-        MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_dropped'],
+        MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_purged'],
                 $num, $days), true);
     }
 
@@ -783,9 +780,7 @@ function MEMBERSHIP_notifyExpiration()
         $_CONF_MEMBERSHIP['notifymethod'] == MEMBERSHIP_NOTIFY_NONE) {
         return;
     }
-    $exp_check = date('Y-m-d',
-        strtotime('+' . $_CONF_MEMBERSHIP['notifydays'] . ' day',
-            strtotime($_CONF_MEMBERSHIP['today'])));
+    $exp_chk = MEMBERSHIP_today()->add(new \DateInterval("P{$_CONF_MEMBERSHIP['notifydays']}D"));
     $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
     $sql = "SELECT m.mem_uid, m.mem_notified,
                 p.plan_id, p.name, p.description,
@@ -797,7 +792,7 @@ function MEMBERSHIP_notifyExpiration()
                 ON u.uid = m.mem_uid
             WHERE m.mem_notified = 0
             AND m.mem_status IN ($stat)
-            AND m.mem_expires < '$exp_check'";
+            AND m.mem_expires < '" . $exp_check->format('Y-m-d') . "'";
     //COM_errorLog($sql);
     $r = DB_query($sql);
     if (!$r)
@@ -1109,7 +1104,7 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
                 'groups' => 'groups.thtml',
             ));
 
-            $T->set_var('list_name', $poslist);
+            //$T->set_var('list_name', $poslist);
 
             while ($A = DB_fetchArray($res, false)) {
                 $T->set_block('groups', 'userRow', 'uRow');
@@ -1128,7 +1123,6 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
                         sprintf($LANG_MEMBERSHIP['title_positionpage'], $groupname) : '',
                     'position'  => $A['descr'],
                     'user_name' => $username,
-                    'comment'   => trim($A['comment']),
                     'show_vacant' => $show_vacant,
                     'user_img'  => $user_img,
                     'user_email' => empty($A['contact']) ?
@@ -1232,6 +1226,68 @@ function MEMBERSHIP_iconPrefix()
 {
     global $_CONF_MEMBERSHIP;
     return $_CONF_MEMBERSHIP['_is_uikit'] ? 'uk-icon-' : 'fa fa-icon-';
+}
+
+
+/**
+*   Shortcut to get the current date object
+*
+*   @return object  Date object for current timestamp
+*/
+function MEMBERSHIP_now()
+{
+    global $_CONF;
+    static $now = NULL;
+    if ($now === NULL) {
+        $now = new \Date('now', $_CONF['timezone']);
+    }
+    return $now;
+}
+
+
+/**
+*   Shortcut function to get the SQL-formatted date
+*
+*   @return string  Today's date as "YYYY-MM-DD"
+*/
+function MEMBERSHIP_today()
+{
+    return MEMBERSHIP_now()->format('Y-m-d', true);
+}
+
+
+/**
+*   Get the latest expiration date that allows renewals.
+*   This works with the early_renewal configuration to allow renewals
+*   within X days of expiration.
+*
+*   @return object  Date object
+*/
+function MEMBERSHIP_dtBeginRenew()
+{
+    global $_CONF_MEMBERSHIP;
+    static $dt = NULL;
+    if ($dt === NULL) {
+        $dt = MEMBERSHIP_now()->add(new \DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
+    }
+    return $dt;
+}
+
+
+/**
+*   Calculate and return the expiration date where the grace has ended.
+*   This is the date after which memberships have truly expired.
+*
+*   @return Object      Expiration date where grace period has ended.
+*/
+function MEMBERSHIP_dtEndGrace()
+{
+    global $_CONF_MEMBERSHIP;
+    static $dt = NULL;
+    if ($dt === NULL) {
+        $dt = MEMBERSHIP_now()->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
+    }
+    return $dt;
 }
 
 ?>

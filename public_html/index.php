@@ -54,7 +54,7 @@ if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
     $uid = (int)$_USER['uid'];
 }
 
-$pageTitle = $LANG_MEMBESHIP['plans'];  // Set basic page title
+$pageTitle = $LANG_MEMBERSHIP['plans'];  // Set basic page title
 $allow_purchase = false;
 $have_app = false;
 
@@ -80,7 +80,7 @@ case 'saveapp':
                 echo COM_refresh($_POST['purch_url'] . $url_extra);
                 exit;
             }
-            if ($M->expires > $_CONF_MEMBERSHIP['today']) {
+            if ($M->expires > MEMBERSHIP_today()) {
                 LGLIB_storeMessage(array(
                     'message' => sprintf($LANG_MEMBERSHIP['you_expire'],
                             $M->Plan->plan_id, $M->expires),

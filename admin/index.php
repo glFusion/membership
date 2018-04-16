@@ -94,7 +94,7 @@ case 'regenbutton':
 case 'importusers':
     require_once MEMBERSHIP_PI_PATH . '/import_members.php';
     $view = 'importform';
-    $import_text .= MEMBERSHIP_import();
+    $import_text = MEMBERSHIP_import();
     break;
 
 case 'quickrenew':
@@ -198,11 +198,9 @@ default:
 // Select the page to display
 switch ($view) {
 case 'importform':
-    //require_once MEMBERSHIP_PI_PATH . '/import_members.php';
+    //$import_text = MEMBERSHIP_import();
     $content .= MEMBERSHIP_adminMenu('importform', '');
     $LT = MEMBERSHIP_getTemplate('import_form', 'form');
-    //$LT = new \Template(MEMBERSHIP_PI_PATH . '/templates');
-    //$LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
         $content .= "Imported $successes successfully<br />\n";
         $content .= "$import_failures failed<br />\n";
@@ -227,7 +225,7 @@ case 'importform':
     ) );
     $LT->parse('import_form','form');
     $content .= $LT->finish($LT->get_var('import_form'));
-    $content .= '<p>' . $import_text . '</p>';
+    //$content .= '<p>' . $import_text . '</p>';
     break;
 
 case 'editmember':
@@ -334,10 +332,11 @@ function MEMBERSHIP_listMembers()
     $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'desc');
     if (isset($_REQUEST['showexp'])) {
         $frmchk = 'checked="checked"';
+        $exp_query = '';
     } else {
         $frmchk = '';
         $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
-                " AND m.mem_expires >= '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+                " AND m.mem_expires >= '" . MEMBERSHIP_dtEndGrace() . "'";
     }
     $query_arr = array('table' => 'membership_members',
         'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
@@ -352,7 +351,7 @@ function MEMBERSHIP_listMembers()
     );
     $text_arr = array(
         'has_extras' => true,
-        'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php',
+        'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
     );
     $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>' .
             $LANG_MEMBERSHIP['show_expired'];
@@ -385,8 +384,8 @@ function MEMBERSHIP_listMembers()
             . '"></button>'
             . $LANG_MEMBERSHIP['regen_mem_numbers'];
     }
-
-     $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
+    $form_arr = array();
+    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 $options, $form_arr);
     return $retval;
@@ -429,7 +428,7 @@ function MEMBERSHIP_listPlans()
         //'form_url'   => MEMBERSHIP_ADMIN_URL . '/index.php',
         'help_url'   => ''
     );
-
+    $form_arr = array();
     $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_plan',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, '', '',
                 '', $form_arr);
@@ -654,9 +653,9 @@ function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
         break;
 
     case 'mem_expires':
-        if ($fieldvalue >= $_CONF_MEMBERSHIP['today']) {
+        if ($fieldvalue >= MEMBERSHIP_today()) {
             $status = 'current';
-        } elseif ($fieldvalue >= $_CONF_MEMBERSHIP['dt_end_grace']) {
+        } elseif ($fieldvalue >= MEMBERSHIP_dtEndGrace()) {
             $status = 'arrears';
         } else {
             $status = 'expired';
@@ -727,15 +726,20 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
     $pos_active = false;
     $import_active = false;
     $stats_active = false;
+    $new_item_option = '';
     switch($mode) {
     case 'listplans':
-        $new_item_option = array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
-            'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_plan']}</span>");
+        $new_item_option = array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
+            'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_plan']}</span>",
+        );
         $plan_active = true;
         break;
     case 'positions':
-        $new_item_option = array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
-            'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_position']}</span>");
+        $new_item_option = array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
+            'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_position']}</span>",
+        );
         $pos_active = true;
         break;
     case 'listmembers':
@@ -779,10 +783,11 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
         ),
         array('url' => $_CONF['site_admin_url'],
             'text' => $LANG01[53]),
-        $new_item_option,
     );
-    $retval = ADMIN_createMenu($menu_arr, $help_text, plugin_geticon_membership());
-    return $retval;
+    if (!empty($new_item_option)) {
+        $menu_arr[] = $new_item_option;
+    }
+    return ADMIN_createMenu($menu_arr, $help_text, plugin_geticon_membership());
 }
 
 
@@ -825,14 +830,14 @@ function MEMBERSHIP_summaryStats()
     // The brute-force way to get summary stats.  There must be a better way.
     $sql = "SELECT DISTINCT(mem_guid), mem_plan_id, mem_expires
             FROM {$_TABLES['membership_members']}
-            WHERE mem_expires > '{$_CONF_MEMBERSHIP['dt_end_grace']}'";
+            WHERE mem_expires > '" . MEMBERSHIP_dtEndGrace() . "'";
     $rAll = DB_query($sql);
     $stats = array();
     $template = array('current' => 0, 'arrears' => 0);
     while ($A = DB_fetchArray($rAll, false)) {
         if (!isset($stats[$A['mem_plan_id']]))
             $stats[$A['mem_plan_id']] = $template;
-        if ($A['mem_expires'] >= $_CONF_MEMBERSHIP['today']) {
+        if ($A['mem_expires'] >= MEMBERSHIP_today()) {
             $stats[$A['mem_plan_id']]['current']++;
         } else {
             $stats[$A['mem_plan_id']]['arrears']++;
@@ -963,10 +968,10 @@ function MEMBERSHIP_listTrans()
         array('text' => $LANG_MEMBERSHIP['txn_id'],
                 'field' => 'tx_txn_id', 'sort' => true),
     );
-    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
+    $form_arr = array();
+    return ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 '', $form_arr);
-    return $retval;
 }
 
 
@@ -1022,25 +1027,23 @@ function MEMBERSHIP_listPositions()
             'field' => 'type,orderby',
             'direction' => 'ASC'
     );
-/*
+
     $filter = '';
-
-    $query_arr = array();
-
     $text_arr = array(
-        'has_extras' => true,
-        'form_url' => MEMBERSHIP_ADMIN_URL . '/index.php?attributes=x',
+    //    'has_extras' => true,
+    //    'form_url' => MEMBERSHIP_ADMIN_URL . '/index.php?attributes=x',
     );
 
-    $options = array('chkdelete' => true, 'chkfield' => 'attr_id');
+    $options = array(
+        //'chkdelete' => true, 'chkfield' => 'attr_id',
+    );
     if (!isset($_REQUEST['query_limit']))
         $_GET['query_limit'] = 20;
-*/
+
     $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
     $display .= ADMIN_list('membership', __NAMESPACE__ . '\getField_positions',
             $header_arr, $text_arr, $query_arr, $defsort_arr,
             $filter, '', $options, '');
-
     $display .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
     return $display;
 }
