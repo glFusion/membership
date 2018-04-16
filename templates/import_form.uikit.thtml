@@ -4,7 +4,7 @@
   <div class="uk-form-row">
     <label for="from_group" class="uk-form-label">{$LANG_MEMBERSHIP['import_from_grp']}</label>
     <div class="uk-form-controls">
-      <select required id="from_group name="from_group">
+      <select required id="from_group" name="from_group">
         <option value="0">-- Select --</option>
         {frm_grp_options}
       </select>
