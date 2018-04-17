@@ -122,7 +122,7 @@ function USES_membership_functions()
 {   require_once MEMBERSHIP_PI_PATH . '/membership_functions.inc.php'; }
 
 // Determine if the paypal plugin is installed and integration is enabled
-if (!is_array($_PLUGINS) || !in_array('paypal', $_PLUGINS)) {
+if (!isset($_PLUGINS) || !is_array($_PLUGINS) || !in_array('paypal', $_PLUGINS)) {
     // No paypal integration enabled.  Maybe need to die here?
     $_CONF_MEMBERSHIP['enable_paypal'] = 0;
 }
