@@ -278,30 +278,30 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
         'names' => array(
             $pi . '_description' => array(
                 'field' => $plans . '.name',
-                'text' => $LANG_MEMBERSHIP['short_name'],
+                'title' => $LANG_MEMBERSHIP['short_name'],
             ),
             $pi . '_expires' => array(
                 'field' => $members . '.mem_expires',
-                'text' => $LANG_MEMBERSHIP['expires'],
+                'title' => $LANG_MEMBERSHIP['expires'],
                 'perm'  => '0',
             ),
             $pi . '_joined' => array(
                 'field' => $members . '.mem_joined',
-                'text' => $LANG_MEMBERSHIP['joined'],
+                'title' => $LANG_MEMBERSHIP['joined'],
                 'perm'  => '2',
             ),
             $pi . '_membertype' => array(
                 'field' => $members . '.mem_plan_id',
-                'text' => $LANG_MEMBERSHIP['plan_id'],
+                'title' => $LANG_MEMBERSHIP['plan_id'],
             ),
             $pi . '_position' => array(
                 'field' => $positions . '.descr',
-                'text' => $LANG_MEMBERSHIP['position'],
+                'title' => $LANG_MEMBERSHIP['position'],
                 'perm'  => '2',
             ),
             $pi . '_membernum' => array(
                 'field' => $members . '.mem_number',
-                'text' => $LANG_MEMBERSHIP['mem_number'],
+                'title' => $LANG_MEMBERSHIP['mem_number'],
                 'perm'  => '2',
             ),
         ),
