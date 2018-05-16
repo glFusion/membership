@@ -754,7 +754,7 @@ function plugin_runScheduledTask_membership()
     if ($days > -1) {
         $sql = "UPDATE {$_TABLES['membership_members']}
             SET mem_status = " . MEMBERSHIP_STATUS_DROPPED . " WHERE
-            '" . MEMBERSHIP_today() . "' > (expires + interval $days DAY)";
+            '" . MEMBERSHIP_today() . "' > (mem_expires + interval $days DAY)";
         $res = DB_query($sql, 1);
         $num = DB_affectedRows($res);
         MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_purged'],
