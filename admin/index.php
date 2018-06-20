@@ -385,7 +385,7 @@ function MEMBERSHIP_listMembers()
             . $LANG_MEMBERSHIP['regen_mem_numbers'];
     }
     $form_arr = array();
-    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
+    $retval .= ADMIN_list('membership_memberlist', __NAMESPACE__ . '\getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 $options, $form_arr);
     return $retval;
@@ -429,7 +429,7 @@ function MEMBERSHIP_listPlans()
         'help_url'   => ''
     );
     $form_arr = array();
-    $retval .= ADMIN_list('membership', __NAMESPACE__ . '\getField_plan',
+    $retval .= ADMIN_list('membership_planlist', __NAMESPACE__ . '\getField_plan',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, '', '',
                 '', $form_arr);
     return $retval;
@@ -969,7 +969,7 @@ function MEMBERSHIP_listTrans()
                 'field' => 'tx_txn_id', 'sort' => true),
     );
     $form_arr = array();
-    return ADMIN_list('membership', __NAMESPACE__ . '\getField_member',
+    return ADMIN_list('membership_listtrans', __NAMESPACE__ . '\getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 '', $form_arr);
 }
@@ -1041,7 +1041,7 @@ function MEMBERSHIP_listPositions()
         $_GET['query_limit'] = 20;
 
     $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
-    $display .= ADMIN_list('membership', __NAMESPACE__ . '\getField_positions',
+    $display .= ADMIN_list('membership_positions', __NAMESPACE__ . '\getField_positions',
             $header_arr, $text_arr, $query_arr, $defsort_arr,
             $filter, '', $options, '');
     $display .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
