@@ -773,7 +773,7 @@ class Plan
 
 
     /**
-    *   Get all teh plans that can be purchased by the current user.
+    *   Get all the plans that can be purchased by the current user.
     *
     *   @param  string  $plan_id    Optional specific plan to get
     *   @return array       Array of plan objects
@@ -791,7 +791,7 @@ class Plan
         }
         $result = DB_query($sql);
         while ($A = DB_fetchArray($result, false)) {
-            $plans[$A['plan_id']] = new Plan($A['plan_id']);
+            $plans[$A['plan_id']] = new self($A['plan_id']);
         }
         return $plans;
     }
