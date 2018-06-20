@@ -1,5 +1,8 @@
 # glFusion Membership Plugin - Change Log
 
+## 0.2.2
+- Use Uikit datepicker
+
 ## 0.2.0
 - Implement PHP class autoloader
 - Require glFusion 1.6.0+

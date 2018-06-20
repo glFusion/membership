@@ -112,13 +112,15 @@ function togglePmtDiv()
           <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pmt_date']}"></i>
         </label>
         <div class="uk-form-controls">
-        <input type="text" id="f_dtpaid" name="mem_pmtdate" size="25"
+        <input type="text" id="f_dtpaid" name="mem_pmtdate" size="25" data-uk-datepicker
               value="{pmt_date}" maxlength="30" />
+{!if 0}
         <i class="{iconset}-calendar tooltip"
               id="dtpaid_trigger"
               style="cursor: pointer;"
               alt="Date Selector"
               title="Date Selector"></i>
+{!endif}
         </div>
       </div>
 
@@ -193,14 +195,16 @@ function togglePmtDiv()
       </label>
       <div class="uk-form-controls">
         <input type="hidden" name="mem_joined_orig" value="{joined}" />
-        <input type="text" id="f_dtjoined" name="mem_joined" size="15"
+        <input type="text" id="f_dtjoined" name="mem_joined" size="15" data-uk-datepicker
             value="{joined}" maxlength="15" />
+{!if 0}
         <i class="{iconset}-calendar tooltip"
             id="dtjoin_trigger"
             style="cursor: pointer;"
             alt="Date Selector"
             title="Date Selector"
             ></i>
+{!endif}
       </div>
     </div>
 
@@ -210,14 +214,16 @@ function togglePmtDiv()
       </label>
       <div class="uk-form-controls">
         <input type="hidden" name="mem_expires_orig"  value="{expires}"/>
-        <input type="text" id="f_dtexpire" name="mem_expires" size="15"
+        <input type="text" id="f_dtexpire" name="mem_expires" size="15" data-uk-datepicker
             value="{expires}" maxlength="15" />
+{!if 0}
         <i class="{iconset}-calendar tooltip"
             id="dtexpire_trigger"
             style="cursor: pointer;"
             alt="Date Selector"
             title="Date Selector"
             ></i>
+{!endif}
       </div>
     </div>
 
@@ -320,6 +326,7 @@ function togglePmtDiv()
 {!endif}
 
 <script type="text/javascript">
+{!if 0}
     Calendar.setup({
         inputField     :    "f_dtjoined",
         ifFormat       :    "%Y-%m-%d",
@@ -341,6 +348,7 @@ function togglePmtDiv()
         timeFormat     :    "12",
         button          :   "dtpaid_trigger"
     });
+{!endif}
 
 function memUpdateLinkText(selid)
 {

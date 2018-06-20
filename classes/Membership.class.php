@@ -3,9 +3,9 @@
 *   Class to handle membership records.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.0.6
+*   @version    0.2.2
 *   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
@@ -207,7 +207,7 @@ class Membership
             'notified_orig' => $this->notified == 1 ? 1 : 0,
             'plan_id_orig' => $this->plan_id,
             'is_member' => $this->isNew ? '' : 'true',
-            'pmt_date'  => $_CONF_MEMBERSHIP['now']->toMySQL(true),
+            'pmt_date'  => $_CONF_MEMBERSHIP['now']->Format('Y-m-d', true),
             'mem_number' => $this->mem_number,
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
             'mem_istrial' => $this->istrial,
@@ -223,15 +223,12 @@ class Membership
         }
 
         $family_plans = array();
-        $sql = "SELECT plan_id, name, upd_links
-                FROM {$_TABLES['membership_plans']}
-                WHERE enabled = 1";
-        $res = DB_query($sql);
         $T->set_block('editmember', 'PlanBlock', 'planrow');
-        while ($A = DB_fetchArray($res, false)) {
-            if ($this->plan_id == $A['plan_id']) {
+        $Plans = Plan::getPlans();
+        foreach ($Plans as $P) {
+            if ($this->plan_id == $P->plan_id) {
                 $sel = 'selected="selected"';
-                if ($A['upd_links']) {
+                if ($P->upd_links) {
                     $T->set_var('upd_link_text', $LANG_MEMBERSHIP['does_upd_links']);
                 } else {
                     $T->set_var('upd_link_text', $LANG_MEMBERSHIP['no_upd_links']);
@@ -241,11 +238,11 @@ class Membership
             }
             $T->set_var(array(
                 'plan_sel'  => $sel,
-                'plan_id'   => $A['plan_id'],
-                'plan_name' => $A['name'],
+                'plan_id'   => $P->plan_id,
+                'plan_name' => $P->name,
             ) );
             $T->parse('planrow', 'PlanBlock', true);
-            if ($A['upd_links'] == 1) $family_ids[] = '"'.$A['plan_id'].'"';
+            if ($P->upd_links == 1) $family_ids[] = '"'. $P->plan_id . '"';
         }
         $family_plans = empty($family_ids) ? '' : implode(',', $family_ids);
         $T->set_var('family_plans', $family_plans);
