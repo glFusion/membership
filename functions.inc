@@ -3,9 +3,9 @@
 *   Public API functions for the Membership plugin for glFusion.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.2.0
+*   @version    0.2.2
 *   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
@@ -1288,6 +1288,35 @@ function MEMBERSHIP_dtEndGrace()
         $dt = MEMBERSHIP_now()->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
     }
     return $dt;
+}
+
+
+/**
+*   Get an array variable, first checking whether it's set
+*
+*   @param  array   $A          Array where var should be
+*   @param  string  $varname    Name of array element
+*   @param  string  $type       Type of return value
+*   @return     Array element or NULL, cast to $type
+*/
+function MEMB_getVar($A, $varname, $type = 'string')
+{
+    $val = isset($A[$varname]) ? $A[$varname] : NULL;
+    switch ($type) {
+    case 'int':
+        return (int)$val;
+        break;
+    case 'bool':
+        return (bool)$val;
+        break;
+    case 'float':
+        return (float)$val;
+        break;
+    case 'string':
+    default:
+        return (string)$val;
+        break;
+    }
 }
 
 ?>

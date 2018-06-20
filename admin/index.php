@@ -883,21 +883,22 @@ function MEMBERSHIP_listTrans()
 {
     global $_TABLES, $LANG_MEMBERSHIP, $_CONF;
 
-    if (isset($_POST['tx_from']) && !empty($_POST['tx_from'])) {
-        $from_sql = "AND tx_date >= '" . DB_escapeString($_POST['tx_from']) . "'";
-        $tx_from = $_POST['tx_from'];
+    $tx_from = MEMB_getVar($_POST, 'tx_from');
+    if (!empty($tx_from)) {
+        $from_sql = "AND tx_date >= '" . DB_escapeString($tx_from . ' 00:00:00') . "'";
     } else {
         $tx_from = '';
         $from_sql = '';
     }
-    if (isset($_POST['tx_to']) && !empty($_POST['tx_to'])) {
-        $to_sql = "AND tx_date <= '" . DB_escapeString($_POST['tx_to']) . "'";
-        $tx_to = $_POST['tx_to'];
+    $tx_to = MEMB_getVar($_POST, 'tx_to');
+    if (!empty($tx_to)) {
+        $to_sql = "AND tx_date <= '" . DB_escapeString($tx_to . ' 23:59:59') . "'";
     } else {
         $tx_to = '';
         $to_sql = '';
     }
-    if (isset($_GET['uid']) && !empty($_GET['uid'])) {
+    $uid = MEMB_getVar($_GET, 'uid', 'integer');
+    if ($uid > 0) {
         $user_sql = 'AND tx_uid = ' . (int)$_GET['uid'];
     } else {
         $user_sql = '';
@@ -921,23 +922,21 @@ function MEMBERSHIP_listTrans()
         'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
     );
     $filter = $LANG_MEMBERSHIP['from'] .
-        ': <input id="f_tx_from" type="text" size="10" name="tx_from" value="' .
-            $tx_from . '" />&nbsp;' .
+        ': <input id="f_tx_from" type="text" size="10" name="tx_from" data-uk-datepicker value="" />&nbsp;' .
           '<i class="' . MEM_getIcon('calendar') . ' tooltip"
             id="dtfrom_trigger"
             style="cursor: pointer;"
             alt="' . $LANG_MEMBERSHIP['date_selector'] . '"
             title="' . $LANG_MEMBERSHIP['date_selector'] . '"></i>&nbsp;&nbsp;' .
         $LANG_MEMBERSHIP['to'] .
-        ': <input id="f_tx_to" type="text" size="10" name="tx_to" value="' .
-             $tx_to .'" />&nbsp' .
+        ': <input id="f_tx_to" type="text" size="10" name="tx_to" data-uk-datepicker value="" />&nbsp' .
           '<i class="' . MEM_getIcon('calendar', 'info') . ' tooltip"
             id="dtto_trigger"
             style="cursor: pointer;"
             alt="' . $LANG_MEMBERSHIP['date_selector'] . '"
             title="' . $LANG_MEMBERSHIP['date_selector'] . '"></i>&nbsp;&nbsp;' .
         '<script type="text/javascript">
-    Calendar.setup({
+/*    Calendar.setup({
         inputField     :    "f_tx_from",
         ifFormat       :    "%Y-%m-%d",
         showsTime      :    false,
@@ -950,7 +949,7 @@ function MEMBERSHIP_listTrans()
         showsTime      :    false,
         timeFormat     :    "24",
         button          :   "dtto_trigger"
-    });
+    });*/
     </script>';
     $header_arr = array(
         array('text' => $LANG_MEMBERSHIP['date'],
