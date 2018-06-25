@@ -98,7 +98,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     // Retrieve or create a membership record.
     $M = new Membership\Membership($uid);
 
-    if ($M->Plan === NULL && $_CONF_MEMBERSHIP['use_mem_num'] == 2) {
+    if ($M->Plan === NULL && MEMB_getVar($_CONF_MEMBERSHIP, 'use_mem_number', 'integer') == 2) {
         // New member, apply membership number if configured
         $M->mem_number = Membership\Membership::createMemberNumber($uid);
     }
