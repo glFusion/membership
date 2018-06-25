@@ -1,174 +1,114 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" class="uk-height-1-1">
 <head>
-  <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1" />
-  <link href="../../../docs/docstyle.css" type="text/css" rel="stylesheet" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="apple-touch-icon-precomposed" href="../../layout/cms/images/apple-touch-icon.png">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.26.3/css/uikit.almost-flat.min.css">
   <meta name="robots" content="noindex,nofollow" />
-  <title>Membership Plugin - glFusion CMS</title>
+  <title>glFusion Membership Plugin Configuration</title>
+  <style>
+    html{background:#f9f9f9}.tm-dropdown,.tm-navbar{background:#325482!important}.uk-form label{font-weight:700}.tm-navbar{border-radius:0!important;padding:1px 0 6px!important;border:none!important}.tm-navbar-brand{color:#eee!important}.tm-navbar-brand a{text-shadow:none;color:#fff}.tm-navbar-brand a:hover{color:#ababab;text-decoration:none}.tm-navbar-brand-oc a{text-shadow:none;color:#fff}.tm-navbar-brand-oc a:hover{color:#ababab;text-decoration:none}.tm-navbar-nav>li>a{border:none;border-radius:3px!important;font-size:15px!important;height:40px!important;margin:0!important}.tm-dropdown{color:#000;border-radius:0!important;border:0!important}.tm-nav-navbar>li>a{color:#fff!important}.tm-navbar::after,.tm-navbar::before{margin-top:7px!important}.tm-navbar-nav>li.uk-open>a,.tm-navbar-nav>li:hover>a,.tm-navbar-nav>li>a:focus{color:#fff;outline:0;background:#35B3EE!important}.tm-navbar-nav>li>a{color:#fff!important;text-shadow:none!important}.tm-navbar-toggle{color:#ccc!important;text-shadow:none!important}.tm-navbar-toggle:focus,.tm-navbar-toggle:hover{color:#fff!important}.tm-footer{background:#252525;border-top:1px solid #232425;margin-bottom:0;bottom:0;padding:10px;color:#fff}.tm-wrapper{min-height:100%;margin:0 auto -51px!important}.tm-push,footer{height:51px}.uk-navbar-content > a {color:#fff !important;}
+  </style>
 </head>
 
-<body style="direction: ltr;">
-<div id="gl_container_fluid">
-  <div id="gl_header"><span style="color: rgb(255, 255, 255); float: left; padding-left: 10px; padding-top: 5px; vertical-align: middle;">glFusion Documentation Project
-  </span><a style="float: right; padding-right: 10px; padding-top: 5px; vertical-align: middle;" href="http://www.glfusion.org/wiki/doku.php">glFusion Wiki</a>
-</div>
-<div id="gl_wrapper">
-<div class="body-container">
-<h1><a name="advt_plugin" id="advt_plugin">Membership Plugin</a></h1>
+<body class="uk-height-1-1">
+  <div class="tm-wrapper">
+    <nav class="uk-navbar uk-navbar-attached tm-navbar uk-margin-bottom">
+      <div class="uk-navbar-brand tm-navbar-brand">
+        glFusion Membership Plugin Configuration
+      </div>
+      <div class="uk-navbar-flip uk-hidden-small">
+        <div class="uk-navbar-content tm-navbar-content" style="text-shadow:none;">
+          <a href="https://www.glfusion.org/wiki/">glFusion Wiki</a>
+        </div>
+      </div>
+    </nav>
 
-<style type="text/css">
-td { vertical-align: top; }
-</style>
+    <div class="uk-container uk-container-center uk-margin-bottom">
+      <h1>glFusion Membership Plugin Configuration</h1>
+      <p>The Membership Plugin allows site users to become members and gain access to additional features. This requires the PayPal plugin to be installed and working correctly.<p />
 
-<div class="level1">
+      <h2>Main Membership Options</h2>
 
-<table class="inline">
-  <tbody>
-    <tr>
-      <th class="col0 leftalign" colspan="2">Membership Options</th>
-    </tr>
+      <dl id="desc_qrenew">
+        <dt>Quick Renewal</dt>
+        <dd>Check this box and fill out the next four fields to renew this member&apos; membership when the &quot;Save&quot; button is clicked.</dd>
+      </dl>
 
-    <tr class="row0">
-      <th class="col0 leftalign">Option </th>
-      <th class="col1 leftalign">Description </th>
-    </tr>
+      <dl id="desc_dtpaid">
+        <dt>Pmt. Date</dt>
+        <dd>Enter the date of this renewal payment.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_qrenew"></a>Quick Renewal
-      </td>
-      <td class="col1 leftalign">
-        Check this box and fill out the next four fields to renew this member&apos; membership when the &quot;Save&quot; button is clicked.
-      </td>
-    </tr>
+      <dl id="desc_amtpaid">
+        <dt>Amount Paid</dt>
+        <dd>Enter the amount paid for the renewal.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_dtpaid"></a>Pmt. Date
-      </td>
-      <td class="col1 leftalign">
-        Enter the date of this renewal payment.
-      </td>
-    </tr>
+      <dl id="desc_method">
+        <dt>Method</dt>
+        <dd>Select the payment method</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_dtpaid"></a>Amount Paid
-      </td>
-      <td class="col1 leftalign">
-        Enter the amount paid for the renewal.
-      </td>
-    </tr>
+      <dl id="desc_comment">
+        <dt>Comment</dt>
+        <dd>Enter an optional comment to be associated with this renewal.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_method"></a>Method
-      </td>
-      <td class="col1 leftalign">
-        Select the payment method
-      </td>
-    </tr>
+      <dl id="desc_plan_id">
+        <dt>Plan ID</dt>
+        <dd>Select the membership plan for this member.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_comment"></a>Comment
-      </td>
-      <td class="col1 leftalign">
-        Enter an optional comment to be associated with this renewal.
-      </td>
-    </tr>
+      <dl id="desc_joined">
+        <dt>Joined</dt>
+        <dd>Select or enter the date that this member first joined.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_plan_id"></a>Plan ID
-      </td>
-      <td class="col1 leftalign">
-        Select the membership plan for this member.
-      </td>
-    </tr>
+      <dl id="desc_expires">
+        <dt>Expires</dt>
+        <dd>Select or enter the date that this member's membership expires.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_joined"></a>Joined
-      </td>
-      <td class="col1 leftalign">
-        Select or enter the date that this member first joined.
-      </td>
-    </tr>
+      <dl id="desc_istrial">
+        <dt>Trial Membership?</dt>
+        <dd>Check this box if this membership is a "trial" membership. A trial membership is exactly the same as a regular membership, but the price of the membership purchase is the "new" price instead of "renewal".</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_expires"></a>Expires</td>
-      <td class="col1 leftalign">
-        Select or enter the date that this member's membership expires.
-      </td>
-    </tr>
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_istrial"></a>Trial Membership?</td>
-      <td class="col1 leftalign">
-        Check this box if this membership is a "trial" membership. A trial membership is exactly the same as a regular membership, but the price of the membership purchase is the "new" price instead of "renewal".
-      </td>
-    </tr>
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_cancel"></a>Cancel</td>
-      <td class="col1 leftalign">
-        Check if this membership should be cancelled. The member&apos;status will be updated and the member will be removed from the membership group.
-      </td>
-    </tr>
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_notified"></a>Notification Sent?
-      </td>
-      <td class="col1 leftalign">
-        This checkbox indicates that an expiration notification has been sent for this membership.
-If you wish to suppress notifications, checking this box will prevent a notification from being sent. Note that renewing a membership, either via online purchase or using the &quot;renew&quot; function in the membership list, will reset this value but changing the expiration date manually will not.
-      </td>
-    </tr>
+      <dl id="desc_cancel">
+        <dt>Cancel</dt>
+        <dd>Check if this membership should be cancelled. The member&apos;status will be updated and the member will be removed from the membership group.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_mem_number"></a>Membership Number
-      </td>
-      <td class="col1 leftalign">
-        If membership numbers are used you can enter the member's number here.
-      </td>
-    </tr>
+      <dl id="desc_notified">
+        <dt>Notification Sent?</dt>
+        <dd>This checkbox indicates that an expiration notification has been sent for this membership.
+If you wish to suppress notifications, checking this box will prevent a notification from being sent. Note that renewing a membership, either via online purchase or using the &quot;renew&quot; function in the membership list, will reset this value but changing the expiration date manually will not.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_links"></a>Linked Accounts
-      </td>
-      <td class="col1 leftalign">
-        Any accounts listed here are linked to the current account and to each other to form a &quot;family&quot;. You can remove a family member by clicking the red &quot;Delete&quot; icon. Doing so will remove all links to and from <b>that</b> account and any other family members.<br /><br />
-        This action is carried out immediately. You do not need to save this member&apos;s record unless there are other changes made.
-      </td>
-    </tr>
+      <dl id="desc_mem_number">
+        <dt>Membership Number</dt>
+        <dd>If membership numbers are used you can enter the member&apos;s number here.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_add_link"></a>Add Linked Accounts
-      </td>
-      <td class="col1 leftalign">
-        If you&apos;d like to add another account to this member&apos;s &quot;family&quot;, select the account from the dropdown list. The account will be immediately linked to this account and to all other family members, but it's membership status will not be updated until you click the &quot;Save&quot; button.
-      </td>
-    </tr>
+      <dl id="desc_links">
+        <dt>Linked Accounts</dt>
+        <dd>Any accounts listed here are linked to the current account and to each other to form a &quot;family&quot;. You can remove a family member by clicking the red &quot;Delete&quot; icon. Doing so will remove all links to and from <b>that</b> account and any other family members.<br /><br />
+        This action is carried out immediately. You do not need to save this member&apos;s record unless there are other changes made.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_emancipate"></a>Remove this account from family?
-      </td>
-      <td class="col1 leftalign">
-        If you need to remove <b>this</b> account from the family, check this box and click the &quot;Save&quot; button. Do not delete the linked accounts individually as that will remove <b>them</b> from the family rather than removing the current member.
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p></p>
-</div>
-</div>
-</div>
-</div>
+      <dl id="desc_add_link">
+        <dt>Add Linked Accounts</dt>
+        <dd>If you&apos;d like to add another account to this member&apos;s &quot;family&quot;, select the account from the dropdown list. The account will be immediately linked to this account and to all other family members, but it's membership status will not be updated until you click the &quot;Save&quot; button.</dd>
+      </dl>
+
+      <dl id="desc_emancipate">
+        <dt>Remove this account from family?</dt>
+        <dd>If you need to remove <b>this</b> account from the family, check this box and click the &quot;Save&quot; button. Do not delete the linked accounts individually as that will remove <b>them</b> from the family rather than removing the current member.</dd>
+      </dl>
+
+    </div>
+  </div>
 </body>
 </html>

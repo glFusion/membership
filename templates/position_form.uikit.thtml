@@ -8,7 +8,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="descr">{$LANG_MEMBERSHIP['position']}:
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_name']}"></i>
+      <span id="position" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
       <input type="text" id="descr" name="descr" value="{description}" />
@@ -17,7 +17,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="pos_type_sel">{$LANG_MEMBERSHIP['position_type']}:
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_type']}"></i>
+      <span id="type" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <select id="pos_type_sel" name="position_type_sel">
@@ -31,7 +31,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="uid">{$LANG_MEMBERSHIP['current_user']}:
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_user']}"></i>
+      <span id="current_user" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <select id="uid" name="uid">
@@ -43,7 +43,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="contact">{$LANG_MEMBERSHIP['contact_info']}:
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_contact']}"></i>
+      <span id="contact" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <textarea id="contact" name="contact">{contact}</textarea>
@@ -52,7 +52,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="orderby">{$LANG_MEMBERSHIP['order']}:
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_order']}"></i>
+      <span id="order" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <input id="orderby" type="text" name="orderby" value="{orderby}" 
@@ -62,7 +62,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="enabled">{$LANG_MEMBERSHIP['enabled']}?
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_ena']}"></i>
+      <span id="enabled" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <input id="enabled" type="checkbox" name="enabled" value="1" {ena_chk} />
@@ -71,7 +71,7 @@
 
   <div class="uk-form-row">
     <label class="uk-form-label" for="show_vacant">{$LANG_MEMBERSHIP['show_vacant']}:
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_show_vacant']}"></i>
+      <span id="show_vacant" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <input type="checkbox" id="show_vacant" name="show_vacant" value="1" {show_vacant_chk} />
@@ -79,9 +79,8 @@
   </div>
 
   <div class="uk-form-row">
-    <label for="grp_id" class="uk-form-label">
-      {$LANG_ACCESS['group']}
-      <i class="uk-icon uk-icon-question-circle tooltip" title="{$LANG_MEMBERSHIP_HELP['pos_group']}"></i>
+    <label for="grp_id" class="uk-form-label">{$LANG_ACCESS['group']}:
+      <span id="group" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
     <select id="grp_id" name="grp_id">
@@ -102,4 +101,32 @@
   </div>
 
 </form>
+
+<script type="text/javascript">
+var ConfigDocUrl = '{doc_url}';
+$(document).ready(function() {
+    $('.tooltip_cfg').tooltipster({
+        contentAsHTML: true,
+        animation: 'fade',
+        trigger: 'click',
+        iconDesktop: true,
+        iconTouch: true,
+        functionBefore: function(origin, continueTooltip) {
+            var attrHref = ConfigDocUrl;
+            var ajobj = $(this);
+            $.get(attrHref, function(data) {
+                var confVar = ajobj.attr('id');
+                if (data.indexOf(confVar) > 0) {
+                    var desc = $(data).find('#desc_' + confVar + ' dd:first').text();
+                    origin.tooltipster('content', desc);
+                } else {
+                    origin.tooltipster('content', 'No Help Text Found');
+                    console.log('Unable to find help text for desc_%s',confVar);
+                }
+                continueTooltip();
+            });
+        }
+    });
+});
+</script>
 {# end {templatelocation} #}

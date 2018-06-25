@@ -1,115 +1,80 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" class="uk-height-1-1">
 <head>
-  <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1" />
-  <link href="../../../docs/docstyle.css" type="text/css" rel="stylesheet" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="apple-touch-icon-precomposed" href="../../layout/cms/images/apple-touch-icon.png">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.26.3/css/uikit.almost-flat.min.css">
   <meta name="robots" content="noindex,nofollow" />
-  <title>Membership Plugin - glFusion CMS</title>
+  <title>glFusion Membership Plugin Configuration</title>
+  <style>
+    html{background:#f9f9f9}.tm-dropdown,.tm-navbar{background:#325482!important}.uk-form label{font-weight:700}.tm-navbar{border-radius:0!important;padding:1px 0 6px!important;border:none!important}.tm-navbar-brand{color:#eee!important}.tm-navbar-brand a{text-shadow:none;color:#fff}.tm-navbar-brand a:hover{color:#ababab;text-decoration:none}.tm-navbar-brand-oc a{text-shadow:none;color:#fff}.tm-navbar-brand-oc a:hover{color:#ababab;text-decoration:none}.tm-navbar-nav>li>a{border:none;border-radius:3px!important;font-size:15px!important;height:40px!important;margin:0!important}.tm-dropdown{color:#000;border-radius:0!important;border:0!important}.tm-nav-navbar>li>a{color:#fff!important}.tm-navbar::after,.tm-navbar::before{margin-top:7px!important}.tm-navbar-nav>li.uk-open>a,.tm-navbar-nav>li:hover>a,.tm-navbar-nav>li>a:focus{color:#fff;outline:0;background:#35B3EE!important}.tm-navbar-nav>li>a{color:#fff!important;text-shadow:none!important}.tm-navbar-toggle{color:#ccc!important;text-shadow:none!important}.tm-navbar-toggle:focus,.tm-navbar-toggle:hover{color:#fff!important}.tm-footer{background:#252525;border-top:1px solid #232425;margin-bottom:0;bottom:0;padding:10px;color:#fff}.tm-wrapper{min-height:100%;margin:0 auto -51px!important}.tm-push,footer{height:51px}.uk-navbar-content > a {color:#fff !important;}
+  </style>
 </head>
 
-<body style="direction: ltr;">
-<div id="gl_container_fluid">
-  <div id="gl_header"><span style="color: rgb(255, 255, 255); float: left; padding-left: 10px; padding-top: 5px; vertical-align: middle;">glFusion Documentation Project
-  </span><a style="float: right; padding-right: 10px; padding-top: 5px; vertical-align: middle;" href="http://www.glfusion.org/wiki/doku.php">glFusion Wiki</a>
-</div>
-<div id="gl_wrapper">
-<div class="body-container">
-<h1><a name="membership_plugin" id="membership_plugin">Membership Plugin - Positions</a></h1>
+<body class="uk-height-1-1">
+  <div class="tm-wrapper">
+    <nav class="uk-navbar uk-navbar-attached tm-navbar uk-margin-bottom">
+      <div class="uk-navbar-brand tm-navbar-brand">
+        glFusion Membership Plugin Configuration
+      </div>
+      <div class="uk-navbar-flip uk-hidden-small">
+        <div class="uk-navbar-content tm-navbar-content" style="text-shadow:none;">
+          <a href="https://www.glfusion.org/wiki/">glFusion Wiki</a>
+        </div>
+      </div>
+    </nav>
 
-<style type="text/css">
-td { vertical-align: top; }
-</style>
+    <div class="uk-container uk-container-center uk-margin-bottom">
+      <h1>glFusion Membership Plugin Configuration</h1>
+      <p>The Membership Plugin allows site users to become members and gain access to additional features. This requires the PayPal plugin to be installed and working correctly.<p />
 
-<div class="level1">
+      <h2>Main Membership Options</h2>
 
-<table class="inline">
-  <tbody>
-    <tr>
-      <th class="col0 leftalign" colspan="2">Position Options</th>
-    </tr>
+      <dl id="desc_position">
+        <dt>Position</dt>
+        <dd>Select the name of this position. Does not need to be unique.</dd>
+      </dl>
 
-    <tr class="row0">
-      <th class="col0 leftalign">Option </th>
-      <th class="col1 leftalign">Description </th>
-    </tr>
-
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_position"></a>Position
-      </td>
-      <td class="col1 leftalign">
-        Select the name of this position. Does not need to be unique.
-      </td>
-    </tr>
-
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_type"></a>Position Type
-      </td>
-      <td class="col1 leftalign">
-        Select or enter the type, or category, for this position. Examples: &quot;Board&quot;, &quot;Committee&quot;.<br />
+      <dl id="desc_type">
+        <dt>Position Type</dt>
+        <dd>Select or enter the type, or category, for this position. Examples: &quot;Board&quot;, &quot;Committee&quot;.<br />
 Once a position type is created by typing in the text field it becomes available for future records as part of the dropdown selection.<br />
-Recommendation: use singular names for position lists, e.g. &quot;Officer&quot; instead of &quot;Officers&quot;.
+Recommendation: use singular names for position lists, e.g. &quot;Officer&quot; instead of &quot;Officers&quot;.</dd>
+      </dl>
+
+      <dl id="desc_current_user">
+        <dt>Current Member</dt>
+        <dd>Select the current officeholder. Select &quot;--- Vacant ---&quot; if the office is currently vacant.</dd>
+      </dl>
+
+      <dl id="desc_contact">
+        <dt>Contact Info (Optional)</dd>
+        <dd>Enter the contact information for the position or officeholder. This is the text that will be shown on the group list pages with a link to the contact form. If left blank, the user&apos;s email address will be displayed.</dd>
       </td>
     </tr>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_current_user"></a>Current Member</td>
-      <td class="col1 leftalign">
-        Select the current officeholder. Select &quot;--- Vacant ---&quot; if the office is currently vacant.
-      </td>
-    </tr>
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_contact"></a>Contact Info (Optional)
-      </td>
-      <td class="col1 leftalign">
-        Enter the contact information for the position or officeholder. This is the text that will be shown on the group list pages with a link to the contact form. If left blank, the user's email address will be displayed.
-      </td>
-    </tr>
+      <dl id="desc_order">
+        <dt>Order</dt>
+        <dd>Enter a numeric value for the sort order on the group list page.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_order"></a>Order
-      </td>
-      <td class="col1 leftalign">
-        Enter a numeric value for the sort order on the group list page.
-      </td>
-    </tr>
+      <dl id="desc_enabled">
+        <dt>Enabled?</dt>
+        <dd>Normally this should be checked. If you&apos;d like to temporarily disable the display of this position without deleting it, uncheck this box.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_enabled"></a>Enabled?
-      </td>
-      <td class="col1 leftalign">
-        Normally this should be checked. If you'd like to temporarily disable the display of this position without deleting it, uncheck this box.
-      </td>
-    </tr>
+      <dl id="desc_show_vacant">
+        <dt>Show Vacant?</dt>
+        <dd>If this box is checked, &quot;--- Vacant ---&quot; will be displayed when the position is vacant. If unchecked, the position will not be displayed at all when vacant.</dd>
+      </dl>>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_show_vacant"></a>Show Vacant?
-      </td>
-      <td class="col1 leftalign">
-        If this box is checked, "--- Vacant ---" will be displayed when the position is vacant. If unchecked, the position will not be displayed at all when vacant.
-      </td>
-    </tr>
+      <dl id="desc_group">
+        <dt>Group</dt>
+        <dd>Select the site group associated with this position, if any. If selected, users will be added to or removed from this group as they are added to or removed from this position.</dd>
+      </dl>
 
-    <tr class="row0">
-      <td class="col0 leftalign">
-        <a name="desc_group"></a>Group
-      </td>
-      <td class="col1 leftalign">
-        Select the site group associated with this position, if any. If selected, users will be added to or removed from this group as they are added to or removed from this position.
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p></p>
-</div>
-</div>
-</div>
-</div>
+    </div>
+  </div>
 </body>
 </html>
