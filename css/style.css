@@ -21,9 +21,9 @@ td.lbl {
 .pluginMembershipButtons {
     position: relative;
     float: right;
-    margin-right: 5%;
+    margin-right: 10px;
     text-align:left;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
 }
 
 #pluginMembershipHeader {
@@ -44,10 +44,12 @@ td.lbl {
 #pluginMembershipPrice {
     font-weight: bold;
     padding-top: 5px;
+    padding-right: 10px;
+    float: right;
 }
 
 .pluginMembershipPlanItem {
-    padding: 10px;
+    /*padding: 10px;*/
     clear: both;
 }
 

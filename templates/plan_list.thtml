@@ -28,7 +28,7 @@
 {!if app_msg}
 <span id="pluginMembershipAppMsg" class="info">{app_msg}</span>
 {!endif}
-<hr width="85%" />
+<hr />
 <!-- BEGIN PlanBlock -->
 <div class="pluginMembershipPlanItem">
   <div class="floatleft">
@@ -50,7 +50,7 @@
   </div>
 </div>
 <div style="clear:both;">
-  <hr width="85%" />
+  <hr />
 </div>
 <!-- END PlanBlock -->
 {!if footer}
