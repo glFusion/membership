@@ -193,7 +193,10 @@ class Membership
     {
         global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
-        $T = MEMBERSHIP_getTemplate('editmember', 'editmember');
+        $T = MEMBERSHIP_getTemplate(array(
+            'editmember' => 'editmember',
+            'tips'  => 'tooltipster',
+        ) );
         $T->set_var(array(
             'my_uid'    => $this->uid,
             'joined'    => $this->joined,
@@ -284,7 +287,7 @@ class Membership
             ) );
             $T->parse('linksel', 'linkSelect', true);
         }
-
+        $T->parse('tooltipster_js', 'tips');
         $T->parse('output', 'editmember');
         return $T->finish($T->get_var('output'));
     }

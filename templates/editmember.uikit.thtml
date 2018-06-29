@@ -125,7 +125,7 @@ function togglePmtDiv()
       </div>
 
       <div class="uk-form-row">
-        <label for="pmtamt" class="uk-form-label">{$LANG_MEMBERSHIP['pmt_amount']}:
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_amount']}:
           <span id="amtpaid" class="tooltip_cfg tooltipstered"></span>
         </label>
         <div class="uk-form-controls">
@@ -134,7 +134,7 @@ function togglePmtDiv()
       </div>
 
       <div class="uk-form-row">
-        <label for="pmttype" class="uk-form-label">{$LANG_MEMBERSHIP['pmt_method']}:
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_method']}:
           <span id="method" class="tooltip_cfg tooltipstered"></span>
         </label>
         <div class="uk-form-controls">
@@ -175,7 +175,7 @@ function togglePmtDiv()
     {!endif}
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="mem_plan_id">{$LANG_MEMBERSHIP['plan']}:
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['plan']}:
         <span id="plan_id" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -190,7 +190,7 @@ function togglePmtDiv()
     </div>
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="f_dtjoines">{$LANG_MEMBERSHIP['joined']}:
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['joined']}:
         <span id="joined" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -209,7 +209,7 @@ function togglePmtDiv()
     </div>
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="f_dtexpire">{$LANG_MEMBERSHIP['expires']}:
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['expires']}:
         <span id="expires" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -228,7 +228,7 @@ function togglePmtDiv()
     </div>
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="mem_notified">{$LANG_MEMBERSHIP['notified']}?
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['notified']}?
         <span id="notified" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -239,7 +239,7 @@ function togglePmtDiv()
 
     {!if use_mem_number}
     <div class="uk-form-row">
-      <label class="uk-form-label" for="f_mem_number">{$LANG_MEMBERSHIP['mem_number']}:
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['mem_number']}:
         <span id="mem_number" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -250,7 +250,7 @@ function togglePmtDiv()
     {!endif}
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="mem_istrial">{$LANG_MEMBERSHIP['istrial']}:
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['istrial']}:
         <span id="is_trial" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -260,7 +260,7 @@ function togglePmtDiv()
     </div>
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="mem_cancel">{$LANG_MEMBERSHIP['cancel']}:
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['cancel']}:
         <span id="cancel" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -292,7 +292,7 @@ function togglePmtDiv()
     </div>
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="linkselect">{$LANG_MEMBERSHIP['add_link']}:
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['add_link']}:
         <span id="add_link" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -306,7 +306,7 @@ function togglePmtDiv()
     </div>
 
     <div class="uk-form-row">
-      <label class="uk-form-label" for="emancipate">{$LANG_MEMBERSHIP['emancipate']}?
+      <label class="uk-form-label">{$LANG_MEMBERSHIP['emancipate']}?
         <span id="emancipate" class="tooltip_cfg tooltipstered"></span>
       </label>
       <div class="uk-form-controls">
@@ -368,31 +368,6 @@ function memUpdateLinkText(selid)
     }
     document.getElementById("upd_link_txt").innerHTML = text;
 }
-
-var ConfigDocUrl = '{doc_url}';
-$(document).ready(function() {
-    $('.tooltip_cfg').tooltipster({
-        contentAsHTML: true,
-        animation: 'fade',
-        trigger: 'click',
-        iconDesktop: true,
-        iconTouch: true,
-        functionBefore: function(origin, continueTooltip) {
-            var attrHref = ConfigDocUrl;
-            var ajobj = $(this);
-            $.get(attrHref, function(data) {
-                var confVar = ajobj.attr('id');
-                if (data.indexOf(confVar) > 0) {
-                    var desc = $(data).find('#desc_' + confVar + ' dd:first').text();
-                    origin.tooltipster('content', desc);
-                } else {
-                    origin.tooltipster('content', 'No Help Text Found');
-                    console.log('Unable to find help text for desc_%s',confVar);
-                }
-                continueTooltip();
-            });
-        }
-    });
-});
 </script>
+{tooltipster_js}
 {# end {templatelocation} #}

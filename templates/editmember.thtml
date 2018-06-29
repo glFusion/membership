@@ -78,7 +78,7 @@ var MEMremoveElement = function(uid, uname) {
         <table border="0">
         {!if is_member}
         <tr><td>{$LANG_MEMBERSHIP['quickrenew']}
-            <a href="#!" onclick="popupWindow('{doc_url}#desc_qrenew', 'Help', 640, 480, 1);return false;" class="toolbar">
+          <span id="qrenew" class="tooltip_cfg tooltipstered"></span>
           </td>
           <td><input type="checkbox" value="1" name="mem_quickrenew" /></td>
         </tr>
@@ -86,7 +86,7 @@ var MEMremoveElement = function(uid, uname) {
         <tr>
           <td>
             {$LANG_MEMBERSHIP['pmt_date']}:
-            <a href="#!" onclick="popupWindow('{doc_url}#desc_dtpaid', 'Help', 640, 480, 1);return false;" class="toolbar">
+            <span id="dtpaid" class="tooltip_cfg tooltipstered"></span>
           </td><td>
             <input type="text" id="f_dtpaid" name="mem_pmtdate" size="25"
               value="{pmt_date}" maxlength="30" />
@@ -100,14 +100,14 @@ var MEMremoveElement = function(uid, uname) {
         </tr>
         <tr>
           <td>{$LANG_MEMBERSHIP['pmt_amount']}:
-            <a href="#!" onclick="popupWindow('{doc_url}#desc_amount', 'Help', 640, 480, 1);return false;" class="toolbar">
+            <span id="amtpaid" class="tooltip_cfg tooltipstered"></span>
           </td>
           <td><input type="text" name="mem_pmtamt" value="" /></td>
         </tr>
         <tr>
           <td>
           {$LANG_MEMBERSHIP['pmt_method']}:
-            <a href="#!" onclick="popupWindow('{doc_url}#desc_method', 'Help', 640, 480, 1);return false;" class="toolbar">
+            <span id="method" class="tooltip_cfg tooltipstered"></span>
           </td><td>
           <select name="mem_pmttype">
             <option value="" selected="selected">--Select--</option>
@@ -119,7 +119,7 @@ var MEMremoveElement = function(uid, uname) {
         </tr>
         <tr>
           <td>{$LANG_MEMBERSHIP['pmt_desc']}:
-            <a href="#!" onclick="popupWindow('{doc_url}#desc_comment', 'Help', 640, 480, 1);return false;" class="toolbar">
+            <span id="comment" class="tooltip_cfg tooltipstered"></span>
           </td>
           <td><input type="text" name="mem_pmtdesc" size="30" /></td>
         </tr>
@@ -371,6 +371,6 @@ function memUpdateLinkText(selid)
     }
     document.getElementById("upd_link_txt").innerHTML = text;
 }
-
 </script>
+{tooltipster_js}
 {# end {templatelocation} #}

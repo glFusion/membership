@@ -1187,21 +1187,34 @@ function MEMBERSHIP_memberstatuses()
 *   @param  string  $path   Optional path if not "templates/"
 *   @return string      Full filename, e.g. "editor.uikit.thtml"
 */
-function MEMBERSHIP_getTemplate($name, $id, $path='')
+function MEMBERSHIP_getTemplate($name, $id='', $path='')
 {
     global $_CONF_MEMBERSHIP;
 
-    // May use "switch" later, for now there are only two options
-    $tpltype = $_CONF_MEMBERSHIP['_is_uikit'] ? '.uikit' : '';
-    $filename = "$name$tpltype.thtml";
+    // Put parameters into an array if not already.
+    if (!is_array($name) && !empty($id)) {
+        $templates = array($id => $name);
+    } elseif (is_array($name)) {
+        $templates = $name;
+    }
+
+    // Add additional path info if needed
+    if (!empty($path) && $path[0] == '/') $path = substr($path, 1);
     if (substr($path, 0, 9) != 'templates') {
         $path = 'templates/' . $path;
     }
-    if (!file_exists(MEMBERSHIP_PI_PATH . "/$path/$filename")) {
-        $filename = "$name.thtml";
+
+    // May use "switch" later, for now there are only two options
+    $tpltype = $_CONF_MEMBERSHIP['_is_uikit'] ? '.uikit' : '';
+    foreach ($templates as $t_id =>$t_name) {
+        if (file_exists(__DIR__ . "/$path/$t_name$tpltype.thtml")) {
+            $templates[$t_id] = "$t_name$tpltype.thtml";
+        } else {
+            $templates[$t_id] = "$t_name.thtml";
+        }
     }
-    $T = new Template(MEMBERSHIP_PI_PATH . '/' . $path);
-    $T->set_file($id, $filename);
+    $T = new Template(__DIR__ . '/' . $path);
+    $T->set_file($templates);
     return $T;
 }
 
