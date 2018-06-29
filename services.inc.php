@@ -29,15 +29,21 @@ if (!defined ('GVERSION')) {
 function service_productinfo_membership($A, &$output, &$svc_msg)
 {
     // $A param must be an array:
-    //  0 => 'membership'
-    //  1 => Plan ID, integer
-    //  2 => 'renewal', other/missing = "new"
-    if (!is_array($A)) return PLG_RET_ERROR;
-
+    //  'item_id' => array(
+    //      0 => Plan ID, integer
+    //      1 => 'renewal', other/missing = "new"
+    //  ),
+    //  'mods' => array(    // optional modifiers
+    //      'uid' => user ID
+    //  ),
+    //  );
+    if (!is_array($A) || !isset($A['item_id']) || !is_array($A['item_id'])) return PLG_RET_ERROR;
     unset($A['gl_svc']);    // not used
 
+    $plan_id = $A['item_id'][0];
+    $plan_mod = isset($A['item_id'][1]) ? $A['item_id'][1] : '';
     // Create a return array with values to be populated later
-    $output = array('product_id' => implode(':', $A),
+    $output = array('product_id' => 'membership:' . implode(':', $A['item_id']),
             'name' => 'Unknown',
             'short_description' => 'Unknown Membership Plan',
             'description'       => '',
@@ -45,19 +51,16 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     );
     $retval = PLG_RET_OK;       // assume response will be OK
 
-    if (isset($A[1]) && !empty($A[1])) {
-        $P = new Membership\Plan($A[1]);
-        if ($P->plan_id != '') {
-            $isnew = isset($A[2]) && $A[2] == 'renewal' ? false : true;
-            $output['short_description'] = $P->name;
-            $output['name'] = 'Membership, ' . $P->plan_id; 
-            $output['description'] = $P->description;
-            $output['price'] = $P->price($isnew);
-        } else {
-            $retval = PLG_RET_ERROR;
-        }
+    $P = new Membership\Plan($plan_id);
+    if ($P->plan_id != '') {
+        $isnew = $plan_mod == 'renewal' ? false : true;
+        $output['short_description'] = $P->name;
+        $output['name'] = 'Membership, ' . $P->plan_id; 
+        $output['description'] = $P->description;
+        $output['price'] = $P->price($isnew);
+    } else {
+        $retval = PLG_RET_ERROR;
     }
-
     return $retval;
 }
 
