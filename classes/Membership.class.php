@@ -32,7 +32,7 @@ class Membership
     *   @param  integer $uid    Optional user ID
     *   @param  string  $key    Optional key to retrieve
     */
-    function __construct($uid=0)
+    public function __construct($uid=0)
     {
         global $_USER, $_CONF_MEMBERSHIP;
 
@@ -61,7 +61,7 @@ class Membership
     *   @param  string  $name   Name of property to set
     *   @param  mixed   $value  Value to set
     */
-    function __set($key, $value)
+    public function __set($key, $value)
     {
         global $LANG_MEMBERSHIP;
 
@@ -98,7 +98,7 @@ class Membership
     *   @param  string  $name   Name of property to get
     *   @return mixed   Value of property identified as $name
     */
-    function __get($name)
+    public function __get($name)
     {
         if (isset($this->properties[$name])) {
             return $this->properties[$name];

@@ -3,9 +3,9 @@
 *   Class to handle membership application viewing and editing.
 *
 *   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2015 Lee Garner <lee@leegarner.com>
+*   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
 *   @package    membership
-*   @version    0.1.3
+*   @version    0.2.0
 *   @license    http://opensource.org/licenses/gpl-2.0.php 
 *               GNU Public License v2 or later
 *   @filesource
@@ -77,7 +77,7 @@ class App
             $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
             $T->set_file('app', 'application.thtml');
             $T->set_block('app', 'DataRow', 'row');
-            foreach ($output as $key=>$data) {
+            foreach ($output['fields'] as $key=>$data) {
                 $T->set_var(array(
                     'description'   => $data->prompt,
                     'value'         => $data->FormatValue(),
@@ -87,7 +87,7 @@ class App
             $M = self::getMember($uid);
             $rel_urls = '';
             if (!$M->isNew) {
-                $relatives = $M->getRelatives();
+                $relatives = Membership::getRelatives($M->uid);
                 foreach ($relatives as $key=>$name) {
                     $rel_urls .= '&nbsp;&nbsp;<a href="' . $_CONF['site_url'] .
                         "/users.php?mode=profile&amp;uid=$key\">$name</a>";
@@ -126,6 +126,7 @@ class App
     {
         global $LANG_MEMBERSHIP, $_CONF, $_CONF_MEMBERSHIP;
 
+        $retval = '';
         $prf_args = array(
             'uid'       => $uid,
             'form_id'   => 'membership_profile_form',
@@ -196,9 +197,9 @@ class App
                 $T->parse('row', 'TypeSelect', true);
             }
             $T->parse('output', 'app');
-            $content .= $T->finish($T->get_var('output'));
+            $retval .= $T->finish($T->get_var('output'));
         }
-        return $content;
+        return $retval;
     }
 
 
@@ -246,16 +247,16 @@ class App
     */
     public static function Save()
     {
-        global $_TABLES, $_CONF_MEMBERSHIP;
+        global $_TABLES, $_CONF_MEMBERSHIP, $_CONF;
 
         if (self::Validate($_POST) == 0) {
             $status = self::SaveProfile();
             if ($status == PLG_RET_OK) {
                 $uid = (int)$_POST['mem_uid'];
-                $dt = date('Y-m-d H:i:s');
-                $type = 'Terms Accepted';
-                $data = 'Initial by ' . DB_escapeString($_POST['terms_initial']);
-                if ($_CONF_MEMBERSHIP['terms_accept'] > 0) {
+                if (MEMB_getVar($_CONF_MEMBERSHIP, 'terms_accept', 'integer') > 0) {
+                    $dt = new \Date('now', $_CONF['timezone']);
+                    $type = 'Terms Accepted';
+                    $data = 'Initial by ' . DB_escapeString(MEMB_getVar($_POST, 'terms_initial'));
                     DB_query("INSERT INTO {$_TABLES['membership_log']} 
                             (uid, dt, type, data)
                         VALUES
