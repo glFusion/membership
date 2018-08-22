@@ -10,7 +10,7 @@
 *   @package    membership
 *   @version    0.1.1
 *   @since      0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
 */
@@ -70,13 +70,13 @@ case 'do_import':
         $content .= "Converting {$A['item_id']} for {$A['uid']} to {$plans[$A['item_id']]}<br />";
         // Cancel the subscription, which will remove the group membership.
         // It should be added back right away by the membership.
-        Subscription\Subscription::Cancel($A['id'], true);
-        $M = new Membership\Membership($A['uid']);
+        \Subscription\Subscription::Cancel($A['id'], true);
+        $M = new \Membership\Membership($A['uid']);
         $M->plan_id = $plans[$A['item_id']];
         $M->expires = $A['expiration'];
         if ($_CONF_MEMBERSHIP['use_mem_num'] == 2) {
             // Generate a membership number
-            $M->mem_number = Membership::createMemberNumber($uid);
+            $M->mem_number = \Membership\Membership::createMemberNumber($uid);
         }
         $M->Save();
     }

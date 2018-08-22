@@ -384,7 +384,7 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
     $retval = '';
 
     if (($panel == '' || $panel == 'useredit') && $fieldset == '') {
-        $M = new Membership\Membership($uid);
+        $M = new \Membership\Membership($uid);
         if (MEMBERSHIP_isManager()) {
             $retval .= $M->Editform();
         } else {
@@ -408,7 +408,7 @@ function plugin_user_changed_membership($uid=0)
     // Only managers can update membership data.
     if (!MEMBERSHIP_isManager()) return;
 
-    $M = new Membership\Membership($uid);
+    $M = new \Membership\Membership($uid);
     $op = '';
     $need_save = false; // assume nothing to do
     $joined = isset($_POST['mem_joined']) ? $_POST['mem_joined'] : '';
@@ -423,7 +423,7 @@ function plugin_user_changed_membership($uid=0)
         $op = 'renewed';
     } elseif (isset($_POST['mem_cancel'])) {
         // Cancel the membership
-        Membership\Membership::Cancel($uid);
+        \Membership\Membership::Cancel($uid);
     } else {
         // Maybe just updating options
         $vars = array('notified', 'expires', 'joined', 'position', 'plan_id',
@@ -440,7 +440,7 @@ function plugin_user_changed_membership($uid=0)
         // Check the linked accounts for changes. If changed, just call
         // the membership Save() function.
         if (!$need_save) {  // if we don't already need to save
-            $new_links = Membership\Membership::getRelatives($uid);
+            $new_links = \Membership\Membership::getRelatives($uid);
             $old_links = json_decode($_POST['mem_old_links'], true);
             if (is_array($old_links)) { // check for valid json
                 foreach ($new_links as $uid=>$name) {
@@ -520,7 +520,7 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
     if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager())
         return '';
 
-    $M = new Membership\Membership($uid);
+    $M = new \Membership\Membership($uid);
     $existingFields = $T->get_var('plugin_fields');
     $T->set_var('plugin_fields', $existingFields . $M->showInfo(false, $uid));
 }
@@ -723,7 +723,7 @@ function plugin_runScheduledTask_membership()
     $r = DB_query($sql, 1);
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
-            Membership\Membership::Expire($row['mem_uid'], true);
+            \Membership\Membership::Expire($row['mem_uid'], true);
             MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_expired'],
                 $row['mem_uid'], $row['fullname']), true);
         }
@@ -743,7 +743,7 @@ function plugin_runScheduledTask_membership()
     $r = DB_query($sql, 1);
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
-            Membership\Membership::Arrears($row['mem_uid'], true);
+            \Membership\Membership::Arrears($row['mem_uid'], true);
             MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_arrears'],
                 $row['mem_uid'], $row['fullname']), true);
         }
@@ -812,7 +812,7 @@ function MEMBERSHIP_notifyExpiration()
             // Create a notification email message.
             $username = COM_getDisplayName($row['mem_uid']);
             if (!isset($Plans[$row['plan_id']])) {
-                $Plans[$row['plan_id']] = new Membership\Plan($row['plan_id']);
+                $Plans[$row['plan_id']] = new \Membership\Plan($row['plan_id']);
             }
             $P = $Plans[$row['plan_id']];   // shortcut variable
 
@@ -933,54 +933,6 @@ function MEMBERSHIP_isAdmin()
 
 
 /**
-*   Log activity to a plugin-specific log file.
-*   Message includes the user who initiated the action, unless it's a
-*   system-generated event such as a scheduled task.
-*
-*   @param  string  $logentry   Text to log
-*   @param  boolean $system     True if this is a system-generated entry
-*/
-function MEMBERSHIP_auditLog($logentry = '', $system=false)
-{
-    global $_CONF, $_CONF_MEMBERSHIP, $_USER, $LANG01, $LANG_MEMBERSHIP;
-
-    if ($logentry == '')
-        return '';
-
-    // A little sanitizing
-    $logentry = str_replace(
-            array('<?', '?>'),
-            array('(@', '@)'),
-            $logentry);
-
-    $timestamp = strftime('%c');
-    $logfile = $_CONF['path_log'] . $_CONF_MEMBERSHIP['pi_name'] . '.log';
-
-    // Can't open the log file?  Return an error
-    if (!$file = fopen($logfile, 'a+')) {
-        return $LANG01[33] . $logfile . ' (' . $timestamp . ')<br />' . LB;
-    }
-
-    if ($system == false) {
-        // Get the user name if it's not anonymous
-        if (isset($_USER['uid'])) {
-            $byuser = $_USER['uid'] . '-'.
-                    COM_getDisplayName($_USER['uid'],
-                        $_USER['username'], $_USER['fullname']);
-        } else {
-            $byuser = 'anon';
-        }
-        $byuser .= '@' . $_SERVER['REMOTE_ADDR'];
-    } else {
-        $byuser = $LANG_MEMBERSHIP['system_task'];
-    }
-
-    // Write the log entry to the file
-    fputs($file, "$timestamp ($byuser) - $logentry\n");
-}
-
-
-/**
 *   Send debug info to the error log.
 *
 *   @param  string  $msg    Text message to display, may be blank.
@@ -1010,7 +962,7 @@ function plugin_user_create_membership($uid)
     if (empty($LANG_MEMBERSHIP['new_acct_msg']) || $uid < 3) return;
     LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['new_acct_msg'],
-            'uid' => $row['mem_uid'],
+            'uid' => $uid,
             'persist' => true,
             'use_sess_id' => false,
         ) );
@@ -1019,8 +971,7 @@ function plugin_user_create_membership($uid)
 
 /**
 *   Actions when a user account is deleted.
-*   Delete the membership completely, and delete from the newusers table in case
-*   they never logged in, just to keep it clean.
+*   Delete the membership completely.
 *
 *   @param  integer $uid    User ID being deleted
 */
@@ -1031,9 +982,7 @@ function plugin_user_delete_membership($uid)
     MEMBERSHIP_auditLog('Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.');
 
-    Membership\Membership::Delete($uid);
-    // In case the member never logged in
-    //DB_delete($_TABLES['membership_newusers'], 'uid', $uid);
+    \Membership\Membership::Delete($uid);
 }
 
 
@@ -1153,7 +1102,7 @@ function MEMBERSHIP_currentMembership()
     static $current = NULL;
 
     if ($current === NULL) {
-        $current = new Membership\Membership();
+        $current = new \Membership\Membership();
     }
     return $current;
 }
@@ -1330,6 +1279,54 @@ function MEMB_getVar($A, $varname, $type = 'string')
         return (string)$val;
         break;
     }
+}
+
+
+/**
+*   Log activity to a plugin-specific log file.
+*   Message includes the user who initiated the action, unless it's a
+*   system-generated event such as a scheduled task.
+*
+*   @param  string  $logentry   Text to log
+*   @param  boolean $system     True if this is a system-generated entry
+*/
+function MEMBERSHIP_auditLog($logentry = '', $system=false)
+{
+    global $_CONF, $_CONF_MEMBERSHIP, $_USER, $LANG01, $LANG_MEMBERSHIP;
+
+    if ($logentry == '')
+        return '';
+
+    // A little sanitizing
+    $logentry = str_replace(
+            array('<?', '?>'),
+            array('(@', '@)'),
+            $logentry);
+
+    $timestamp = strftime('%c');
+    $logfile = $_CONF['path_log'] . $_CONF_MEMBERSHIP['pi_name'] . '.log';
+
+    // Can't open the log file?  Return an error
+    if (!$file = fopen($logfile, 'a+')) {
+        return $LANG01[33] . $logfile . ' (' . $timestamp . ')<br />' . LB;
+    }
+
+    if ($system == false) {
+        // Get the user name if it's not anonymous
+        if (isset($_USER['uid'])) {
+            $byuser = $_USER['uid'] . '-'.
+                    COM_getDisplayName($_USER['uid'],
+                        $_USER['username'], $_USER['fullname']);
+        } else {
+            $byuser = 'anon';
+        }
+        $byuser .= '@' . $_SERVER['REMOTE_ADDR'];
+    } else {
+        $byuser = $LANG_MEMBERSHIP['system_task'];
+    }
+
+    // Write the log entry to the file
+    fputs($file, "$timestamp ($byuser) - $logentry\n");
 }
 
 ?>

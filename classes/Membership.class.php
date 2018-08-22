@@ -955,7 +955,7 @@ class Membership
         }
 
         // 2. Update the image quota in mediagallery.
-        // Mediagallery doesn't hava a service function, have to update the
+        // Mediagallery doesn't have a service function, have to update the
         // database directly. Don't update users with unlimited quotas.
         if ($_CONF_MEMBERSHIP['manage_mg_quota']  &&
                 in_array('mediagallery', $_PLUGINS)) {

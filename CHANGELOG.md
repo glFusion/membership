@@ -1,6 +1,7 @@
 # glFusion Membership Plugin - Change Log
 
 ## 0.2.2
+- Correct namespace usage
 - Make service functions compatible with Paypal 0.6.0
 - Use Uikit datepicker
 

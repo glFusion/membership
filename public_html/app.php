@@ -7,7 +7,7 @@
 *   @copyright  Copyright (c) 2012 Lee Garner
 *   @package    membership
 *   @version    0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
 */
@@ -67,7 +67,7 @@ case 'saveapp':
         ) );
         if ($_POST['mem_uid'] == $_USER['uid'] && !empty($_POST['purch_url'])) {
             // only redirect members to purchase, not admins.
-            $M = new Membership\Membership();
+            $M = new \Membership\Membership();
             if ($M->canPurchase()) {
                 echo COM_refresh($_POST['purch_url']);
                 exit;
@@ -79,7 +79,7 @@ case 'saveapp':
         $view = 'edit';
     }
     break;
-    
+
 default:
     $view = $action;
     break;
@@ -98,7 +98,7 @@ case 'view':
 default:
     // Display the application within the normal glFusion site.
     //$content .= displayApp($uid);
-    $content .= Membership\App::Display();
+    $content .= \Membership\App::Display();
     if (!empty($content)) {
         $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/app.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
@@ -133,7 +133,7 @@ function displayApp($uid = 0)
 {
     global $_USER;
 
-    $content = Membership\App::Display($uid);
+    $content = \Membership\App::Display($uid);
     if (empty($content)) COM_404();
     else return $content;
 }

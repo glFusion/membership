@@ -6,7 +6,7 @@
 *   @copyright  Copyright (c) 2012 Lee Garner
 *   @package    subscription
 *   @version    0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
 */
@@ -63,7 +63,7 @@ case 'cancelapp':
     COM_refresh($_CONF['site_url']);
     exit;
 case 'saveapp':
-    $status = Membership\App::Save();
+    $status = \Membership\App::Save();
     if ($status == PLG_RET_OK) {
         LGLIB_storeMessage(array(
                 'message' => $LANG_MEMBERSHIP['your_info_updated'],
@@ -75,7 +75,7 @@ case 'saveapp':
                 $url_extra = '';
             }
             // only redirect members to purchase, not admins.
-            $M = new Membership\Membership();
+            $M = new \Membership\Membership();
             if ($M->canPurchase() == MEMBERSHIP_CANPURCHASE) {
                 echo COM_refresh($_POST['purch_url'] . $url_extra);
                 exit;
@@ -103,31 +103,31 @@ default:
 switch ($view) {
 case 'detail':
     if (!empty($_GET['plan_id'])) {
-        $P = new Membership\Plan($_GET['plan_id']);
+        $P = new \Membership\Plan($_GET['plan_id']);
         if ($P->plan_id == '') {
             $content .= COM_showMessageText($LANG_MEMBERSHIP['err_plan_id']);
-            $content .= Membership\Plan::List();
+            $content .= \Membership\Plan::List();
         } elseif ($P->hasErrors()) {
             $content .= COM_showMessageText($P->PrintErrors(), '', true);
         } else {
             $content .= $P->Detail();
         }
     } else {
-        $content .= Membership\Plan::List();
+        $content .= \Membership\Plan::List();
     }
     break;
 
 case 'app':
 case 'view':
     // Display the application within the normal glFusion site.
-    $content .= Membership\App::Display($uid);
+    $content .= \Membership\App::Display($uid);
     if (!empty($content)) {
         $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/index.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'editapp':
     if (!COM_isAnonUser()) {
-        $content .= Membership\App::Edit($uid);
+        $content .= \Membership\App::Edit($uid);
     } else {
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['must_login'],
@@ -138,8 +138,8 @@ case 'editapp':
     break;
 
 case 'pmtform':
-    $M = new Membership\Membership();
-    $P = new Membership\Plan($_GET['plan_id']);
+    $M = new \Membership\Membership();
+    $P = new \Membership\Plan($_GET['plan_id']);
     if (!$P->isNew) {
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('pmt', 'pmt_form.thtml');
@@ -160,7 +160,7 @@ case 'pmtform':
             'price_actual'  => sprintf('%4.2f', $price_actual),
             'pmt_fee'       => $fee > 0 ? sprintf('%4.2f', $fee) : '',
             'currency'      => $P->getCurrency(),
-            'make_payable'  => sprintf($LANG_MEMBERSHIP['make_payable'], 
+            'make_payable'  => sprintf($LANG_MEMBERSHIP['make_payable'],
                     $_CONF_MEMBERSHIP['payable_to']),
             'remit_to'      => $_CONF_MEMBERSHIP['remit_to'],
             'site_name'     => $_CONF['site_name'],
@@ -181,7 +181,7 @@ case 'list1':
     $allow_purchase = true;
     $have_app = true;
     $show_plan = isset($_GET['plan_id']) ? $_GET['plan_id'] : '';
-    $content .= Membership\Plan::List($allow_purchase, $have_app, $show_plan);
+    $content .= \Membership\Plan::List($allow_purchase, $have_app, $show_plan);
     break;
 case 'list':
 default:
@@ -189,14 +189,14 @@ default:
     $allow_purchase = $_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED ? true : false;
     $have_app = false;
     $show_plan = '';
-    $content .= Membership\Plan::List($allow_purchase, $have_app, $show_plan);
+    $content .= \Membership\Plan::List($allow_purchase, $have_app, $show_plan);
     break;
 }
 
-$display = Membership\siteHeader($pageTitle);
+$display = \Membership\siteHeader($pageTitle);
 $display .= LGLIB_showAllMessages();
 $display .= $content;
-$display .= Membership\siteFooter();
+$display .= \Membership\siteFooter();
 echo $display;
 exit;
 

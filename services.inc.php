@@ -8,7 +8,7 @@
 *   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
 *   @package    membership
 *   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
+*   @license    http://opensource.org/licenses/gpl-2.0.php
 *               GNU Public License v2 or later
 *   @filesource
 */
@@ -51,11 +51,11 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     );
     $retval = PLG_RET_OK;       // assume response will be OK
 
-    $P = new Membership\Plan($plan_id);
+    $P = new \Membership\Plan($plan_id);
     if ($P->plan_id != '') {
         $isnew = $plan_mod == 'renewal' ? false : true;
         $output['short_description'] = $P->name;
-        $output['name'] = 'Membership, ' . $P->plan_id; 
+        $output['name'] = 'Membership, ' . $P->plan_id;
         $output['description'] = $P->description;
         $output['price'] = $P->price($isnew);
     } else {
@@ -99,16 +99,16 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     }
 
     // Retrieve or create a membership record.
-    $M = new Membership\Membership($uid);
+    $M = new \Membership\Membership($uid);
 
     if ($M->Plan === NULL && MEMB_getVar($_CONF_MEMBERSHIP, 'use_mem_number', 'integer') == 2) {
         // New member, apply membership number if configured
-        $M->mem_number = Membership\Membership::createMemberNumber($uid);
+        $M->mem_number = \Membership\Membership::createMemberNumber($uid);
     }
 
     if ($M->plan_id != $id[1]) {
         // Changed membership plans
-        $M->Plan = new Membership\Plan($id[1]);
+        $M->Plan = new \Membership\Plan($id[1]);
     }
 
     if (!SEC_inGroup($M->Plan->grp_access, $uid)) {
@@ -263,7 +263,6 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                 $exp_arr[] = "$members.mem_expires >= '" . MEMBERSHIP_today() . "'";
             }
             if ($incl_exp_stat & MEMBERSHIP_STATUS_ARREARS) {
-                
                 $exp_arr[] = "($members.mem_expires < '" . MEMBERSHIP_today() . "'
                     AND $members.mem_expires >= '" . MEMBERSHIP_dtEndGract() . "')";
             }
@@ -425,7 +424,7 @@ function service_membertypes_membership($args, &$output, &$svc_msg)
 
 /**
 *   Find out if a given user is a member, current or in arrears
-*   Sets $output to boolean true if the user is an active 
+*   Sets $output to boolean true if the user is an active
 *   member, false if expired, in arrears or non-member.
 *
 *   @see    service_ismember_membership()
@@ -502,7 +501,6 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
             $output = $statuses[$myout['status']];
         }
     }
-    
     return PLG_RET_OK;
 }
 
