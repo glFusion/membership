@@ -48,6 +48,7 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
             'short_description' => 'Unknown Membership Plan',
             'description'       => '',
             'price' => '0.00',
+            'fixed_q' => 1,
     );
     $retval = PLG_RET_OK;       // assume response will be OK
 
