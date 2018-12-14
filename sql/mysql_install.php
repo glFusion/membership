@@ -127,6 +127,7 @@ $_UPGRADE_SQL = array(
   "ALTER TABLE {$_TABLES['membership_members']}
     ADD mem_number varchar(40) DEFAULT '',
     ADD mem_istrial tinyint(1) unsigned default 0",
+    "UPDATE {$_TABLES['membership_plans']} SET access = 2 WHERE access = 1",
   ),
 '0.1.2' => array(
     "ALTER TABLE {$_TABLES['membership_plans']}
