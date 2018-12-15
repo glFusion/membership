@@ -1,17 +1,9 @@
 {# begin {templatelocation} #}
-{!if mootools}
-<script language="javascript" type="text/javascript">
-window.addEvent('load',
-  function() {
-    var myValidator = new fValidator("{form_id}");
-});
-</script>
-{!endif}
 <div class="story">
 <h1>{$LANG_MEMBERSHIP['hdr_app_form']}</h1>
 <p>{$LANG_MEMBERSHIP['instr_app_form']} {exp_msg}</p>
 <p><hr /><br /></p>
-<form id="{form_id}" action="{site_url}/membership/index.php" method="post">
+<form id="{form_id}" action="{site_url}/membership/index.php" method="post" class="uk-form uk-form-horizontal">
 <input type="hidden" name="mem_uid" value="{mem_uid}" />
 <input type="hidden" name="purch_url" value="{purch_url}" />
 {profile_fields}
@@ -40,9 +32,15 @@ id="terms_accept" type="checkbox" name="terms_accept" value="1" />
 </p>
 <p>&nbsp;</p>
 {!endif}
+{!if is_uikit}
+<button id="saveapp" class="uk-button uk-button-success" type="submit" name="saveapp">{$LANG_MEMBERSHIP['submit']}</button>
+<button type="reset" class="uk-button uk-button-primary" name="reset">{$LANG_MEMBERSHIP['reset']}</button>
+<button type="reset" class="uk-button" onclick="location.href='{site_url}/index.php';" name="cancelapp">{$LANG_MEMBERSHIP['cancel']}</button>
+{!else}
 <input id="saveapp" class="lgButton green" type="submit" name="saveapp" value="{$LANG_MEMBERSHIP['submit']}" />
 <input type="reset" class="lgButton blue" name="reset" value="{$LANG_MEMBERSHIP['reset']}" />
 <input type="reset" class="lgButton grey" onclick="location.href='{site_url}/index.php';" name="cancelapp" value="{$LANG_MEMBERSHIP['cancel']}" />
+{!endif}
 </form>
 </div>
 {# end {templatelocation} #}
