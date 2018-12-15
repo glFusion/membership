@@ -90,7 +90,7 @@ class App
             $M = self::getMember($uid);
             $rel_urls = '';
             if (!$M->isNew) {
-                $relatives = Membership::getRelatives($M->uid);
+                $relatives = Link::getRelatives($M->uid);
                 foreach ($relatives as $key=>$name) {
                     $rel_urls .= '&nbsp;&nbsp;<a href="' . $_CONF['site_url'] .
                         "/users.php?mode=profile&amp;uid=$key\">$name</a>";

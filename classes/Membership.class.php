@@ -1,37 +1,43 @@
 <?php
 /**
-*   Class to handle membership records.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.2.2
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Class to handle membership records.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.2.2
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 namespace Membership;
 
 /**
-*   Class for a membership record
-*   @package    membership
-*/
+ * Class for a membership record.
+ * @package membership
+ */
 class Membership
 {
-    /** Local properties
-    *   @var array */
+    /** Local properties accessed via `__set()` and `__get()`.
+     * @var array */
     var $properties = array();
+
+    /** Flag to indicate that this is a new record.
+     * @var boolean */
     var $isNew;
+
+    /** Membership plan related to this membership.
+     * @var object */
     var $Plan;
 
     /**
-    *   Constructor.  Create a members object for the specified user ID,
-    *   or the current user if none specified.  If a key is requested,
-    *   then just build the members for that key (requires a $uid).
-    *
-    *   @param  integer $uid    Optional user ID
-    *   @param  string  $key    Optional key to retrieve
-    */
+     * Constructor.
+     * Create a members object for the specified user ID,
+     * or the current user if none specified.  If a key is requested,
+     * then just build the members for that key (requires a $uid).
+     *
+     * @param   integer $uid    Optional user ID
+     */
     public function __construct($uid=0)
     {
         global $_USER, $_CONF_MEMBERSHIP;
@@ -56,11 +62,11 @@ class Membership
 
 
     /**
-    *   Set a local property
-    *
-    *   @param  string  $name   Name of property to set
-    *   @param  mixed   $value  Value to set
-    */
+     * Set a local property.
+     *
+     * @param   string  $key    Name of property to set
+     * @param   mixed   $value  Value to set
+     */
     public function __set($key, $value)
     {
         global $LANG_MEMBERSHIP;
@@ -93,11 +99,11 @@ class Membership
 
 
     /**
-    *   Return a property, if it exists.
-    *
-    *   @param  string  $name   Name of property to get
-    *   @return mixed   Value of property identified as $name
-    */
+     * Return a property's value, or NULL if not set.
+     *
+     * @param   string  $name   Name of property to get
+     * @return  mixed   Value of property identified as $name
+     */
     public function __get($name)
     {
         if (isset($this->properties[$name])) {
@@ -109,12 +115,12 @@ class Membership
 
 
     /**
-    *   Read all members variables into the $items array.
-    *   Set the $uid paramater to read another user's membership into
-    *   the current object instance.
-    *
-    *   @param  integer $uid    User ID
-    */
+     * Read all members variables into the $items array.
+     * Set the $uid paramater to read another user's membership into
+     * the current object instance.
+     *
+     * @param   integer $uid    User ID
+     */
     public function Read($uid = 0)
     {
         global $_TABLES;
@@ -139,10 +145,10 @@ class Membership
 
 
     /**
-    *   Set all the object variables from an array, either $_POST or DB record.
-    *
-    *   @param  array   $A      Array of values
-    */
+     * Set all the object variables from an array, either $_POST or DB record.
+     *
+     * @param   array   $A      Array of values
+     */
     public function SetVars($A)
     {
         if (!is_array($A))
@@ -164,11 +170,11 @@ class Membership
 
 
     /**
-    *   Retrieve a membership plan and associate it with this membership.
-    *
-    *   @param  string  $plan_id    ID of plan to associate
-    *   @return boolean     True if a plan was read, false if not (invalid plan)
-    */
+     * Retrieve a membership plan and associate it with this membership.
+     *
+     * @param   string  $plan_id    ID of plan to associate
+     * @return  boolean     True if a plan was read, false if not (invalid plan)
+     */
     public function SetPlan($plan_id)
     {
         $P = new Plan($plan_id);
@@ -183,12 +189,12 @@ class Membership
 
 
     /**
-    *   Create the edit member for all the members variables.
-    *   Checks the type of edit being done to select the right template.
-    *
-    *   @param  string  $action_url Form action url, empty if within profile editing
-    *   @return string          HTML for edit member
-    */
+     * Create the edit member for all the members variables.
+     * Checks the type of edit being done to select the right template.
+     *
+     * @param   string  $action_url Form action url, empty if within profile editing
+     * @return  string          HTML for edit member
+     */
     public function EditForm($action_url = '')
     {
         global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
@@ -250,7 +256,7 @@ class Membership
         $family_plans = empty($family_ids) ? '' : implode(',', $family_ids);
         $T->set_var('family_plans', $family_plans);
 
-        $relatives = self::getRelatives($this->uid);
+        $relatives = Link::getRelatives($this->uid);
 
         // Put the relatives into an array to track if any links change.
         // Since links are done via ajax we have to check the db against
@@ -294,12 +300,11 @@ class Membership
 
 
     /**
-    *   Save a membership, either an update or new online purchase
-    *
-    *   @param  array   $A      Optional array of values to set
-    *   @param  boolean $inc_relatives  True to update related accounts
-    *   @return boolean     Status, true for success, false for failure
-    */
+     * Save a membership, either an update or new online purchase.
+     *
+     * @param   array   $A      Optional array of values to set
+     * @return  boolean     Status, true for success, false for failure
+     */
     public function Save($A = '')
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
@@ -333,7 +338,7 @@ class Membership
 
         // If this plan updates linked accounts, get all the accounts.
         if ($this->Plan->upd_links) {
-            $accounts = self::getRelatives($this->uid);
+            $accounts = Link::getRelatives($this->uid);
             $accounts[$this->uid] = '';
         } else {
             $accounts = array($this->uid => '');
@@ -414,12 +419,13 @@ class Membership
 
 
     /**
-    *   Update a membership status.  Currently only cancels or deletes members.
-    *
-    *   @param  integer $uid            User ID of member being removed
-    *   @param  boolean $inc_relatives  True to include relatives
-    *   @param  integer $new_status     New status value to set
-    */
+     * Update a membership status. Currently only cancels or deletes members.
+     *
+     * @param   integer $uid            User ID of member being removed
+     * @param   boolean $inc_relatives  True to include relatives
+     * @param   integer $old_status     Original status being changed, for logging
+     * @param   integer $new_status     New status value to set
+     */
     private static function _UpdateStatus($uid, $inc_relatives, $old_status, $new_status)
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
@@ -452,7 +458,7 @@ class Membership
 
         // Now do the same thing for all the relatives.
         if ($inc_relatives) {
-            $relatives = self::getRelatives($uid);
+            $relatives = Link::getRelatives($uid);
             foreach ($relatives as $key => $name) {
                 foreach ($groups as $group) {
                     USER_delGroup($group, $key);
@@ -469,13 +475,13 @@ class Membership
 
 
     /**
-    *   Cancel a membership.
-    *   Called when the administrator removes a membership plan from a
-    *   member's profile.
-    *
-    *   @param  integer $uid    User ID to cancel
-    *   @param  boolean $cancel_relatives   True to cancel linked accounts
-    */
+     * Cancel a membership.
+     * Called when the administrator removes a membership plan from a
+     * member's profile.
+     *
+     * @param   integer $uid    User ID to cancel
+     * @param   boolean $cancel_relatives   True to cancel linked accounts
+     */
     public static function Cancel($uid=0, $cancel_relatives=true)
     {
         self::Expire($uid, $cancel_relatives);
@@ -483,13 +489,13 @@ class Membership
 
 
     /**
-    *   Expire a membership.
-    *   Called from plugin_runScheduledTask when the membership has expired.
-    *   Assume the current status is "Active" to force status-change operations.
-    *
-    *   @param  integer $uid    User ID to cancel
-    *   @param  boolean $cancel_relatives   True to cancel linked accounts
-    */
+     * Expire a membership.
+     * Called from plugin_runScheduledTask when the membership has expired.
+     * Assume the current status is "Active" to force status-change operations.
+     *
+     * @param   integer $uid    User ID to cancel
+     * @param   boolean $cancel_relatives   True to cancel linked accounts
+     */
     public static function Expire($uid=0, $cancel_relatives=true)
     {
         // Remove this member from any club positions held
@@ -509,13 +515,13 @@ class Membership
 
 
     /**
-    *   Set a member to "in arrears"
-    *   Called from plugin_runScheduledTask when the membership is overdue.
-    *   Assume the current status is "Active" to force status-change operations.
-    *
-    *   @param  integer $uid    User ID to cancel
-    *   @param  boolean $cancel_relatives   True to cancel linked accounts
-    */
+     * Set a member to "in arrears"
+     * Called from plugin_runScheduledTask when the membership is overdue.
+     * Assume the current status is "Active" to force status-change operations.
+     *
+     * @param   integer $uid    User ID to cancel
+     * @param   boolean $cancel_relatives   True to cancel linked accounts
+     */
     public static function Arrears($uid=0, $cancel_relatives=true)
     {
         self::_UpdateStatus($uid, $cancel_relatives,
@@ -524,15 +530,16 @@ class Membership
 
 
     /**
-    *   Add a new membership record, or extend an existing one.
-    *   Used by Paypal processing to automatically add or update a membership.
-    *
-    *   @uses   Membership::Save
-    *   @param  integer $uid        User ID
-    *   @param  string  $item_id    Product item ID
-    *   @param  integer $duration   Duration (# of duration_type's)
-    *   @param  integer $duration_type  Duration interval (week, month, etc.)
-    */
+     * Add a new membership record, or extend an existing one.
+     * Used by Paypal processing to automatically add or update a membership.
+     *
+     * @uses    self::Save()
+     * @param   integer $uid        User ID
+     * @param   string  $plan_id    Plan item ID
+     * @param   integer $exp        Expiration date
+     * @param   integer $joined     Date joined
+     * @return  mixed       Expiration date, or false in case of error
+     */
     public function Add($uid = '', $plan_id = '', $exp = '', $joined = '')
     {
         global $_CONF_MEMBERSHIP;
@@ -544,8 +551,9 @@ class Membership
             $this->plan_id = $plan_id;
             $this->Plan = new Plan($plan_id);
         }
-        if ($this->Plan->plan_id == '')
+        if ($this->Plan->plan_id == '') {
             return false;       // invalid plan requested
+        }
         $this->notified = 0;
         $this->status = MEMBERSHIP_STATUS_ACTIVE;
         $this->istrial = 0;
@@ -565,49 +573,11 @@ class Membership
 
 
     /**
-    *   Get all related accounts.
-    *
-    *   @param  mixed   $uid    User ID
-    *   @return array       Array of relatives (uid => username)
-    */
-    public static function getRelatives($uid)
-    {
-        global $_TABLES, $_USER;
-
-        // Static array to hold values, save DB lookups
-        static $relatives = array();
-
-        // If uid is empty, use the curent id
-        $uid = (int)$uid;
-        if ($uid < 1) return array();   // invalid user ID requested
-
-        // If this user ID hasn't already been looked up, do that now.
-        if (!isset($relatives[$uid])) {
-            $sql = "SELECT l.uid2, u.fullname, u.username
-                    FROM {$_TABLES['membership_links']} l
-                    LEFT JOIN {$_TABLES['users']} u
-                    ON l.uid2 = u.uid
-                    WHERE l.uid1 = $uid";
-            //echo $sql;die;
-            $res = DB_query($sql, 1);
-            while ($A = DB_fetchArray($res, false)) {
-                $relatives[$uid][$A['uid2']] = empty($A['fullname']) ?
-                    $A['username'] : $A['fullname'];
-            }
-
-            // If no values, return an array since that's what's expected
-            if (empty($relatives[$uid])) $relatives[$uid] = array();
-        }
-        return $relatives[$uid];
-    }
-
-
-    /**
-    *   Get the current membership price for this member, considering whether
-    *   it is a new or renewing membership.
-    *
-    *   @return float   Price to buy or renew membership
-    */
+     * Get the current membership price for this member.
+     * Considers whether it is a new or renewing membership.
+     *
+     * @return  float   Price to buy or renew membership
+     */
     public function Price()
     {
         return $this->Plan->Price($this->isNew());
@@ -615,17 +585,17 @@ class Membership
 
 
     /**
-    *   Create a read-only display of membership information for a member.
-    *   Used in the member profile, and on the membership editing tab for
-    *   regular members.  If "$panel" is set, then this is being displayed
-    *   in the tab and will include the javascript-controlled div tags.
-    *
-    *   @see    plugin_profileedit_membership()
-    *   @see    plugin_profilevariablesdisplay_membership()
-    *   @param  boolean $panel  True if showing in the panel, false if not.
-    *   @param  integer $uid    User ID being displayed, default = current user
-    *   @return string      HTML for membership data display
-    */
+     * Create a read-only display of membership information for a member.
+     * Used in the member profile, and on the membership editing tab for
+     * regular members.  If "$panel" is set, then this is being displayed
+     * in the tab and will include the javascript-controlled div tags.
+     *
+     * @see     plugin_profileedit_membership()
+     * @see     plugin_profilevariablesdisplay_membership()
+     * @param   boolean $panel  True if showing in the panel, false if not.
+     * @param   integer $uid    User ID being displayed, default = current user
+     * @return  string      HTML for membership data display
+     */
     public function showInfo($panel = false, $uid = 0)
     {
         global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_USER, $_TABLES, $_SYSTEM;
@@ -649,7 +619,7 @@ class Membership
             $plan_name = $this->Plan->name;
             $plan_dscp = $this->Plan->description;
             $plan_id = $this->Plan->plan_id;
-            $relatives = self::getRelatives($this->uid);
+            $relatives = Link::getRelatives($this->uid);
             $mem_number = $this->mem_number;
             $sql = "SELECT descr FROM {$_TABLES['membership_positions']}
                     WHERE uid = $uid";
@@ -701,13 +671,13 @@ class Membership
 
 
     /**
-    *   Transfer a membership from one plan to another.
-    *   This can be done on a per-member basis, or as part of a plan deletion.
-    *
-    *   @param  string  $old_plan   Original Plan ID
-    *   @param  string  $new_plan   New Plan ID
-    *   @return boolean     True on success, False on error or invalid new_plan
-    */
+     * Transfer a membership from one plan to another.
+     * This can be done on a per-member basis, or as part of a plan deletion.
+     *
+     * @param   string  $old_plan   Original Plan ID
+     * @param   string  $new_plan   New Plan ID
+     * @return  boolean     True on success, False on error or invalid new_plan
+     */
     public static function Transfer($old_plan, $new_plan)
     {
         global $_TABLES;
@@ -732,12 +702,12 @@ class Membership
 
 
     /**
-    *   Determine if an application exists in the forms plugin for
-    *   this member. If view_app is not allowed, returns false.
-    *
-    *   @param  integer $uid    User ID
-    *   @return boolean     True if an app is found, False if not
-    */
+     * Determine if an application exists in the forms plugin for this member.
+     * If view_app is not allowed, returns false.
+     *
+     * @param   integer $uid    User ID
+     * @return  boolean     True if an app is found, False if not
+     */
     public static function hasApp($uid)
     {
         global $_CONF_MEMBERSHIP;
@@ -758,13 +728,13 @@ class Membership
 
 
     /**
-    *   Get the number of days until this membership expires.
-    *   If the membership is already expired, return a negative number.
-    *
-    *   @uses   COM_dateDiff() but reverses the abs() used there
-    *   @param  string  $exp    Expiration date (YYYY-MM-DD)
-    *   @return integer     Days expired, negative if already expired.
-    */
+     * Get the number of days until this membership expires.
+     * If the membership is already expired, return a negative number.
+     *
+     * @uses    COM_dateDiff() but reverses the abs() used there
+     * @param   string  $exp    Expiration date (YYYY-MM-DD)
+     * @return  integer     Days expired, negative if already expired.
+     */
     public static function DaysToExpire($exp)
     {
         global $_CONF_MEMBERSHIP;
@@ -776,12 +746,12 @@ class Membership
 
 
     /**
-    *   Get the number of days that this membership has expired.
-    *   If the membership is not expired, return a negative number
-    *
-    *   @param  string  $exp    Expiration date (YYYY-MM-DD)
-    *   @return integer     Days expired, negative if not expired yet.
-    */
+     * Get the number of days that this membership has expired.
+     * If the membership is not expired, return a negative number
+     *
+     * @param   string  $exp    Expiration date (YYYY-MM-DD)
+     * @return  integer     Days expired, negative if not expired yet.
+     */
     public static function DaysExpired($exp)
     {
         global $_CONF_MEMBERSHIP;
@@ -794,11 +764,11 @@ class Membership
 
 
     /**
-    *   Determine if the current user can purchase a membership.
-    *   Checks if the user is anonymous, or if not within the early_renewal
-    *
-    *   @return boolean     True if purchase is OK, False if not.
-    */
+     * Determine if the current user can purchase a membership.
+     * Checks if the user is anonymous, or if not within the early_renewal
+     *
+     * @return  boolean     True if purchase is OK, False if not.
+     */
     public function CanPurchase()
     {
         global $_CONF_MEMBERSHIP;
@@ -817,21 +787,21 @@ class Membership
 
 
     /**
-    *   Renew a membership.
-    *   Calls the plan's CalcExpiration() function to get the correct
-    *   expiration date.
-    *
-    *   Argument array includes:
-    *       exp         => New expiration date, calculated if omitted
-    *       mem_pmttype => Payment type, no payment transaction if omitted
-    *       mem_pmtamt  => Payment amount
-    *       mem_pmtdate => Payment date
-    *       mem_pmtdesc => Paymetn description
-    *
-    *   @uses   Plan::calcExpiration()
-    *   @param  array   $args   Array of arguments
-    *   @return boolean     True on success, False on failure
-    */
+     * Renew a membership.
+     * Calls the plan's CalcExpiration() function to get the correct
+     * expiration date.
+     *
+     * Argument array includes:
+     * - exp         => New expiration date, calculated if omitted
+     * - mem_pmttype => Payment type, no payment transaction if omitted
+     * - mem_pmtamt  => Payment amount
+     * - mem_pmtdate => Payment date
+     * - mem_pmtdesc => Paymetn description
+     *
+     * @uses    Plan::calcExpiration()
+     * @param   array   $args   Array of arguments
+     * @return  boolean     True on success, False on failure
+     */
     public function Renew($args = array())
     {
         if (!$this->istrial && $this->Plan !== NULL && !$this->isNew) {
@@ -850,12 +820,12 @@ class Membership
 
 
     /**
-    *   Delete a membership record.
-    *   Only the specified user is deleted; linked accounts are not affected.
-    *   The specified user is also removed from the linked accounts.
-    *
-    *   @param  integer $uid    Member's user ID
-    */
+     * Delete a membership record.
+     * Only the specified user is deleted; linked accounts are not affected.
+     * The specified user is also removed from the linked accounts.
+     *
+     * @param   integer $uid    Member's user ID
+     */
     public static function Delete($uid)
     {
         global $_CONF_MEMBERSHIP, $_TABLES;
@@ -874,14 +844,14 @@ class Membership
 
 
     /**
-    *   Add a transaction record to the membership_trans table.
-    *
-    *   @param  string  $gateway    Gateway name or payment type
-    *   @param  float   $amt        Amount paid
-    *   @param  string  $txn_id     Optional transaction ID or comment
-    *   @param  integer $by         Optional user ID, -1 for system gateway
-    *   @param  string  $dt         Optional date, now() used if empty
-    */
+     * Add a transaction record to the membership_trans table.
+     *
+     * @param   string  $gateway    Gateway name or payment type
+     * @param   float   $amt        Amount paid
+     * @param   string  $txn_id     Optional transaction ID or comment
+     * @param   string  $dt         Optional date, now() used if empty
+     * @param   integer $by         Optional user ID, -1 for system gateway
+     */
     public function AddTrans($gateway, $amt, $txn_id='', $dt = '', $by = -1)
     {
         global $_TABLES, $_USER, $_CONF_MEMBERSHIP;
@@ -905,13 +875,13 @@ class Membership
 
 
     /**
-    *   Update other plugins based on a changed membership status
-    *
-    *   @param  integer $uid            User ID
-    *   @param  integer $old_status     Original member status
-    *   @param  integer $new_status     New member status
-    *   @return integer     Service status code (PLG_RET_OK, etc.);
-    */
+     * Update other plugins based on a changed membership status.
+     *
+     * @param   integer $uid            User ID
+     * @param   integer $old_status     Original member status
+     * @param   integer $new_status     New member status
+     * @return  integer     Service status code (PLG_RET_OK, etc.);
+     */
     public static function updatePlugins($uid, $old_status, $new_status)
     {
         global $_TABLES, $_CONF_MEMBERSHIP, $_PLUGINS;
@@ -996,13 +966,13 @@ class Membership
 
 
     /**
-    *   Create a membership number
-    *   Calls CUSTOM_createMemberNumber() if defined, otherwise
-    *   uses sprintf() and the member's uid to create the ID.
-    *
-    *   @param  integer $uid    User ID or other numeric key
-    *   @return string          Membership number
-    */
+     * Create a membership numbe.r
+     * Calls CUSTOM_createMemberNumber() if defined, otherwise
+     * uses sprintf() and the member's uid to create the ID.
+     *
+     * @param   integer $uid    User ID or other numeric key
+     * @return  string          Membership number
+     */
     public static function createMemberNumber($uid)
     {
         global $_CONF_MEMBERSHIP;
@@ -1021,10 +991,10 @@ class Membership
 
 
     /**
-    *   For pricing purposes trial memberships are considered "new".
-    *
-    *   @return string  String indicating 'new' or 'renewal' for pricing
-    */
+     * For pricing purposes trial memberships are considered "new".
+     *
+     * @return  string  String indicating 'new' or 'renewal' for pricing
+     */
     public function isNew()
     {
         if ($this->istrial || $this->isNew) {
@@ -1036,10 +1006,10 @@ class Membership
 
 
     /**
-    *   Get a short description for display in messages
-    *
-    *   @return string  Description
-    */
+     * Get a short description for display in messages.
+     *
+     * @return  string  Description
+     */
     public function planDescription()
     {
         global $LANG_MEMBERSHIP;
@@ -1053,10 +1023,10 @@ class Membership
 
 
     /**
-    *   Disable a specific user's site account.
-    *
-    *   @param  integer $uid    User ID to disable
-    */
+     * Disable a specific user's site account.
+     *
+     * @param   integer $uid    User ID to disable
+     */
     private static function _disableAccount($uid)
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
@@ -1071,10 +1041,10 @@ class Membership
 
 
     /**
-    *   Shortcut to get the current date object
-    *
-    *   @return object  Date object for current timestamp
-    */
+     * Shortcut to get the current date object.
+     *
+     * @return  object  Date object for current timestamp
+     */
     public static function Now()
     {
         global $_CONF;
@@ -1087,10 +1057,10 @@ class Membership
 
 
     /**
-    *   Shortcut function to get the SQL-formatted date
-    *
-    *   @return string  Today's date as "YYYY-MM-DD"
-    */
+     * Shortcut function to get the SQL-formatted date.
+     *
+     * @return  string  Today's date as "YYYY-MM-DD"
+     */
     public static function Today()
     {
         return self::Now()->format('Y-m-d', true);
@@ -1098,12 +1068,12 @@ class Membership
 
 
     /**
-    *   Get the latest expiration date that allows renewals.
-    *   This works with the early_renewal configuration to allow renewals
-    *   within X days of expiration.
-    *
-    *   @return object  Date object
-    */
+     * Get the latest expiration date that allows renewals.
+     * This works with the early_renewal configuration to allow renewals
+     * within X days of expiration.
+     *
+     * @return  object  Date object
+     */
     public static function dtBeginRenew()
     {
         global $_CONF_MEMBERSHIP;
@@ -1115,11 +1085,11 @@ class Membership
     }
 
     /**
-    *   Calculate and return the expiration date where the grace has ended.
-    *   This is the date after which memberships have truly expired.
-    *
-    *   @return Object      Expiration date where grace period has ended.
-    */
+     * Calculate and return the expiration date where the grace has ended.
+     * This is the date after which memberships have truly expired.
+     *
+     * @return  object      Expiration date where grace period has ended.
+     */
     public static function dtEndGrace()
     {
         global $_CONF_MEMBERSHIP;
@@ -1128,6 +1098,49 @@ class Membership
             $dt = self::Now()->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
         }
         return $dt;
+    }
+
+
+    /**
+     * Return membership information for the getItemInfo function in functions.inc.
+     *
+     * @param   string  $what   Array of field names, already exploded
+     * @param   integer $uid    User ID (not used)
+     * @param   array   $options    Additional options
+     * @return  array       Array of fieldname=>value
+     */
+    public function getItemInfo($what, $uid, $options = array())
+    {
+        $retval = array();
+        $U = User::getInstance($uid);
+        foreach ($what as $fld) {
+            switch ($fld) {
+            case 'id':
+                $retval[$fld] = $this->uid;
+                break;
+            case 'list_segment':
+                $retval[$fld] = MEMBERSHIP_memberstatuses()[$this->status];
+                break;
+            case 'uid':
+            case 'plan_id':
+            case 'joined':
+            case 'expires':
+            case 'status':
+            case 'mem_number':
+            case 'istrial':
+                // Membership fields
+                $retval[$fld] = $this->$fld;
+                break;
+            default:
+                // User fields
+                $retval[$fld] = $U->$fld;
+                if ($retval[$fld] === NULL) {
+                    $retval[$fld] = '';
+                }
+                break;
+            }
+        }
+        return $retval;
     }
 
 }
