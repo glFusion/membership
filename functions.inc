@@ -1,15 +1,15 @@
 <?php
 /**
-*   Public API functions for the Membership plugin for glFusion.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.2.2
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ *   Public API functions for the Membership plugin for glFusion.
+ *
+ *   @author     Lee Garner <lee@leegarner.com>
+ *   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ *   @package    membership
+ *   @version    0.2.2
+ *   @license    http://opensource.org/licenses/gpl-2.0.php
+ *               GNU Public License v2 or later
+ *   @filesource
+ */
 if (!defined ('GVERSION')) {
     die ('This file can not be used on its own.');
 }
@@ -117,7 +117,7 @@ spl_autoload_register(function ($class)
     }
 });
 
-// Import plugin-specific functions
+/** Import plugin-specific functions */
 function USES_membership_functions()
 {   require_once MEMBERSHIP_PI_PATH . '/membership_functions.inc.php'; }
 
@@ -130,12 +130,12 @@ if (!isset($_PLUGINS) || !is_array($_PLUGINS) || !in_array('paypal', $_PLUGINS))
 require_once MEMBERSHIP_PI_PATH . '/services.inc.php';
 
 /**
-*   Called by the plugin Editor to display the current plugin code version.
-*   This may be different than the version installed and registered currently.
-*   If newer then you may want to run the update.
-*
-*   @return   string  version number
-*/
+ * Called by the plugin Editor to display the current plugin code version.
+ * This may be different than the version installed and registered currently.
+ * If newer then you may want to run the update.
+ *
+ * @return  string  version number
+ */
 function plugin_chkVersion_membership()
 {
     global $_CONF_MEMBERSHIP;
@@ -144,10 +144,10 @@ function plugin_chkVersion_membership()
 
 
 /**
-*   Returns the items for this plugin that should appear on the main menu.
-*
-*   @return    array   Associative array of menu items to be added to menu
-*/
+ * Returns the items for this plugin that should appear on the main menu.
+ *
+ * @return  array   Associative array of menu items to be added to menu
+ */
 function plugin_getmenuitems_membership()
 {
     global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
@@ -161,11 +161,10 @@ function plugin_getmenuitems_membership()
 
 
 /**
-*   This will put an option for membership administration in the command
-*   and control area
-*
-*   @return   mixed   array(title, url, icon), or false when not allowed
-*/
+ * This will put an option for membership administration in the command and control area.
+ *
+ * @return  mixed   array(title, url, icon), or false when not allowed
+ */
 function plugin_cclabel_membership()
 {
     global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
@@ -181,9 +180,10 @@ function plugin_cclabel_membership()
 
 
 /**
-*   Put an option for membership management on the admin-only menu.
-*   @return   mixed   array(title, url, num. banner), or void when not allowed
-*/
+ * Put an option for membership management on the admin-only menu.
+ *
+ * @return  mixed   array(title, url, num. banner), or void when not allowed
+ */
 function plugin_getadminoption_membership()
 {
     global $_CONF, $LANG_MEMBERSHIP;
@@ -199,10 +199,10 @@ function plugin_getadminoption_membership()
 
 
 /**
-*   Get the user menu option for this plugin.
-*
-*   @return array   Array of menu items.
-*/
+ * Get the user menu option for this plugin.
+ *
+ * @return  array   Array of menu items.
+ */
 function plugin_getuseroption_membership()
 {
     return '';
@@ -210,11 +210,11 @@ function plugin_getuseroption_membership()
 
 
 /**
-*   Get additional CSS into the site header.
-*   Checks first for a layout-specific version, then loads the default.
-*
-*   @return array   List of paths to Javascript files
-*/
+ * Get additional CSS into the site header.
+ * Checks first for a layout-specific version, then loads the default.
+ *
+ * @return  array   List of paths to Javascript files
+ */
 function plugin_getheadercss_membership()
 {
     global $_CONF;
@@ -238,10 +238,10 @@ function plugin_getheadercss_membership()
 
 
 /**
-*   Disable this plugin's blocks when the plugin is disabled.
-*
-*   @param  boolean $enabled    Plugin's "enabled" state
-*/
+ * Disable this plugin's blocks when the plugin is disabled.
+ *
+ * @param   boolean $enabled    Plugin's "enabled" state
+ */
 function plugin_enablestatechange_membership($enabled)
 {
     global $_TABLES, $_PLUGINS;
@@ -261,11 +261,11 @@ function plugin_enablestatechange_membership($enabled)
 
 
 /**
-*   Receives notification of anothe plugin's deletion
-*
-*   @param  mixed   $id     Item ID
-*   @param  string  $type   Plugin Name
-*/
+ * Receives notification of anothe plugin's item deletion.
+ *
+ * @param   mixed   $id     Item ID
+ * @param   string  $type   Plugin Name
+ */
 function plugin_itemdeleted_membership($id, $type)
 {
     global $_TABLES;
@@ -279,20 +279,22 @@ function plugin_itemdeleted_membership($id, $type)
 
 
 /**
-*   Update the Membership plugin
-*   @return integer Number of message to display (true = generic success msg)
-*/
+ * Update the Membership plugin.
+ *
+ * @return  boolean     True on success, False on failure
+ */
 function plugin_upgrade_membership()
 {
-    require_once MEMBERSHIP_PI_PATH . '/upgrade.inc.php';
+    require_once __DIR__ . '/upgrade.inc.php';
     return MEMBERSHIP_do_upgrade();
 }
 
 
 /**
-*   Returns the URL of the plugin's icon
-*   @return   string      URL of the icon
-*/
+ * Returns the URL of the plugin's icon.
+ *
+ * @return  string      URL of the icon
+ */
 function plugin_geticon_membership ()
 {
     global $_CONF;
@@ -301,16 +303,16 @@ function plugin_geticon_membership ()
 
 
 /**
-*   Automatic uninstall function for plugins
-*
-*   This code is automatically uninstalling the plugin.
-*   It passes an array to the core code function that removes
-*   tables, groups, features and php blocks from the tables.
-*   Additionally, this code can perform special actions that cannot be
-*   foreseen by the core code (interactions with other plugins for example)
-*
-*   @return   array     Elements to be removed
-*/
+ * Automatic uninstall function for plugins.
+ *
+ * This code is automatically uninstalling the plugin.
+ * It passes an array to the core code function that removes
+ * tables, groups, features and php blocks from the tables.
+ * Additionally, this code can perform special actions that cannot be
+ * foreseen by the core code (interactions with other plugins for example)
+ *
+ * @return  array     Elements to be removed
+ */
 function plugin_autouninstall_membership ()
 {
     global $_CONF_MEMBERSHIP;
@@ -346,10 +348,10 @@ function plugin_autouninstall_membership ()
 
 
 /**
-*   Create the membership info block.
-*
-*   @return string      HTML for the block
-*/
+ * Create the membership info block.
+ *
+ * @return  string      HTML for the block
+ */
 function phpblock_membership_memberinfo()
 {
     global $_GROUPS, $_CONF_MEMBERSHIP;
@@ -368,15 +370,15 @@ function phpblock_membership_memberinfo()
 
 
 /**
-*   Edit membership information in the user's profile.
-*   This feature is only open to membership managers.  Users can't edit
-*   their own.
-*
-*   @param  integer $uid        User ID being edited
-*   @param  string  $panel
-*   @param  string  $fieldset
-*   @return string      HTML for edit form
-*/
+ * Edit membership information in the user's profile.
+ * This feature is only open to membership managers.  Users can't edit
+ * their own.
+ *
+ * @param   integer $uid        User ID being edited
+ * @param   string  $panel
+ * @param   string  $fieldset
+ * @return  string      HTML for edit form
+ */
 function plugin_profileedit_membership($uid, $panel, $fieldset)
 {
     global $_CONF, $_USER;
@@ -396,13 +398,13 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
 
 
 /**
-*   Save the membership information when edited via Account Settings.
-*   Users can't edit their own membership info, only admins.
-*   This function is used instead of plugin_profilesave_membership so admin
-*   can update their own membership.
-*
-*   @param  integer $uid    User ID being saved
-*/
+ * Save the membership information when edited via Account Settings.
+ * Users can't edit their own membership info, only admins.
+ * This function is used instead of plugin_profilesave_membership so admin
+ * can update their own membership.
+ *
+ * @param   integer $uid    User ID being saved
+ */
 function plugin_user_changed_membership($uid=0)
 {
     // Only managers can update membership data.
@@ -440,7 +442,7 @@ function plugin_user_changed_membership($uid=0)
         // Check the linked accounts for changes. If changed, just call
         // the membership Save() function.
         if (!$need_save) {  // if we don't already need to save
-            $new_links = \Membership\Membership::getRelatives($uid);
+            $new_links = \Membership\Link::getRelatives($uid);
             $old_links = json_decode($_POST['mem_old_links'], true);
             if (is_array($old_links)) { // check for valid json
                 foreach ($new_links as $uid=>$name) {
@@ -486,14 +488,14 @@ function plugin_user_changed_membership($uid=0)
 
 
 /**
-*   Check that the required information has been entered when saving a user.
-*   If the quickrenew checkbox is checked, a plan must also be checked or there
-*   will be an error calculating the expiration.
-*
-*   @param  string  $mode   Type of save. Only 'useredit' is checked.
-*   @param  string  $username   User login name. Not used.
-*   @return mixed       Empty value on success, numeric message ID on failure
-*/
+ * Check that the required information has been entered when saving a user.
+ * If the quickrenew checkbox is checked, a plan must also be checked or there
+ * will be an error calculating the expiration.
+ *
+ * @param   string  $mode   Type of save. Only 'useredit' is checked.
+ * @param   string  $username   User login name. Not used.
+ * @return  mixed       Empty value on success, numeric message ID on failure
+ */
 function plugin_itemPreSave_membership($mode, $username)
 {
     if ($mode == 'useredit' &&
@@ -506,12 +508,12 @@ function plugin_itemPreSave_membership($mode, $username)
 
 
 /**
-*   Displays membership info in the user's profile.
-*
-*   @param integer  $uid    User ID whose profile is being displayed
-*   @param object   &$T     Pointer to template object
-*   @return string          HTML to include in profile page
-*/
+ * Displays membership info in the user's profile.
+ *
+ * @param   integer  $uid   User ID whose profile is being displayed
+ * @param   object   $T     Pointer to template object
+ * @return  string          HTML to include in profile page
+ */
 function plugin_profilevariablesdisplay_membership($uid, &$T)
 {
     global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
@@ -527,10 +529,12 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
 
 
 /**
-*   Get the URL to the localized configuration help file.
-*
-*   @return array   Array of (url, window_type)
-*/
+ * Get the URL to the localized configuration help file.
+ *
+ * @param   string  $option     Help option to display
+ * @param   string  $doclang    Desired language
+ * @return  array       Array of (url, window_type)
+ */
 function plugin_getconfigelementhelp_membership($option, $doclang='english')
 {
     $doc_url = MEMBERSHIP_getDocURL('config.html', $doclang);
@@ -545,10 +549,10 @@ function plugin_getconfigelementhelp_membership($option, $doclang='english')
 
 
 /**
-*   Get additional Javascript into the site header.
-*
-*   @return array   List of paths to Javascript files
-*/
+ * Get additional Javascript into the site header.
+ *
+ * @return  array   List of paths to Javascript files
+ */
 function plugin_getheaderjs_membership()
 {
     $pi_dir = MEMBERSHIP_PI_PATH . '/js/';
@@ -560,14 +564,14 @@ function plugin_getheaderjs_membership()
 
 
 /**
-*   Get the link to a documentation file.
-*   Returns the URL to the file, or to the directory if no file requested.
-*
-*   @see    plugin_getconfigelementhelp_membership()
-*   @param  string  $file       HTML file
-*   @param  string  $doclang    Documentation language
-*   @return string              URL to document directory or file
-*/
+ * Get the link to a documentation file.
+ * Returns the URL to the file, or to the directory if no file requested.
+ *
+ * @see     plugin_getconfigelementhelp_membership()
+ * @param   string  $file       HTML file
+ * @param   string  $doclang    Documentation language
+ * @return  string              URL to document directory or file
+ */
 function MEMBERSHIP_getDocURL($file, $doclang='')
 {
     global $_CONF, $_CONF_MEMBERSHIP;
@@ -594,15 +598,15 @@ function MEMBERSHIP_getDocURL($file, $doclang='')
 
 
 /**
-*   Display a formatted error message.
-*   This returns the provided message formatted using glFusion's
-*   typography options.
-*
-*   @param  string $msg     Error message to display
-*   @param  string $type    Type of message, used for style and header
-*   @param  string $header  Optional header text.
-*   @return string          HTML for formatted error message
-*/
+ * Display a formatted error message.
+ * This returns the provided message formatted using glFusion's
+ * typography options.
+ *
+ * @param   string  $msg    Error message to display
+ * @param   string  $type   Type of message, used for style and header
+ * @param   string  $header Optional header text.
+ * @return  string          HTML for formatted error message
+ */
 function MEMBERSHIP_errorMessage($msg, $type = '', $header = '')
 {
     global $LANG_MEMBERSHIP;
@@ -637,10 +641,10 @@ function MEMBERSHIP_errorMessage($msg, $type = '', $header = '')
 
 
 /**
-*   Configuration helper. Select form to use for membership application.
-*
-*   @return array Array of form name & id
-*/
+ * Configuration helper. Select form to use for membership application.
+ *
+ * @return  array   Array of form name & id
+ */
 function plugin_configmanager_select_app_form_membership()
 {
     global $_TABLES, $LANG_MEMBERSHIP;
@@ -658,10 +662,11 @@ function plugin_configmanager_select_app_form_membership()
 
 
 /**
-*   Configuration helper. Select group to which members are added.
-*
-*   @return array Array of groups
-*/
+ * Configuration helper. Select group to which members are added.
+ *
+ * @uses    MEMBERSHIP_groupSelection()
+ * @return  array   Array of groups
+ */
 function plugin_configmanager_select_member_group_membership()
 {
     return MEMBERSHIP_groupSelection();
@@ -669,10 +674,11 @@ function plugin_configmanager_select_member_group_membership()
 
 
 /**
-*   Configuration helper. Select group to which members are added.
-*
-*   @return array Array of groups
-*/
+ * Configuration helper. Select group to which members are added.
+ *
+ * @uses    MEMBERSHIP_groupSelection()
+ * @return  array   Array of groups
+ */
 function plugin_configmanager_select_member_all_group_membership()
 {
     return MEMBERSHIP_groupSelection();
@@ -680,10 +686,12 @@ function plugin_configmanager_select_member_all_group_membership()
 
 
 /**
-*   Get a selection of groups for current and arrears members
-*
-*   @return array   Array of groups
-*/
+ * Get a selection of groups for current and arrears members.
+ *
+ * @see     plugin_configmanager_select_member_all_group_membership()
+ * @see     plugin_configmanager_select_member_group_membership()
+ * @return  array   Array of groups
+ */
 function MEMBERSHIP_groupSelection()
 {
     global $_TABLES;
@@ -700,11 +708,11 @@ function MEMBERSHIP_groupSelection()
 
 
 /**
-*   Perform scheduled functions, such as notifications and cancellations.
-*
-*   @uses   Membership::Arrears()
-*   @uses   Membership::Expire()
-*/
+ * Perform scheduled functions, such as notifications and cancellations.
+ *
+ * @uses    Membership::Arrears()
+ * @uses    Membership::Expire()
+ */
 function plugin_runScheduledTask_membership()
 {
     global $_TABLES, $_CONF_MEMBERSHIP, $_CONF, $LANG_MEMBERSHIP;
@@ -768,9 +776,50 @@ function plugin_runScheduledTask_membership()
 
 
 /**
-*   Notify users that have memberships soon to expire.
-*   This is in functions.inc so it can be called from runscheduledTask.
-*/
+ * Provides the getItemInfo function for memberships.
+ * The $id parameter may indicate a plan ID or a specific member ID,
+ * depending on the fields in $options.
+ *
+ * @param   string  $id         Membership or Plan ID
+ * @param   string  $what       Comma-separated list of fields to return
+ * @param   integer $uid        User ID
+ * @param   array   $options    Options include type of item being requested.
+ * @return  array           Array of product information
+ */
+function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
+{
+    global $_TABLES, $_BD_CONF, $LANG_BD00, $_CONF;
+
+    $subtype = isset($options['subtype']) ? $options['subtype'] : 'plan';
+    $properties = explode(',', $what);
+    $retval = array();
+    if ($id == '*') return $retval; // getAll not supported
+
+    switch ($subtype) {
+    case 'plan':
+        break;
+    case 'membership':
+        $M = new \Membership\Membership($id);
+        $retval = $M->getItemInfo($properties, $id, $options);
+        break;
+    }
+
+    if (($id != '*') && (count($retval) == 1)) {
+        $tRet = array_values($retval);
+        $retval = $tRet[0];
+    }
+    if ($retval === '' || (is_array($retval) && count($retval) == 0)) {
+        return NULL;
+    } else {
+        return $retval;
+    }
+}
+
+
+/**
+ * Notify users that have memberships soon to expire.
+ * This is in functions.inc so it can be called from runscheduledTask.
+ */
 function MEMBERSHIP_notifyExpiration()
 {
     global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
@@ -890,10 +939,10 @@ function MEMBERSHIP_notifyExpiration()
 
 
 /**
-*   Check if the current user is allowed to manage memberships
-*
-*   @return boolean     True is user is a manager, False if not
-*/
+ * Check if the current user is allowed to manage memberships.
+ *
+ * @return  boolean     True is user is a manager, False if not
+ */
 function MEMBERSHIP_isManager()
 {
     global $_CONF_MEMBERSHIP;
@@ -912,10 +961,10 @@ function MEMBERSHIP_isManager()
 
 
 /**
-*   Check if the current user is allowed to administer the plugin
-*
-*   @return boolean     True is user is an admin, False if not
-*/
+ * Check if the current user is allowed to administer the plugin.
+ *
+ * @return  boolean     True is user is an admin, False if not
+ */
 function MEMBERSHIP_isAdmin()
 {
     global $_CONF_MEMBERSHIP;
@@ -933,10 +982,10 @@ function MEMBERSHIP_isAdmin()
 
 
 /**
-*   Send debug info to the error log.
-*
-*   @param  string  $msg    Text message to display, may be blank.
-*/
+ * Send debug info to the error log.
+ *
+ * @param   string  $msg    Text message to display, may be blank.
+ */
 function MEMBERSHIP_debug($msg)
 {
     global $_CONF_MEMBERSHIP;
@@ -947,13 +996,13 @@ function MEMBERSHIP_debug($msg)
 
 
 /**
-*   Actions to perform when a user account is created.
-*   Sets a message to be displayed at first login encouraging a new user
-*   to join the organization.
-*   To disable, make $LANG_MEMBERSHIP['new_acct_msg'] empty.
-*
-*   @param  integer $uid    ID of new user
-*/
+ * Actions to perform when a user account is created.
+ * Sets a message to be displayed at first login encouraging a new user
+ * to join the organization.
+ * To disable, make $LANG_MEMBERSHIP['new_acct_msg'] empty.
+ *
+ * @param   integer $uid    ID of new user
+ */
 function plugin_user_create_membership($uid)
 {
     global $LANG_MEMBERSHIP;
@@ -970,11 +1019,11 @@ function plugin_user_create_membership($uid)
 
 
 /**
-*   Actions when a user account is deleted.
-*   Delete the membership completely.
-*
-*   @param  integer $uid    User ID being deleted
-*/
+ * Actions when a user account is deleted.
+ * - Delete the membership completely.
+ *
+ * @param  integer $uid    User ID being deleted
+ */
 function plugin_user_delete_membership($uid)
 {
     global $_TABLES;
@@ -987,11 +1036,11 @@ function plugin_user_delete_membership($uid)
 
 
 /**
-*   Support merging local accounts into remote accounts
-*
-*   @param  integer $origUID    Original (remote) user ID
-*   @param  integer $destUID    Merged (local) user ID
-*/
+ * Support merging local accounts into remote accounts.
+ *
+ * @param  integer $origUID    Original (remote) user ID
+ * @param  integer $destUID    Merged (local) user ID
+ */
 function plugin_user_move_membership($origUID, $destUID)
 {
     global $_TABLES;
@@ -1005,13 +1054,13 @@ function plugin_user_move_membership($origUID, $destUID)
 
 
 /**
-*   Implements the [membership:] autotag.
-*
-*   @param  string  $op         Name of operation
-*   @param  string  $content    Content of the autotag
-*   @param  string  $autotag    Complete autotag
-*   @return string              HTML replacement
-*/
+ * Implements the [membership:] autotag.
+ *
+ * @param   string  $op         Name of operation
+ * @param   string  $content    Content of the autotag
+ * @param   string  $autotag    Complete autotag
+ * @return  string              HTML replacement
+ */
 function plugin_autotags_membership($op, $content = '', $autotag = '')
 {
     global $_TABLES, $LANG_MEMBERSHIP;
@@ -1092,11 +1141,11 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 
 
 /**
-*   Get the current membership info.
-*   Uses a static variable for efficiency
-*
-*   @return object  Membership object
-*/
+ * Get the current membership info.
+ * Uses a static variable for efficiency
+ *
+ * @return  object  Membership object
+ */
 function MEMBERSHIP_currentMembership()
 {
     static $current = NULL;
@@ -1109,12 +1158,12 @@ function MEMBERSHIP_currentMembership()
 
 
 /**
-*   Get the description for different member types.
-*   Used with Mailchimp integration to set the group (segment) in the list.
-*   The strings must match segments (groups) set up in Mailchimp.
-*
-*   @return array   array(int=>string) of membership statuses
-*/
+ * Get the description for different member types.
+ * Used with Mailchimp integration to set the group (segment) in the list.
+ * The strings must match segments (groups) set up in Mailchimp.
+ *
+ * @return  array   array(int=>string) of membership statuses
+ */
 function MEMBERSHIP_memberstatuses()
 {
     global $_CONF_MEMBERSHIP;
@@ -1129,13 +1178,13 @@ function MEMBERSHIP_memberstatuses()
 
 
 /**
-*   Helper function to get a template object.
-*
-*   @param  string  $name   Base name of template, e.g. "editor"
-*   @param  string  $id     ID of template, e.g. "editform"
-*   @param  string  $path   Optional path if not "templates/"
-*   @return string      Full filename, e.g. "editor.uikit.thtml"
-*/
+ * Helper function to get a template object.
+ *
+ * @param   string  $name   Base name of template, e.g. "editor"
+ * @param   string  $id     ID of template, e.g. "editform"
+ * @param   string  $path   Optional path if not "templates/"
+ * @return  string      Full filename, e.g. "editor.uikit.thtml"
+ */
 function MEMBERSHIP_getTemplate($name, $id='', $path='')
 {
     global $_CONF_MEMBERSHIP;
@@ -1169,12 +1218,12 @@ function MEMBERSHIP_getTemplate($name, $id='', $path='')
 
 
 /**
-*   Get an icon from the CSS icon set, either UIkit or FontAwesome
-*
-*   @param  string  $name   Base name of icon, e.g. "edit" for "uk-icon-edit"
-*   @param  string  $style  Style name from local CSS
-*   @return string      Class names for icon
-*/
+ * Get an icon from the CSS icon set, either UIkit or FontAwesome
+ *
+ * @param   string  $name   Base name of icon, e.g. "edit" for "uk-icon-edit"
+ * @param   string  $style  Style name from local CSS
+ * @return  string      Class names for icon
+ */
 function MEM_getIcon($name, $style='info')
 {
     global $_CONF_MEMBERSHIP;
@@ -1184,6 +1233,12 @@ function MEM_getIcon($name, $style='info')
     return $_CONF_MEMBERSHIP['_iconset'] . '-' . $name . $style;
 }
 
+
+/**
+ * Get the prefix for CSS icons depending on whether UIkit is being used.
+ *
+ * @return  string      Icon prefix.
+ */
 function MEMBERSHIP_iconPrefix()
 {
     global $_CONF_MEMBERSHIP;
@@ -1192,10 +1247,10 @@ function MEMBERSHIP_iconPrefix()
 
 
 /**
-*   Shortcut to get the current date object
-*
-*   @return object  Date object for current timestamp
-*/
+ * Shortcut to get the current date object.
+ *
+ * @return  object  Date object for current timestamp
+ */
 function MEMBERSHIP_now()
 {
     global $_CONF;
@@ -1208,10 +1263,10 @@ function MEMBERSHIP_now()
 
 
 /**
-*   Shortcut function to get the SQL-formatted date
-*
-*   @return string  Today's date as "YYYY-MM-DD"
-*/
+ * Shortcut function to get the SQL-formatted date for today.
+ *
+ * @return  string  Today's date as "YYYY-MM-DD"
+ */
 function MEMBERSHIP_today()
 {
     return MEMBERSHIP_now()->format('Y-m-d', true);
@@ -1219,12 +1274,12 @@ function MEMBERSHIP_today()
 
 
 /**
-*   Get the latest expiration date that allows renewals.
-*   This works with the early_renewal configuration to allow renewals
-*   within X days of expiration.
-*
-*   @return object  Date object
-*/
+ * Get the latest expiration date that allows renewals.
+ * This works with the early_renewal configuration to allow renewals
+ * within X days of expiration.
+ *
+ * @return  object  Date object
+ */
 function MEMBERSHIP_dtBeginRenew()
 {
     global $_CONF_MEMBERSHIP;
@@ -1237,11 +1292,11 @@ function MEMBERSHIP_dtBeginRenew()
 
 
 /**
-*   Calculate and return the expiration date where the grace has ended.
-*   This is the date after which memberships have truly expired.
-*
-*   @return Object      Expiration date where grace period has ended.
-*/
+ * Calculate and return the expiration date where the grace has ended.
+ * This is the date after which memberships have truly expired.
+ *
+ * @return  object      Expiration date where grace period has ended.
+ */
 function MEMBERSHIP_dtEndGrace()
 {
     global $_CONF_MEMBERSHIP;
@@ -1254,13 +1309,13 @@ function MEMBERSHIP_dtEndGrace()
 
 
 /**
-*   Get an array variable, first checking whether it's set
-*
-*   @param  array   $A          Array where var should be
-*   @param  string  $varname    Name of array element
-*   @param  string  $type       Type of return value
-*   @return     Array element or NULL, cast to $type
-*/
+ * Get an array variable, first checking whether it's set.
+ *
+ * @param   array   $A          Array where var should be
+ * @param   string  $varname    Name of array element
+ * @param   string  $type       Type of return value
+ * @return      Array element or NULL, cast to $type
+ */
 function MEMB_getVar($A, $varname, $type = 'string')
 {
     $val = isset($A[$varname]) ? $A[$varname] : NULL;
@@ -1283,13 +1338,13 @@ function MEMB_getVar($A, $varname, $type = 'string')
 
 
 /**
-*   Log activity to a plugin-specific log file.
-*   Message includes the user who initiated the action, unless it's a
-*   system-generated event such as a scheduled task.
-*
-*   @param  string  $logentry   Text to log
-*   @param  boolean $system     True if this is a system-generated entry
-*/
+ * Log activity to a plugin-specific log file.
+ * Message includes the user who initiated the action, unless it's a
+ * system-generated event such as a scheduled task.
+ *
+ * @param   string  $logentry   Text to log
+ * @param   boolean $system     True if this is a system-generated entry
+ */
 function MEMBERSHIP_auditLog($logentry = '', $system=false)
 {
     global $_CONF, $_CONF_MEMBERSHIP, $_USER, $LANG01, $LANG_MEMBERSHIP;
