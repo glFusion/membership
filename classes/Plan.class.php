@@ -1,45 +1,47 @@
 <?php
 /**
-*   Class to manage membership plans
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2011-2015 Lee Garner
-*   @package    membership
-*   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Class to manage membership plans.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2011-2015 Lee Garner
+ * @package     membership
+ * @version     0.1.1
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 namespace Membership;
 
 /**
-*   Class for membership plan
-*   @package membership
-*/
+ * Class for membership plans
+ * @package membership
+ */
 class Plan
 {
-    /** Property fields.  Accessed via __set() and __get()
-    *   @var array */
+    /** Property fields.  Accessed via `__set()` and `__get()`.
+     * @var array */
     var $properties = array();
 
+    /** Flag to indicate that this is a new record.
+     * @var boolean */
     var $isNew;
 
-    /** Array of error messages
-    *   @var array */
+    /** Array of error messages.
+     * @var array */
     var $Errors = array();
 
-    /*  Array of new and renewal fees
-    *   @var array */
+    /** Array of new and renewal fees.
+     * @var array */
     var $fees = array();
 
 
     /**
-    *   Constructor.
-    *   Reads in the specified class, if $id is set.  If $id is zero,
-    *   then a new entry is being created.
-    *
-    *   @param integer $id  Optional plan ID
-    */
+     * Constructor.
+     * Reads in the specified class, if $id is set.  If $id is zero,
+     * then a new entry is being created.
+     *
+     * @param   integer $id  Optional plan ID
+     */
     function __construct($id = '')
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
@@ -63,11 +65,11 @@ class Plan
 
 
     /**
-    *   Set a property's value.
-    *
-    *   @param  string  $var    Name of property to set.
-    *   @param  mixed   $value  New value for property.
-    */
+     * Set a property's value.
+     *
+     * @param   string  $var    Name of property to set.
+     * @param   mixed   $value  New value for property.
+     */
     function __set($var, $value='')
     {
         switch ($var) {
@@ -106,11 +108,11 @@ class Plan
 
 
     /**
-    *   Get the value of a property.
-    *
-    *   @param  string  $var    Name of property to retrieve.
-    *   @return mixed           Value of property, NULL if undefined.
-    */
+     * Get the value of a property.
+     *
+     * @param   string  $var    Name of property to retrieve.
+     * @return  mixed           Value of property, NULL if undefined.
+     */
     function __get($var)
     {
         if (isset($this->properties[$var])) {
@@ -122,11 +124,11 @@ class Plan
 
 
     /**
-    *   Sets all variables to the matching values from $rows.
-    *
-    *   @param  array   $row        Array of values, from DB or $_POST
-    *   @param  boolean $fromDB     True if read from DB, false if from $_POST
-    */
+     * Sets all variables to the matching values from $rows.
+     *
+     * @param   array   $row        Array of values, from DB or $_POST
+     * @param   boolean $fromDB     True if read from DB, false if from $_POST
+     */
     public function SetVars($row, $fromDB=false)
     {
         global $_CONF_MEMBERSHIP;
@@ -159,10 +161,10 @@ class Plan
 
 
     /**
-     *  Read a specific record and populate the local values.
+     * Read a specific record and populate the local values.
      *
-     *  @param  integer $id Optional ID.  Current ID is used if zero.
-     *  @return boolean     True if a record was read, False on failure
+     * @param  integer $id Optional ID.  Current ID is used if zero.
+     * @return boolean     True if a record was read, False on failure
      */
     public function Read($id = '')
     {
@@ -175,28 +177,33 @@ class Plan
             return false;
         }
 
-        $sql = "SELECT *
+        $cache_key = 'plan_' . $id;
+        $row = Cache::get($cache_key);
+        if ($row === NULL) {
+            $sql = "SELECT *
                FROM {$_TABLES['membership_plans']}
                WHERE plan_id='$id' ";
-        $result = DB_query($sql, 1);
-        if (!$result || DB_numRows($result) != 1) {
-            return false;
-        } else {
-            $row = DB_fetchArray($result, false);
-            $this->SetVars($row, true);
-            $this->isNew = false;
-            return true;
+            $result = DB_query($sql, 1);
+            if (!$result || DB_numRows($result) != 1) {
+                return false;
+            } else {
+                $row = DB_fetchArray($result, false);
+                Cache::set($cache_key, $row, 'plans');
+            }
         }
+        $this->SetVars($row, true);
+        $this->isNew = false;
+        return true;
     }
 
 
     /**
-    *   Save the current values to the database.
-    *   Appends error messages to the $Errors property.
-    *
-    *   @param  array   $A      Optional array of values from $_POST
-    *   @return boolean         True if no errors, False otherwise
-    */
+     * Save the current values to the database.
+     * Appends error messages to the $Errors property.
+     *
+     * @param   array   $A      Optional array of values from $_POST
+     * @return  boolean         True if no errors, False otherwise
+     */
     public function Save($A = '')
     {
         global $_TABLES, $LANG_MEMBERSHIP;
@@ -263,6 +270,7 @@ class Plan
         if (!$this->hasErrors()) {
             $retval = true;
             $msg .= $LANG_MEMBERSHIP['succeeded'];
+            Cache::clear('plans');
         } else {
             $retval = false;
             $msg .= $LANG_MEMBERSHIP['failed'];
@@ -275,11 +283,12 @@ class Plan
 
 
     /**
-    *   Delete a plan record from the database
-    *
-    *   @param  string  $id     Optional plan ID, current object if empty
-    *   @return boolean         True on success, False on failure
-    */
+     * Delete a plan record from the database.
+     *
+     * @param   string  $id     Optional plan ID, current object if empty
+     * @param   string  $xfer_plan  Plan to transfer members to, if any
+     * @return  boolean         True on success, False on failure
+     */
     public function Delete($id = '', $xfer_plan='')
     {
         global $_TABLES, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
@@ -311,6 +320,7 @@ class Plan
             }
         }
         DB_delete($_TABLES['membership_plans'], 'plan_id', $id);
+        Cache::clear('plans');
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['msg_plan_deleted'],
         ) );
@@ -319,9 +329,9 @@ class Plan
 
 
     /**
-     *  Determines if the current record is valid.
+     * Determines if the current record is valid.
      *
-     *  @return boolean     True if ok, False when first test fails.
+     * @return  boolean     True if ok, False when first test fails.
      */
     function isValidRecord()
     {
@@ -343,10 +353,10 @@ class Plan
 
 
     /**
-     *  Creates the edit form.
+     * Creates the edit form.
      *
-     *  @param  integer $id     Optional ID, current record used if zero.
-     *  @return string          HTML for edit form
+     * @param   integer $id     Optional ID, current record used if zero.
+     * @return  string          HTML for edit form
      */
     function Edit($id = '')
     {
@@ -472,12 +482,13 @@ class Plan
 
 
     /**
-    *   Set a boolean field to the specified value.
-    *
-    *   @param  integer $id ID number of element to modify
-    *   @param  integer $value New value to set
-    *   @return         New value, or old value upon failure
-    */
+     * Set a boolean field to the specified value.
+     *
+     * @param   integer $oldvalue   Original value to change
+     * @param   string  $varname    Field name to be changed
+     * @param   integer $id         ID number of element to modify
+     * @return         New value, or old value upon failure
+     */
     private static function _toggle($oldvalue, $varname, $id)
     {
         global $_TABLES;
@@ -494,16 +505,16 @@ class Plan
                 WHERE plan_id='$id'";
         //echo $sql;die;
         DB_query($sql);
-
+        Cache::clear('plans');
         return $newvalue;
     }
 
 
     /**
-    *   Display the product detail page.
-    *
-    *   @return string      HTML for product detail
-    */
+     * Display the product detail page.
+     *
+     * @return  string      HTML for product detail
+     */
     public function Detail()
     {
         global $_TABLES, $_CONF, $_USER, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
@@ -552,12 +563,12 @@ class Plan
 
 
     /**
-    *   Sets the "enabled" field to the specified value.
-    *
-    *   @param  integer $id ID number of element to modify
-    *   @param  integer $value New value to set
-    *   @return         New value, or old value upon failure
-    */
+     * Sets the "enabled" field to the specified value.
+     *
+     * @param   integer $oldvalue   Original value to change
+     * @param   integer $id         ID number of element to modify
+     * @return         New value, or old value upon failure
+     */
     public static function toggleEnabled($oldvalue, $id)
     {
         $id = COM_sanitizeID($id);
@@ -566,12 +577,13 @@ class Plan
 
 
     /**
-    *   Determine if this product is mentioned in any purchase records.
-    *   Typically used to prevent deletion of product records that have
-    *   dependencies.
-    *
-    *   @return boolean True if used, False if not
-    */
+     * Determine if this product is mentioned in any purchase records.
+     * Typically used to prevent deletion of product records that have
+     * dependencies.
+     *
+     * @param   string  $id     Plan ID to check
+     * @return  boolean True if used, False if not
+     */
     public static function hasMembers($id)
     {
         global $_TABLES;
@@ -585,10 +597,11 @@ class Plan
 
 
     /**
-    *   Create a formatted display-ready version of the error messages.
-    *
-    *   @return string      Formatted error messages.
-    */
+     * Create a formatted display-ready version of the error messages.
+     *
+     * @param   string  $text   Text to display
+     * @return  string      Formatted error messages.
+     */
     function PrintErrors($text = '')
     {
         $retval = '<span class="alert">';
@@ -604,10 +617,10 @@ class Plan
 
 
     /**
-    *   Check if this item has any error messages
-    *
-    *   @return boolean     True if Errors[] is not empty, false if it is.
-    */
+     * Check if this item has any error messages.
+     *
+     * @return  boolean     True if Errors[] is not empty, false if it is.
+     */
     function hasErrors()
     {
         return (!empty($this->Errors));
@@ -615,14 +628,14 @@ class Plan
 
 
     /**
-    *   Create a purchase-now button.
-    *   This plugin only uses one type of button, so that's all that we return.
-    *
-    *   @param  float   $price  Price for membership
-    *   @param  boolean $isnew  True for new membership, false for renewal
-    *   @param  string  $return Optional return URL after purchase
-    *   @return string      Button code
-    */
+     * Create a purchase-now button.
+     * This plugin only uses one type of button, so that's all that we return.
+     *
+     * @param   float   $price  Price for membership
+     * @param   boolean $isnew  True for new membership, false for renewal
+     * @param   string  $return Optional return URL after purchase
+     * @return  string      Button code
+     */
     public function MakeButton($price, $isnew = false, $return='')
     {
         global $_CONF_MEMBERSHIP;
@@ -666,13 +679,12 @@ class Plan
 
 
     /**
-    *   Get the membership price for new or renewing members effective this
-    *   month.
-    *
-    *   @param  boolean $isNew  Indicate whether new or renewing. Default true.
-    *   @param  string  $ptype  Price type. "total", "actual", or "fee".
-    *   @return float       Current price
-    */
+     * Get the membership price for new or renewing members effective this month.
+     *
+     * @param   boolean $isNew  Indicate whether new or renewing. Default true.
+     * @param   string  $ptype  Price type. "total", "actual", or "fee".
+     * @return  float       Current price
+     */
     public function Price($isNew = true, $ptype = 'total')
     {
         if ($ptype == 'fee') {      // Get the processing fee only
@@ -688,12 +700,11 @@ class Plan
 
 
     /**
-    *   Get the payment processing fee for this plan.
-    *   Allows for the separation of dues and processing fee for manual
-    *   payments.
-    *
-    *   @return float   Processing fee
-    */
+     * Get the payment processing fee for this plan.
+     * Allows for the separation of dues and processing fee for manual payments.
+     *
+     * @return  float   Processing fee
+     */
     public function Fee()
     {
         return (float)$this->fees['fixed'];
@@ -701,15 +712,15 @@ class Plan
 
 
     /**
-    *   Get the next expiration date.
-    *   If memberships are rolling and can be started in any month,
-    *   then just add a year to today.
-    *   If memberships are for a fixed period, like July - June, then
-    *   get the month & day from this year or next
-    *
-    *   @param  string  $today  Date to use as base (YYYY-MM-DD)
-    *   @return string      Expiration date (YYYY-MM-DD)
-    */
+     * Get the next expiration date.
+     * If memberships are rolling and can be started in any month,
+     * then just add a year to today.
+     * If memberships are for a fixed period, like July - June, then
+     * get the month & day from this year or next
+     *
+     * @param   string  $exp    Current expiration date, default = today
+     * @return  string      New Expiration date (YYYY-MM-DD)
+     */
     public static function calcExpiration($exp = '')
     {
         global $_CONF_MEMBERSHIP;
@@ -752,10 +763,10 @@ class Plan
 
 
     /**
-    *   Wrapper function for the Paypal plugin's getCurrency() function.
-    *
-    *   @return string  Currency type, "USD" by default.
-    */
+     * Wrapper function for the Paypal plugin's getCurrency() function.
+     *
+     * @return  string  Currency type, "USD" by default.
+     */
     public static function getCurrency()
     {
         static $currency = NULL;
@@ -773,11 +784,11 @@ class Plan
 
 
     /**
-    *   Get all the plans that can be purchased by the current user.
-    *
-    *   @param  string  $plan_id    Optional specific plan to get
-    *   @return array       Array of plan objects
-    */
+     * Get all the plans that can be purchased by the current user.
+     *
+     * @param   string  $plan_id    Optional specific plan to get
+     * @return  array       Array of plan objects
+     */
     public static function getPlans($plan_id='')
     {
         global $_TABLES;
@@ -789,24 +800,29 @@ class Plan
         if (!empty($plan_id)) {
             $sql .= " AND plan_id = '" . DB_escapeString($show_plan) . "'";
         }
-        $result = DB_query($sql);
-        while ($A = DB_fetchArray($result, false)) {
-            $plans[$A['plan_id']] = new self($A['plan_id']);
+        $cache_key = md5($sql);
+        $plans = Cache::get($cache_key);
+        if ($plans === NULL) {
+            $result = DB_query($sql);
+            while ($A = DB_fetchArray($result, false)) {
+                $plans[$A['plan_id']] = new self($A['plan_id']);
+            }
+            Cache::set($cache_key, $plans, 'plans');
         }
         return $plans;
     }
 
 
     /**
-    *   Display the membership plans available.
-    *   Supports autotags in the plan_list.thtml template.
-    *
-    *   @param  boolean $allow_purchase True to display payment buttons
-    *   @param  boolean $have_app       True if the app has just been updated
-    *   @param  string  $show_plan      A single plan_id to show (selected on app)
-    *   @return string      HTML for product catalog.
-    */
-    public static function List($allow_purchase = true, $have_app = false, $show_plan = '')
+     * Display the membership plans available.
+     * Supports autotags in the plan_list.thtml template.
+     *
+     * @param   boolean $allow_purchase True to display payment buttons
+     * @param   boolean $have_app       True if the app has just been updated
+     * @param   string  $show_plan      A single plan_id to show (selected on app)
+     * @return  string      HTML for product catalog.
+     */
+    public static function listPlans($allow_purchase = true, $have_app = false, $show_plan = '')
     {
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
                 $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
