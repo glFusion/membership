@@ -1,33 +1,34 @@
 <?php
 /**
-*   Class to handle membership application viewing and editing.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.2.0
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Class to handle membership application viewing and editing.
+ *
+ * @author     Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @package    membership
+ * @version    0.2.0
+ * @license    http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 namespace Membership;
 
 /**
-*   Class for a membership application
-*   @package    membership
-*/
+ * Class for a membership application.
+ * @package membership
+ */
 class App
 {
 
     /**
-    *   Display an application within glFusion.
-    *   Calls DisplayProfile or DisplayForms depending on which plugin
-    *   is providing the application form function.
-    *
-    *   @uses   self::DisplayForms()
-    *   @uses   self::DisplayProfile()
-    *   @return string      HTML to display application
-    */
+     * Display an application within glFusion.
+     * Calls DisplayProfile or DisplayForms depending on which plugin
+     * is providing the application form function.
+     *
+     * @uses    self::DisplayForms()
+     * @uses    self::DisplayProfile()
+     * @param   integer $uid    User ID to display
+     * @return  string      HTML to display application
+     */
     public static function Display($uid=0)
     {
         return self::DisplayProfile($uid);
@@ -35,10 +36,11 @@ class App
 
 
     /**
-    *   Display an application saved by the Forms plugin
-    *
-    *   @return string      HTML to display application
-    */
+     * Display an application saved by the Forms plugin.
+     *
+     * @param   integer $uid    User ID to display
+     * @return  string      HTML to display application
+     */
     public static function DisplayForms($uid)
     {
         global $_USER;
@@ -61,10 +63,11 @@ class App
 
 
     /**
-    *   Display an application saved by the Forms plugin
-    *
-    *   @return string      HTML to display application
-    */
+     * Display an application saved by the Custom Profile plugin.
+     *
+     * @param   integer $uid    User ID to display
+     * @return  string      HTML to display application
+     */
     private static function DisplayProfile($uid)
     {
         global $_USER, $_CONF;
@@ -105,10 +108,11 @@ class App
 
 
     /**
-    *   Allow a user to edit their application data
-    *
-    *   @return string      HTML for application form
-    */
+     * Allow a user to edit their application data.
+     *
+     * @param   integer $uid    User ID to display, 0 for current user
+     * @return  string      HTML for application form
+     */
     public static function Edit($uid = 0)
     {
         global $_USER;
@@ -116,12 +120,13 @@ class App
         return self::EditProfile($uid);
     }
 
-    
+
     /**
-    *   Allow a user to edit their application data
-    *
-    *   @return string      HTML for application form
-    */
+     * Allow a user to edit their application data.
+     *
+     * @param   integer $uid    User ID to edit
+     * @return  string      HTML for application form
+     */
     private static function EditProfile($uid)
     {
         global $LANG_MEMBERSHIP, $_CONF, $_CONF_MEMBERSHIP;
@@ -153,6 +158,7 @@ class App
                 'profile_fields' => $output,
                 'exp_msg'       => $M->isNew ? '' :
                     sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires),
+                'is_uikit'      => $_CONF_MEMBERSHIP['_is_uikit'],
             ) );
             if ($_CONF_MEMBERSHIP['update_maillist']) {
                 $status = LGLIB_invokeService('mailchimp', 'issubscribed',
@@ -204,18 +210,18 @@ class App
 
 
     /**
-    *   Create radio buttons to select the membership type on the application
-    *
-    *   @param  string  $sel        Selected value. Optional
-    *   @return string          HTML for radio button selections
-    */
+     * Create radio buttons to select the membership type on the application.
+     *
+     * @param   string  $sel        Selected value. Optional
+     * @return  string          HTML for radio button selections
+     */
     public static function TypeSelect($sel='')
     {
         global $_TABLES;
 
         $sql = "SELECT * FROM {$_TABLES['membership_plans']}";
         if (!MEMBERSHIP_isManager()) {
-            $sql .= ' WHERE access = 1';
+            $sql .= ' WHERE grp_access = 2';
         }
         $res = DB_query($sql);
         $P = new Plan();
@@ -238,13 +244,13 @@ class App
 
 
     /**
-    *   Save the application.
-    *   This is a wrapper around other functions; at the moment only
-    *   saving the user profile is supported.
-    *
-    *   @uses   App::SaveProfile()
-    *   @return integer     Status from LGLIB_invokeService()
-    */
+     * Save the application.
+     * This is a wrapper around other functions; at the moment only
+     * saving the user profile is supported.
+     *
+     * @uses    self::SaveProfile()
+     * @return  integer     Status from LGLIB_invokeService()
+     */
     public static function Save()
     {
         global $_TABLES, $_CONF_MEMBERSHIP, $_CONF;
@@ -257,7 +263,7 @@ class App
                     $dt = new \Date('now', $_CONF['timezone']);
                     $type = 'Terms Accepted';
                     $data = 'Initial by ' . DB_escapeString(MEMB_getVar($_POST, 'terms_initial'));
-                    DB_query("INSERT INTO {$_TABLES['membership_log']} 
+                    DB_query("INSERT INTO {$_TABLES['membership_log']}
                             (uid, dt, type, data)
                         VALUES
                             ($uid, '$dt', '$type', '$data')");
@@ -278,10 +284,10 @@ class App
 
 
     /**
-    *   Save the member application via the Profile plugin
-    *
-    *   @return integer     Status from LGLIB_invokeService()
-    */
+     * Save the member application via the Profile plugin.
+     *
+     * @return  integer     Status from LGLIB_invokeService()
+     */
     private static function SaveProfile()
     {
         global $_USER;
@@ -299,11 +305,11 @@ class App
 
 
     /**
-    *   Get a membership object for the specified use ID
-    *
-    *   @param  integer $uid    User ID
-    *   @return object          Membership object
-    */
+     * Get a membership object for the specified use ID.
+     *
+     * @param   integer $uid    User ID
+     * @return  object          Membership object
+     */
     private static function getMember($uid)
     {
         static $members = array();
@@ -316,11 +322,11 @@ class App
 
 
     /**
-    *   Validate the application entry in case other validation was bypassed.
-    *
-    *   @param  array   $A      $_POST, typically
-    *   @return integer         Number of errors found
-    */
+     * Validate the application entry in case other validation was bypassed.
+     *
+     * @param   array   $A      $_POST, typically
+     * @return  integer         Number of errors found
+     */
     private static function Validate($A)
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;

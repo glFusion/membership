@@ -1,26 +1,26 @@
 <?php
 /**
-*   Plugin-specific functions for the Membership plugin
-*   Load by calling USES_membership_functions()
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Plugin-specific functions for the Membership plugin.
+ * Load by calling USES_membership_functions().
+ *
+ * @author     Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
+ * @package    membership
+ * @version    0.0.1
+ * @license    http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 namespace Membership;
 
 /**
-*   Show the site header, with or without left blocks according to config.
-*
-*   @see    COM_siteHeader()
-*   @param  string  $subject    Text for page title (ad title, etc)
-*   @param  string  $meta       Other meta info
-*   @return string              HTML for site header
-*/
+ * Show the site header, with or without left blocks according to config.
+ *
+ * @see     COM_siteHeader()
+ * @param   string  $subject    Text for page title (ad title, etc)
+ * @param   string  $meta       Other meta info
+ * @return  string              HTML for site header
+ */
 function siteHeader($subject='', $meta='')
 {
     global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
@@ -43,18 +43,16 @@ function siteHeader($subject='', $meta='')
         $retval .= COM_siteHeader('menu', $title, $meta);
         break;
     }
-
     return $retval;
-
 }
 
 
 /**
-*   Show the site footer, with or without right blocks according to config.
-*
-*   @see    COM_siteFooter()
-*   @return string              HTML for site footer
-*/
+ * Show the site footer, with or without right blocks according to config.
+ *
+ * @see     COM_siteFooter()
+ * @return  string              HTML for site footer
+ */
 function siteFooter()
 {
     global $_CONF_MEMBERSHIP;
@@ -73,9 +71,7 @@ function siteFooter()
         $retval .= COM_siteFooter();
         break;
     }
-
     return $retval;
-
 }
 
 ?>

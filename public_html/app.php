@@ -1,16 +1,16 @@
 <?php
 /**
-*   Membership Application.
-*   Calls on the Forms plugin to provide a membership application
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012 Lee Garner
-*   @package    membership
-*   @version    0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ *   Membership Application.
+ *   Calls on the Forms plugin to provide a membership application
+ *
+ *   @author     Lee Garner <lee@leegarner.com>
+ *   @copyright  Copyright (c) 2012 Lee Garner
+ *   @package    membership
+ *   @version    0.0.1
+ *   @license    http://opensource.org/licenses/gpl-2.0.php
+ *               GNU Public License v2 or later
+ *   @filesource
+ */
 
 /** Import core glFusion libraries */
 require_once '../lib-common.php';
@@ -129,13 +129,22 @@ $display .= MEMBERSHIP_siteFooter();
 echo $display;
 
 
+/**
+ * Display the app form.
+ *
+ * @param   integer $uid    User ID being displayed.
+ * @return  string      Content to display
+ */
 function displayApp($uid = 0)
 {
     global $_USER;
 
     $content = \Membership\App::Display($uid);
-    if (empty($content)) COM_404();
-    else return $content;
+    if (empty($content)) {
+        COM_404();
+    } else {
+        return $content;
+    }
 }
 
 ?>

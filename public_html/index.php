@@ -1,15 +1,15 @@
 <?php
 /**
-*   Public entry point for the Membership plugin.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012 Lee Garner
-*   @package    subscription
-*   @version    0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Public entry point for the Membership plugin.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012 Lee Garner
+ * @package     subscription
+ * @version     v0.0.1
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 
 /** Import core glFusion libraries */
 require_once '../lib-common.php';
@@ -106,14 +106,14 @@ case 'detail':
         $P = new \Membership\Plan($_GET['plan_id']);
         if ($P->plan_id == '') {
             $content .= COM_showMessageText($LANG_MEMBERSHIP['err_plan_id']);
-            $content .= \Membership\Plan::List();
+            $content .= \Membership\Plan::listPlans();
         } elseif ($P->hasErrors()) {
             $content .= COM_showMessageText($P->PrintErrors(), '', true);
         } else {
             $content .= $P->Detail();
         }
     } else {
-        $content .= \Membership\Plan::List();
+        $content .= \Membership\Plan::listPlans();
     }
     break;
 
@@ -181,7 +181,7 @@ case 'list1':
     $allow_purchase = true;
     $have_app = true;
     $show_plan = isset($_GET['plan_id']) ? $_GET['plan_id'] : '';
-    $content .= \Membership\Plan::List($allow_purchase, $have_app, $show_plan);
+    $content .= \Membership\Plan::listPlans($allow_purchase, $have_app, $show_plan);
     break;
 case 'list':
 default:
@@ -189,7 +189,7 @@ default:
     $allow_purchase = $_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED ? true : false;
     $have_app = false;
     $show_plan = '';
-    $content .= \Membership\Plan::List($allow_purchase, $have_app, $show_plan);
+    $content .= \Membership\Plan::listPlans($allow_purchase, $have_app, $show_plan);
     break;
 }
 

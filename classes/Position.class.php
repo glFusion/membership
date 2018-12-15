@@ -1,30 +1,32 @@
 <?php
 /**
-*   Class to handle board and committee possitions.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2014-2016 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Class to handle board and committee possitions.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2014-2016 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.1.1
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 namespace Membership;
 
 /**
-*   Class to handle board and committee positions
-*   @package    membership
-*/
+ * Class to handle board and committee positions.
+ * @package membership
+ */
 class Position
 {
+    /** Internal properties accessed via `__set()` and `__get()`.
+     * @var array */
     private $properties;
 
     /**
-    *   Constructor.
-    *
-    *   @param  integer $id     Optional ID of existing position record
-    */
+     * Set variables and read a record if an ID is provided.
+     *
+     * @param   integer $id     Optional ID of existing position record
+     */
     public function __construct($id=0)
     {
         $this->properties = array();
@@ -43,6 +45,12 @@ class Position
     }
 
 
+    /**
+     * Set a property's value.
+     *
+     * @param   string  $key    Property name
+     * @param   mixed   $value  Value to set
+     */
     public function __set($key, $value)
     {
         switch ($key) {
@@ -66,6 +74,12 @@ class Position
     }
 
 
+    /**
+     * Get a property's value, or NULL if not set.
+     *
+     * @param   string  $key    Name of property
+     * @return  mixed       Value of property, NULL if not set
+     */
     public function __get($key)
     {
         if (isset($this->properties[$key]))
@@ -76,11 +90,11 @@ class Position
 
 
     /**
-    *   Read a position from the database
-    *
-    *   @param  integer $id     Optional ID, current ID if empty
-    *   @return boolean     True on success, False on failure
-    */
+     * Read a position from the database.
+     *
+     * @param   integer $id     Optional ID, current ID if empty
+     * @return  boolean     True on success, False on failure
+     */
     public function Read($id = 0)
     {
         global $_TABLES;
@@ -103,15 +117,16 @@ class Position
 
 
     /**
-    *   Set the values from an array into the object members
-    *
-    *   @param  array   $A  Array of values
-    *   @return boolean     True on success, False on failure
-    */
+     * Set the values from an array into the object members.
+     *
+     * @param   array   $A          Array of values
+     * @param   boolean $fromDB     True if reading from the DB
+     * @return  boolean     True on success, False on failure
+     */
     public function SetVars($A, $fromDB=true)
     {
         if (!is_array($A)) return false;
-            
+
         if (isset($A['id'])) $this->id = $A['id'];
         $this->uid      = $A['uid'];
         $this->descr    = $A['descr'];
@@ -137,11 +152,11 @@ class Position
 
 
     /**
-    *   Save the current values to the database
-    *
-    *   @param  array   $A  Optional array, current values used if empty
-    *   @return boolean     True on success, False on failure
-    */
+     * Save the current values to the database.
+     *
+     * @param   array   $A  Optional array, current values used if empty
+     * @return  boolean     True on success, False on failure
+     */
     public function Save($A = array())
     {
         global $_TABLES;
@@ -180,10 +195,10 @@ class Position
 
 
     /**
-    *   Set the given member as the occupant of a position.
-    *
-    *   @param  integer $uid    User ID to hold the position
-    */
+     * Set the given member as the occupant of a position.
+     *
+     * @param   integer $uid    User ID to hold the position
+     */
     public function setMember($uid)
     {
         global $_TABLES;
@@ -194,11 +209,11 @@ class Position
 
 
     /**
-    *   Get the positions held by a member.
-    *
-    *   @param  integer $id     Member's User ID
-    *   @return array       Array of position IDs
-    */
+     * Get the positions held by a member.
+     *
+     * @param   integer $uid    Member's User ID
+     * @return  array       Array of position IDs
+     */
     public static function getMemberPositions($uid)
     {
         global $_TABLES;
@@ -216,13 +231,13 @@ class Position
 
 
     /**
-    *   Sets a boolean field to the opposite of the supplied value
-    *
-    *   @param  integer $oldvalue   Old (current) value
-    *   @param  string  $field      Name of DB field to set
-    *   @param  integer $id         ID number of element to modify
-    *   @return         New value, or old value upon failure
-    */
+     * Sets a boolean field to the opposite of the supplied value.
+     *
+     * @param   integer $oldvalue   Old (current) value
+     * @param   string  $field      Name of DB field to set
+     * @param   integer $id         ID number of element to modify
+     * @return         New value, or old value upon failure
+     */
     public static function toggle($oldvalue, $field, $id)
     {
         global $_TABLES;
@@ -231,7 +246,7 @@ class Position
         if ($id == '')
             return $oldvalue;
 
-        switch ($field) {       // sanitize 
+        switch ($field) {       // sanitize
         case 'enabled':
         case 'show_vacant':
             break;
@@ -252,8 +267,8 @@ class Position
 
 
     /**
-    *   Remove the current position.
-    */
+     * Remove the current position.
+     */
     public function Remove()
     {
         global $_TABLES;
@@ -263,10 +278,10 @@ class Position
 
 
     /**
-    *   Creates the edit form.
-    *
-    *   @return string      HTML for edit form
-    */
+     * Creates the edit form.
+     *
+     * @return  string      HTML for edit form
+     */
     public function Edit()
     {
         global $_TABLES;
@@ -285,7 +300,7 @@ class Position
             'show_vacant_chk'   => $this->show_vacant ? 'checked="checked"' : '',
             'ena_chk'       => $this->enabled ? 'checked="checked"' : '',
             'position_type_select' => COM_optionList(
-                        $_TABLES['membership_positions'], 
+                        $_TABLES['membership_positions'],
                         'DISTINCT type,type',
                         $this->type, 0
                 ),
@@ -301,10 +316,10 @@ class Position
 
 
     /**
-    *   Reorder the positions for admin lists and information pages
-    *
-    *   @param  string  $type   Type of position (board, committee, etc.)
-    */
+     * Reorder the positions for admin lists and information pages.
+     *
+     * @param   string  $type   Type of position (board, committee, etc.)
+     */
     public static function Reorder($type)
     {
         global $_TABLES;
@@ -335,12 +350,12 @@ class Position
 
 
     /**
-    *   Move a position up or down in the list.
-    *
-    *   @param  integer $id     Record ID to move
-    *   @param  string  $type   Type of position (board, committee, etc.)
-    *   @param  string  $where  Direction to move ('up' or 'down')
-    */
+     * Move a position up or down in the list.
+     *
+     * @param   integer $id     Record ID to move
+     * @param   string  $type   Type of position (board, committee, etc.)
+     * @param   string  $where  Direction to move ('up' or 'down')
+     */
     public static function Move($id, $type, $where)
     {
         global $_CONF, $_TABLES, $LANG21;
@@ -363,7 +378,7 @@ class Position
             break;
         }
         $sql = "UPDATE {$_TABLES['membership_positions']}
-                SET orderby = orderby $sign 11 
+                SET orderby = orderby $sign 11
                 WHERE id = '$id'";
         //echo $sql;die;
         DB_query($sql, 1);
@@ -380,10 +395,10 @@ class Position
 
 
     /**
-    *   Update group membership based on changes in position.
-    *   If the group or user ID have changed, remove the old user
-    *   from the old group and add the new user to the new group
-    */
+     * Update group membership based on changes in position.
+     * If the group or user ID have changed, remove the old user
+     * from the old group and add the new user to the new group
+     */
     private function _updateGroups()
     {
         if ($this->old_grp_id != $this->grp_id ||

@@ -1,17 +1,17 @@
 <?php
 /**
-*   Service functions for the Membership plugin.
-*   This file provides functions to be called by other plugins, such
-*   as the PayPal plugin.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Service functions for the Membership plugin.
+ * This file provides functions to be called by other plugins, such
+ * as the PayPal plugin.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     0.1.1
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 
 if (!defined ('GVERSION')) {
     die ('This file can not be used on its own!');
@@ -19,13 +19,13 @@ if (!defined ('GVERSION')) {
 
 
 /**
-*   Get information about a specific item.
-*
-*   @param  array   $A          Item Info (pi_name, Plan ID, New/Renewal)
-*   @param  array   &$output    Array to use for returned product info
-*   @param  array   &$svc_msg   Not used
-*   @return integer             PLG_RET_status
-*/
+ * Get information about a specific item.
+ *
+ * @param   array   $A          Item Info (pi_name, Plan ID, New/Renewal)
+ * @param   array   $output     Array reference to use for returned product info
+ * @param   array   $svc_msg    Not used
+ * @return  integer             PLG_RET_status
+ */
 function service_productinfo_membership($A, &$output, &$svc_msg)
 {
     // $A param must be an array:
@@ -67,13 +67,13 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
 
 
 /**
-*   Handle the purchase of a product via IPN message.
-*
-*   @param  array   $id     Array of (pi_name, category, item_id)
-*   @param  array   $item   Array of item info for this purchase
-*   @param  array   $ipn_data    All Paypal data from IPN
-*   @return array           Array of item info, for notification
-*/
+ * Handle the purchase of a product via IPN message.
+ *
+ * @param   array   $args       Array of arguments
+ * @param   array   $output     Array reference for the output
+ * @param   array   $svc_msg    Not used
+ * @return  integer             PLG_RET_status
+ */
 function service_handlePurchase_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES, $_CONF_MEMBERSHIP;
@@ -153,15 +153,14 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 
 
 /**
-*   Create a filter form and extract query parameters that this plugin
-*   is responsible for.
-*   'filter' and 'get' elements are returned in $output.
-*
-*   @param  array   $args       Array of arguments, including $_GET and $_POST
-*   @param  mixed   &$output    Pointer to output variables.
-*   @param  mixed   &$svc_msg   Service message (not used)
-*   @return integer     Result status
-*/
+ * Create a filter form and extract query parameters that this plugin is responsible for.
+ * 'filter' and 'get' elements are returned in $output.
+ *
+ * @param   array   $args       Array of arguments, including $_GET and $_POST
+ * @param   mixed   &$output    Pointer to output variables.
+ * @param   mixed   &$svc_msg   Service message (not used)
+ * @return  integer     Result status
+ */
 function service_profilefilter_membership($args, &$output, &$svc_msg)
 {
     global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
@@ -214,15 +213,15 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
 
 
 /**
-*   Get the query element needed when collecting data for the Profile plugin.
-*   The $output array contains the field names, the SELECT and JOIN queries,
-*   and the search fields for the ADMIN_list function.
-*
-*   @param  array   $args       Post, Get, incl_exp_stat and incl_user_stat
-*   @param  array   &$output    Pointer to output array
-*   @param  array   &$svc_msg   Unused
-*   @return integer             Status code
-*/
+ * Get the query element needed when collecting data for the Profile plugin.
+ * The $output array contains the field names, the SELECT and JOIN queries,
+ * and the search fields for the ADMIN_list function.
+ *
+ * @param   array   $args       Post, Get, incl_exp_stat and incl_user_stat
+ * @param   array   &$output    Pointer to output array
+ * @param   array   &$svc_msg   Unused
+ * @return  integer             Status code
+ */
 function service_profilefields_membership($args, &$output, &$svc_msg)
 {
     global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES;
@@ -337,12 +336,19 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
 
 
 /**
-*   Callback to display the expiration date in profile listings.
-*   Same parameters as the normal field display functions.
-*   Expects $A['membership_exp_days'] to contain the number of days that this
-*   membership has expired, with a negative number indicating that the
-*   membership has not yet expired.
-*/
+ * Callback to display the expiration date in profile listings.
+ * Same parameters as the normal field display functions.
+ * Expects $A['membership_exp_days'] to contain the number of days that this
+ * membership has expired, with a negative number indicating that the
+ * membership has not yet expired.
+ *
+ * @param   string  $fieldname  Name of field
+ * @param   mixed   $fieldvalue Value of field
+ * @param   array   $A          Array of all field name=>value
+ * @param   array   $icon_arr   Array of icons
+ * @param   array   $extras     Possible extra pass-through values
+ * @return  string      HTML for field display
+ */
 function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
     $extras)
 {
@@ -360,15 +366,15 @@ function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
 
 
 /**
-*   Get the current membership status for a given user
-*   Keeps statuses in a static array so calling multiple times won't
-*   cause multiple database queries.
-*
-*   @param  array   $args   Argument array, 'uid' is optional user ID
-*   @param  mixed   &$output    Output value, array of status and expiration
-*   @param  mixed   &$svc_msg   Not used
-*   @return integer Return status. Always OK since $output has default values
-*/
+ * Get the current membership status for a given user.
+ * Keeps statuses in a static array so calling multiple times won't
+ * cause multiple database queries.
+ *
+ * @param   array   $args       Argument array, 'uid' is optional user ID
+ * @param   mixed   $output     Output value, array of status and expiration
+ * @param   mixed   $svc_msg    Not used
+ * @return  integer     Return status. Always OK since $output has default values
+ */
 function service_status_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES, $_USER, $_CONF_MEMBERSHIP;
@@ -410,12 +416,15 @@ function service_status_membership($args, &$output, &$svc_msg)
 
 
 /**
-*   Get the member type strings "Current", "Former", etc for each status
-*   Exposes MEMBERSHIP_membertypes() to other plugins.
-*   Sets $output to an array of status=>string
-*
-*   @return integer PLG_RET_OK
-*/
+ * Get the member type strings "Current", "Former", etc for each status.
+ * Exposes MEMBERSHIP_membertypes() to other plugins.
+ * Sets $output to an array of status=>string
+ *
+ * @param   array   $args       Not used
+ * @param   mixed   $output     Not used
+ * @param   mixed   $svc_msg    Not used
+ * @return integer PLG_RET_OK
+ */
 function service_membertypes_membership($args, &$output, &$svc_msg)
 {
     $output = MEMBERSHIP_membertypes();
@@ -424,14 +433,17 @@ function service_membertypes_membership($args, &$output, &$svc_msg)
 
 
 /**
-*   Find out if a given user is a member, current or in arrears
-*   Sets $output to boolean true if the user is an active
-*   member, false if expired, in arrears or non-member.
-*
-*   @see    service_ismember_membership()
-*   @uses   service_status_membership()
-*   @return integer Plugin return status
-*/
+ * Find out if a given user is a member, current or in arrears.
+ * Sets $output to boolean true if the user is an active
+ * member, false if expired, in arrears or non-member.
+ *
+ * @see     service_ismember_membership()
+ * @uses    service_status_membership()
+ * @param   array   $args       Argument array
+ * @param   mixed   $output     Output value, array of status and expiration
+ * @param   mixed   $svc_msg    Not used
+ * @return  integer Plugin return status
+ */
 function service_iscurrent_membership($args, &$output, &$svc_msg)
 {
     $status = service_status_membership($args, $myout, $svc_msg);
@@ -447,14 +459,17 @@ function service_iscurrent_membership($args, &$output, &$svc_msg)
 
 
 /**
-*   Find out if a given user is a member, current or in arrears
-*   Sets $output to boolean true if the user is an active or in-arrears
-*   member, false if expired or non-member.
-*
-*   @see    service_iscurrent_membership()
-*   @uses   service_status_membership()
-*   @return integer Plugin return status
-*/
+ * Find out if a given user is a member, current or in arrears.
+ * Sets $output to boolean true if the user is an active or in-arrears
+ * member, false if expired or non-member.
+ *
+ * @see     service_iscurrent_membership()
+ * @uses    service_status_membership()
+ * @param   array   $args       Argument array
+ * @param   mixed   $output     Output value, array of status and expiration
+ * @param   mixed   $svc_msg    Not used
+ * @return  integer Plugin return status
+ */
 function service_ismember_membership($args, &$output, &$svc_msg)
 {
     $status = service_status_membership($args, $myout, $svc_msg);
@@ -471,12 +486,15 @@ function service_ismember_membership($args, &$output, &$svc_msg)
 
 
 /**
-*   Get the mailing list segment or descriptive text for a member status
-*   Puts the text in $output as a single string
-*
-*   @uses   service_status_membership()
-*   @return integer PLG_RET_OK
-*/
+ * Get the mailing list segment or descriptive text for a member status.
+ * Puts the text in $output as a single string.
+ *
+ * @uses    service_status_membership()
+ * @param   array   $args       Argument array
+ * @param   mixed   $output     Output value, array of status and expiration
+ * @param   mixed   $svc_msg    Not used
+ * @return  integer PLG_RET_OK
+ */
 function service_mailingSegment_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES;

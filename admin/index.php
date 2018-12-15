@@ -1,15 +1,15 @@
 <?php
 /**
-*   Entry point to administration functions for the Membership plugin.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.2.0
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*              GNU Public License v2 or later
-*   @filesource
-*/
+ * Entry point to administration functions for the Membership plugin.
+ *
+ * @author     Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2012-2017 Lee Garner <lee@leegarner.com>
+ * @package    membership
+ * @version    v0.2.0
+ * @license    http://opensource.org/licenses/gpl-2.0.php
+ *             GNU Public License v2 or later
+ * @filesource
+ */
 
 /** Import core glFusion libraries */
 require_once '../../../lib-common.php';
@@ -32,7 +32,7 @@ if (!MEMBERSHIP_isManager()) {
 USES_lib_admin();
 USES_membership_functions();
 // This is used in several user list functions
-USES_lglib_class_nameparser();
+//USES_lglib_class_nameparser();
 
 $content = '';
 
@@ -302,10 +302,10 @@ echo $output;
 
 
 /**
-*   Uses lib-admin to list the membership definitions and allow updating.
-*
-*   @return string HTML for the list
-*/
+ * Uses lib-admin to list the members.
+ *
+ * @return  string  HTML for the list
+ */
 function MEMBERSHIP_listMembers()
 {
     global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP, $_IMAGE_TYPE,
@@ -314,20 +314,40 @@ function MEMBERSHIP_listMembers()
     $retval = '';
 
     $header_arr = array(
-        array('text' => $LANG_ADMIN['edit'],
-                'field' => 'edit', 'sort' => false, 'align'=>'center'));
+        array(
+            'text' => $LANG_ADMIN['edit'],
+            'field' => 'edit',
+            'sort' => false,
+            'align'=>'center',
+        ),
+    );
     if ($_CONF_MEMBERSHIP['use_mem_number'] > 0) {
-        $header_arr[] = array('text' => $LANG_MEMBERSHIP['mem_number'],
-                'field' => 'mem_number', 'sort' => true);
+        $header_arr[] = array(
+            'text' => $LANG_MEMBERSHIP['mem_number'],
+            'field' => 'mem_number',
+            'sort' => true,
+        );
     }
-    $header_arr[] = array('text' => $LANG_MEMBERSHIP['member_name'],
-                'field' => 'fullname', 'sort' => true);
-    $header_arr[] = array('text' => $LANG_MEMBERSHIP['linked_accounts'],
-                'field' => 'links', 'sort' => false);
-    $header_arr[] = array('text' => $LANG_MEMBERSHIP['plan'],
-                'field' => 'plan', 'sort' => false);
-    $header_arr[] = array('text' => $LANG_MEMBERSHIP['expires'],
-                'field' => 'mem_expires', 'sort' => true);
+    $header_arr[] = array(
+        'text' => $LANG_MEMBERSHIP['member_name'],
+        'field' => 'fullname',
+        'sort' => true,
+    );
+    $header_arr[] = array(
+        'text' => $LANG_MEMBERSHIP['linked_accounts'],
+        'field' => 'links',
+        'sort' => false,
+    );
+    $header_arr[] = array(
+        'text' => $LANG_MEMBERSHIP['plan'],
+        'field' => 'plan',
+        'sort' => false,
+    );
+    $header_arr[] = array(
+        'text' => $LANG_MEMBERSHIP['expires'],
+        'field' => 'mem_expires',
+        'sort' => true,
+    );
 
     $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'desc');
     if (isset($_REQUEST['showexp'])) {
@@ -338,7 +358,8 @@ function MEMBERSHIP_listMembers()
         $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
                 " AND m.mem_expires >= '" . MEMBERSHIP_dtEndGrace() . "'";
     }
-    $query_arr = array('table' => 'membership_members',
+    $query_arr = array(
+        'table' => 'membership_members',
         'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
                 FROM {$_TABLES['membership_members']} m
                 LEFT JOIN {$_TABLES['users']} u
@@ -393,10 +414,10 @@ function MEMBERSHIP_listMembers()
 
 
 /**
-*   Uses lib-admin to list the membership definitions and allow updating.
-*
-*   @return string HTML for the list
-*/
+ * Uses lib-admin to list the membership definitions and allow updating.
+ *
+ * @return  string  HTML for the list
+ */
 function MEMBERSHIP_listPlans()
 {
     global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP;
@@ -405,20 +426,33 @@ function MEMBERSHIP_listPlans()
 
 
     $header_arr = array(
-        array('text' => $LANG_ADMIN['edit'],
-            'field' => 'edit', 'sort' => false, 'align'=>'center'),
-        array('text' => 'ID',
-            'field' => 'plan_id', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['short_name'],
-            'field' => 'name', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['enabled'],
-                'field' => 'enabled', 'sort' => false,
-                'align' => 'center'),
+        array(
+            'text' => $LANG_ADMIN['edit'],
+            'field' => 'edit',
+            'sort' => false,
+            'align'=>'center',
+        ),
+        array(
+            'text' => 'ID',
+            'field' => 'plan_id',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['short_name'],
+            'field' => 'name',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['enabled'],
+            'field' => 'enabled',
+            'sort' => false,
+            'align' => 'center',
+        ),
     );
 
     $defsort_arr = array('field' => 'plan_id', 'direction' => 'asc');
-
-    $query_arr = array('table' => 'membership_plans',
+    $query_arr = array(
+        'table' => 'membership_plans',
         'sql' => "SELECT * FROM {$_TABLES['membership_plans']} ",
         'query_fields' => array('name', 'description'),
         'default_filter' => ''
@@ -437,14 +471,14 @@ function MEMBERSHIP_listPlans()
 
 
 /**
-*   Determine what to display in the admin list for each membership plan.
-*
-*   @param  string  $fieldname  Name of the field, from database
-*   @param  mixed   $fieldvalue Value of the current field
-*   @param  array   $A          Array of all name/field pairs
-*   @param  array   $icon_arr   Array of system icons
-*   @return string              HTML for the field cell
-*/
+ * Determine what to display in the admin list for each membership plan.
+ *
+ * @param   string  $fieldname  Name of the field, from database
+ * @param   mixed   $fieldvalue Value of the current field
+ * @param   array   $A          Array of all name/field pairs
+ * @param   array   $icon_arr   Array of system icons
+ * @return  string              HTML for the field cell
+ */
 function getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
@@ -500,14 +534,14 @@ function getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 
 
 /**
-*   Determine what to display in the admin list for each position.
-*
-*   @param  string  $fieldname  Name of the field, from database
-*   @param  mixed   $fieldvalue Value of the current field
-*   @param  array   $A          Array of all name/field pairs
-*   @param  array   $icon_arr   Array of system icons
-*   @return string              HTML for the field cell
-*/
+ * Determine what to display in the admin list for each position.
+ *
+ * @param   string  $fieldname  Name of the field, from database
+ * @param   mixed   $fieldvalue Value of the current field
+ * @param   array   $A          Array of all name/field pairs
+ * @param   array   $icon_arr   Array of system icons
+ * @return  string              HTML for the field cell
+ */
 function getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
@@ -593,20 +627,19 @@ function getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 
 
 /**
-*   Determine what to display in the admin list for each form.
-*
-*   @param  string  $fieldname  Name of the field, from database
-*   @param  mixed   $fieldvalue Value of the current field
-*   @param  array   $A          Array of all name/field pairs
-*   @param  array   $icon_arr   Array of system icons
-*   @return string              HTML for the field cell
-*/
+ * Determine what to display in the admin list for each form.
+ *
+ * @param  string  $fieldname  Name of the field, from database
+ * @param  mixed   $fieldvalue Value of the current field
+ * @param  array   $A          Array of all name/field pairs
+ * @param  array   $icon_arr   Array of system icons
+ * @return string              HTML for the field cell
+ */
 function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES,
             $LANG_ADMIN;
 
-    static $link_names = array();
     $retval = '';
     $pi_admin_url = MEMBERSHIP_ADMIN_URL;
 
@@ -626,22 +659,14 @@ function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
         break;
 
     case 'fullname':
-        if (!isset($link_names[$A['mem_uid']])) {
-            $link_names[$A['mem_uid']] = MEMBER_CreateNameLink($A['mem_uid'], $A['fullname']);
-        }
-        $retval = $link_names[$A['mem_uid']];
+        $retval = MEMBER_CreateNameLink($A['mem_uid'], $A['fullname']);
         break;
 
     case 'links':
-        $sql = "SELECT uid2 FROM {$_TABLES['membership_links']}
-            WHERE uid1={$A['mem_uid']}";
-        $res = DB_query($sql, 1);
+        $links = \Membership\Link::getRelatives($A['mem_uid']);
         $L = array();
-        while ($B = DB_fetchArray($res, false)) {
-            if (!isset($link_names[$B['uid2']])) {
-                $link_names[$B['uid2']] = MEMBER_CreateNameLink($B['uid2']);
-            }
-            $L[] = $link_names[$B['uid2']];
+        foreach ($links as $uid=>$fullname) {
+            $L[] = MEMBER_CreateNameLink($uid);
         }
         if (!empty($L)) {
             $retval = implode('; ', $L);
@@ -709,10 +734,12 @@ function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 
 
 /**
-*   Create the admin menu at the top of the list and form pages.
-*
-*   @return string      HTML for admin menu section
-*/
+ * Create the admin menu at the top of the list and form pages.
+ *
+ * @param   string  $mode   Current view name
+ * @param   string  $help_text  Optional helptext associated with this view
+ * @return  string      HTML for admin menu section
+ */
 function MEMBERSHIP_adminMenu($mode='', $help_text = '')
 {
     global $_CONF, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $LANG01;
@@ -757,32 +784,40 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
     }
 
     $menu_arr = array(
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listplans=x',
+        array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listplans=x',
             'text' => $LANG_MEMBERSHIP['list_plans'],
-            'active' => $plan_active
+            'active' => $plan_active,
         ),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
+        array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
             'text' => $LANG_MEMBERSHIP['list_members'],
             'active' => $members_active,
         ),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
+        array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
             'text' => $LANG_MEMBERSHIP['transactions'],
             'active' => $trans_active,
         ),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?stats',
+        array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?stats',
             'text' => $LANG_MEMBERSHIP['member_stats'],
             'active' => $stats_active,
         ),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
+        array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
             'text' => $LANG_MEMBERSHIP['positions'],
             'active' => $pos_active,
         ),
-        array('url' => MEMBERSHIP_ADMIN_URL . '/index.php?importform',
+        array(
+            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?importform',
             'text' => $LANG_MEMBERSHIP['import'],
             'active' => $import_active,
         ),
-        array('url' => $_CONF['site_admin_url'],
-            'text' => $LANG01[53]),
+        array(
+            'url' => $_CONF['site_admin_url'],
+            'text' => $LANG01[53],
+        ),
     );
     if (!empty($new_item_option)) {
         $menu_arr[] = $new_item_option;
@@ -792,37 +827,42 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
 
 
 /**
-*   Display the member's full name in the "Last, First" format with a link.
-*   Also sets class and javascript to highlight the same user's name elsewhere
-*   on the page.
-*
-*   @param  integer $uid    User ID, used to get the full name if not supplied.
-*   @paramq string  $fullname   Full name from the Users table.
-*   @return string      HTML for the styled user name.
-*/
+ * Display the member's full name in the "Last, First" format with a link.
+ * Also sets class and javascript to highlight the same user's name elsewhere
+ * on the page.
+ * Uses a static variable to hold links by user ID for repeated lookups.
+ *
+ * @param   integer $uid    User ID, used to get the full name if not supplied.
+ * @param   string  $fullname   Optional Full override
+ * @return  string      HTML for the styled user name.
+ */
 function MEMBER_CreateNameLink($uid, $fullname='')
 {
     global $_CONF;
 
-    if ($fullname == '') {
-        $fullname = COM_getDisplayName($uid);
+    static $retval = array();
+
+    if (!isset($retval[$uid])) {
+        if ($fullname == '') {
+            $fullname = COM_getDisplayName($uid);
+        }
+        $fullname = \LGLib\NameParser::LCF($fullname);
+        $retval[$uid] = '<span rel="rel_' . $uid .
+            '" onmouseover="MEM_highlight(' . $uid .
+            ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
+            COM_createLink($fullname,
+            $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $uid)
+            . '</span>';
     }
-    $fullname = \NameParser::LCF($fullname);
-    $retval = '<span rel="rel_' . $uid .
-        '" onmouseover="MEM_highlight(' . $uid .
-        ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
-        COM_createLink($fullname,
-        $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $uid)
-        . '</span>';
-    return $retval;
+    return $retval[$uid];
 }
 
 
 /**
-*   Display a summary of memberships by plan
-*
-*   @return string  HTML output for the page
-*/
+ * Display a summary of memberships by plan.
+ *
+ * @return  string  HTML output for the page
+ */
 function MEMBERSHIP_summaryStats()
 {
     global $_CONF_MEMBERSHIP, $_TABLES;
@@ -875,10 +915,10 @@ function MEMBERSHIP_summaryStats()
 
 
 /**
-*   List transactions
-*
-*   @return string  HTML output for the page
-*/
+ * List transactions.
+ *
+ * @return  string  HTML output for the page
+ */
 function MEMBERSHIP_listTrans()
 {
     global $_TABLES, $LANG_MEMBERSHIP, $_CONF;
@@ -921,51 +961,48 @@ function MEMBERSHIP_listTrans()
         'has_extras' => true,
         'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
     );
+    $tx_from = MEMB_getVar($_POST, 'tx_from');
+    $tx_to = MEMB_getVar($_POST, 'tx_to');
     $filter = $LANG_MEMBERSHIP['from'] .
-        ': <input id="f_tx_from" type="text" size="10" name="tx_from" data-uk-datepicker value="" />&nbsp;' .
-          '<i class="' . MEM_getIcon('calendar') . ' tooltip"
-            id="dtfrom_trigger"
-            style="cursor: pointer;"
-            alt="' . $LANG_MEMBERSHIP['date_selector'] . '"
-            title="' . $LANG_MEMBERSHIP['date_selector'] . '"></i>&nbsp;&nbsp;' .
+        ': <input id="f_tx_from" type="text" size="10" name="tx_from" data-uk-datepicker value="' . $tx_from . '" />&nbsp;' .
         $LANG_MEMBERSHIP['to'] .
-        ': <input id="f_tx_to" type="text" size="10" name="tx_to" data-uk-datepicker value="" />&nbsp' .
-          '<i class="' . MEM_getIcon('calendar', 'info') . ' tooltip"
-            id="dtto_trigger"
-            style="cursor: pointer;"
-            alt="' . $LANG_MEMBERSHIP['date_selector'] . '"
-            title="' . $LANG_MEMBERSHIP['date_selector'] . '"></i>&nbsp;&nbsp;' .
-        '<script type="text/javascript">
-/*    Calendar.setup({
-        inputField     :    "f_tx_from",
-        ifFormat       :    "%Y-%m-%d",
-        showsTime      :    false,
-        timeFormat     :    "24",
-        button          :   "dtfrom_trigger"
-    });
-    Calendar.setup({
-        inputField     :    "f_tx_to",
-        ifFormat       :    "%Y-%m-%d",
-        showsTime      :    false,
-        timeFormat     :    "24",
-        button          :   "dtto_trigger"
-    });*/
-    </script>';
+        ': <input id="f_tx_to" type="text" size="10" name="tx_to" data-uk-datepicker value="' . $tx_to . '" />';
     $header_arr = array(
-        array('text' => $LANG_MEMBERSHIP['date'],
-                'field' => 'tx_date', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['entered_by'],
-                'field' => 'tx_by', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['member_name'],
-                'field' => 'tx_fullname', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['plan'],
-                'field' => 'tx_planid', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['expires'],
-                'field' => 'tx_exp', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['pmt_method'],
-                'field' => 'tx_gw', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['txn_id'],
-                'field' => 'tx_txn_id', 'sort' => true),
+        array(
+            'text' => $LANG_MEMBERSHIP['date'],
+            'field' => 'tx_date',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['entered_by'],
+            'field' => 'tx_by',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['member_name'],
+            'field' => 'tx_fullname',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['plan'],
+            'field' => 'tx_planid',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['expires'],
+            'field' => 'tx_exp',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['pmt_method'],
+            'field' => 'tx_gw',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['txn_id'],
+            'field' => 'tx_txn_id',
+            'sort' => true,
+        ),
     );
     $form_arr = array();
     return ADMIN_list('membership_listtrans', __NAMESPACE__ . '\getField_member',
@@ -975,10 +1012,10 @@ function MEMBERSHIP_listTrans()
 
 
 /**
-*   Displays the list of committee and board positions
-*
-*   @return string  HTML string containing the contents of the ipnlog
-*/
+ * Displays the list of committee and board positions.
+ *
+ * @return  string  HTML string containing the contents of the ipnlog
+ */
 function MEMBERSHIP_listPositions()
 {
     global $_CONF, $_TABLES, $LANG_MEMBERSHIP, $_USER, $LANG_ADMIN;
@@ -990,41 +1027,72 @@ function MEMBERSHIP_listPositions()
             WHERE 1=1 ";
 
     $header_arr = array(
-        array('text' => 'ID',
-                'field' => 'id', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['edit'],
-                'field' => 'editpos', 'sort' => false,
-                'align' => 'center'),
-        array('text' => $LANG_MEMBERSHIP['move'],
-                'field' => 'move', 'sort' => false,
-                'align' => 'center'),
-        array('text' => $LANG_MEMBERSHIP['enabled'],
-                'field' => 'enabled', 'sort' => false,
-                'align' => 'center'),
-        array('text' => $LANG_MEMBERSHIP['position_type'],
-                'field' => 'type', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['description'],
-                'field' => 'descr', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['current_user'],
-                'field' => 'fullname', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['order'],
-                'field' => 'orderby', 'sort' => true),
-        array('text' => $LANG_MEMBERSHIP['show_vacant'],
-                'field' => 'show_vacant', 'sort' => true,
-                'align' => 'center'),
-        array('text' => $LANG_ADMIN['delete'],
-                'field' => 'deletepos', 'sort' => 'false',
-                'align' => 'center'),
+        array(
+            'text' => 'ID',
+            'field' => 'id',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['edit'],
+            'field' => 'editpos',
+            'sort' => false,
+            'align' => 'center',
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['move'],
+            'field' => 'move',
+            'sort' => false,
+            'align' => 'center',
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['enabled'],
+            'field' => 'enabled',
+            'sort' => false,
+            'align' => 'center',
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['position_type'],
+            'field' => 'type',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['description'],
+            'field' => 'descr',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['current_user'],
+            'field' => 'fullname',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['order'],
+            'field' => 'orderby',
+            'sort' => true,
+        ),
+        array(
+            'text' => $LANG_MEMBERSHIP['show_vacant'],
+            'field' => 'show_vacant',
+            'sort' => true,
+            'align' => 'center',
+        ),
+        array(
+            'text' => $LANG_ADMIN['delete'],
+            'field' => 'deletepos',
+            'sort' => 'false',
+            'align' => 'center'
+        ),
     );
 
-    $query_arr = array('table' => 'membership_positions',
+    $query_arr = array(
+        'table' => 'membership_positions',
         'sql' => $sql,
         'query_fields' => array('u.fullname', 'p.descr'),
         'default_filter' => ''
     );
     $defsort_arr = array(
-            'field' => 'type,orderby',
-            'direction' => 'ASC'
+        'field' => 'type,orderby',
+        'direction' => 'ASC'
     );
 
     $filter = '';
