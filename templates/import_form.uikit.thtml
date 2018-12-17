@@ -21,14 +21,9 @@
   </div>
 
   <div class="uk-form-row">
-    <label for="f_expiration" class="uk-form-label">{$LANG_MEMBERSHIP['exp_notice']}</label>
+    <label class="uk-form-label">{$LANG_MEMBERSHIP['exp_notice']}</label>
     <div class="uk-form-controls">
-      <input type="text" id="f_expiration" name="expiration" />
-      <i class="{iconset}-calendar mbr-icon-info tooltip"
-        id="expiration_trigger"
-        style="cursor: pointer;"
-        alt="{$LANG_MEMBERSHIP['date_selector']}"
-        title="{$LANG_MEMBERSHIP['date_selector']}"></i>
+      <input type="text" id="f_expiration" name="expiration" data-uk-datepicker />
     </div>
   </div>
 
@@ -39,13 +34,4 @@
     </div>
   </div>
 </form>
-<script type="text/javascript">
-    Calendar.setup({
-        inputField     :    "f_expiration",
-        ifFormat       :    "%Y-%m-%d",
-        showsTime      :    false,
-        timeFormat     :    "24",
-        button          :   "expiration_trigger"
-    });
-</script>
 {# end {templatelocation} #}
