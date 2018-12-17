@@ -236,6 +236,7 @@ class Membership
         $T = MEMBERSHIP_getTemplate(array(
             'editmember' => 'editmember',
             'tips'  => 'tooltipster',
+            'js'    => 'editmember_js',
         ) );
         $T->set_var(array(
             'my_uid'    => $this->uid,
@@ -327,6 +328,7 @@ class Membership
             ) );
             $T->parse('linksel', 'linkSelect', true);
         }
+        $T->parse('editmember_js', 'js');
         $T->parse('tooltipster_js', 'tips');
         $T->parse('output', 'editmember');
         return $T->finish($T->get_var('output'));
@@ -358,15 +360,28 @@ class Membership
             return false;
         }
 
+        // Check for a valid membership plan
+        $this->Plan = Plan::getInstance($this->plan_id);
+        if ($this->Plan->plan_id == '') {
+            return false;
+        }
+
         // The first thing is to check to see if we're removing this account
         // from the family so we don't update other members incorrectly
         if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
             self::remLink($this->uid);
+        } else {
+            $orig_links = MEMB_getVar($A, 'mem_orig_links', 'array');
+            $new_links = MEMB_getVar($A, 'mem_links', 'array');
+            $arr = array_diff($orig_links, $new_links);
+            foreach ($arr as $link_id) {
+                self::remLink($link_id);
+            }
+            $arr = array_diff($new_links, $orig_links);
+            foreach ($arr as $link_id) {
+                self::addLink($this->uid, $link_id);
+            }
         }
-
-        $this->Plan = new Plan($this->plan_id);
-        if ($this->Plan->plan_id == '')
-            return false;       // invalid plan requested
 
         // Date has been updated with a later date. If updated to an earlier
         // date then the expiration/arrears will be handled by
@@ -376,6 +391,7 @@ class Membership
         }
 
         // If this plan updates linked accounts, get all the accounts.
+        // Already updated any link changes above.
         if ($this->Plan->upd_links) {
             $accounts = $this->getLinks();
             $accounts[$this->uid] = '';
@@ -394,7 +410,6 @@ class Membership
         USES_lib_user();
 
         foreach ($accounts as $key => $name) {
-
             $this->joined = DB_escapeString($this->joined);
             $this->expires = DB_escapeString($this->expires);
 

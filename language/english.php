@@ -153,7 +153,8 @@ $LANG_MEMBERSHIP = array(
 'related_accounts'  => 'Related Accounts',
 //'hlp_new_plan' => 'Create a new custom form definition.  The Order indicates where the item will appear on membership relative to other items, and may be changed later.',
 //'hlp_reset_perms' => 'Reset all field permissions to their default values.',
-'hlp_member_edit' => '<ul><li>Linking or Unlinking an account will immediately add or remove that account from the family, but <span class="mbr-icon-danger">other membership information is not saved until the &quot;Save&quot; button is clicked.</span></li>' .
+'hlp_member_edit' => '<ul>' .
+    '<li>Adding or removing links will add or remove <b>those</b> accounts from the family.</li>' .
     '<li>Checking the &quot;Remove from family&quot; checkbox will remove <b>this</b> account from the family and leave other linked accounts alone.</li>' .
     '<li>If the membership type is set to update linked accounts, then all currently-linked accounts will be updated when the profile is saved. Un-linked accounts are not affected.</li>' .
     '</ul>',
@@ -268,6 +269,7 @@ $LANG_confignames['membership'] = array(
     'use_mem_number' => 'Use membership numbers?',
     'disable_expired' => 'Disable account upon expiration',
     'redir_after_purchase' => 'Redirect URL after purchase',
+    'currency' => 'Currency if Paypal is <b>not</b> integrated',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']

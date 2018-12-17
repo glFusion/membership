@@ -1,0 +1,78 @@
+{# begin {templatelocation} #}
+<script type="text/javascript">
+var MEMaddElement = function(selid) {
+  var uid = selid.options[selid.selectedIndex].value;
+  if (uid == 0) return;
+  var uname = selid.options[selid.selectedIndex].text;
+  var lst = document.getElementById('linklist');
+  var new_elem = document.createElement('li');
+  var str = "<a href=\"{site_url}/users.php?mode=profile&uid=" + uid +
+        "\">" + uname + " (" + uid + ")</a>";
+  str = str + "&nbsp;&nbsp;<a href=\"#!\" onclick='MEMremoveElement(" +
+        uid + ",\"" + uname + "\")'>" +
+        "<img src=\"{layout_url}/images/admin/delete.png\" " +
+        "title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"tooltip\" /></a>";
+  str = str + "<input type=\"hidden\" name=\"mem_links[]\" value=\"" + uid + "\" />";
+  new_elem.innerHTML = str;
+  new_elem.id = "link"+uid;
+  lst.appendChild(new_elem);
+
+/*  var dataS = {
+    "action" : "addlinkuser",
+    "uid1": {my_uid},
+    "uid2": uid,
+  };
+
+  data = $.param(dataS);
+  $.ajax({
+    type: "POST",
+    dataType: "json",
+    url: site_admin_url + "/plugins/membership/ajax.php",
+    data: data,
+    success: function(result) {
+    }
+  });*/
+  return false;
+};
+
+var MEMremoveElement = function(uid, uname) {
+/*  var dataS = {
+    "action" : "remlinkuser",
+    "uid1": {my_uid},
+    "uid2": uid,
+  };
+  data = $.param(dataS);
+  $.ajax({
+    type: "POST",
+    dataType: "json",
+    url: site_admin_url + "/plugins/membership/ajax.php",
+    data: data,
+    success: function(result) {
+      el = document.getElementById("link"+uid);
+      el.parentNode.removeChild(el);
+      sel = document.getElementById("linkselect");
+      optnew = document.createElement('option');
+      optnew.text = uname;
+      optnew.value = uid;
+      try {
+        sel.add(optnew, null);
+      } catch (ex) {
+        sel.add(optnew);
+      }
+    }
+  });*/
+      el = document.getElementById("link"+uid);
+      el.parentNode.removeChild(el);
+      sel = document.getElementById("linkselect");
+      optnew = document.createElement('option');
+      optnew.text = uname;
+      optnew.value = uid;
+      try {
+        sel.add(optnew, null);
+      } catch (ex) {
+        sel.add(optnew);
+      }
+  return false;
+};
+</script>
+{# end {templatelocation} #}

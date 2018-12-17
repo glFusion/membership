@@ -428,8 +428,10 @@ function plugin_user_changed_membership($uid=0)
         \Membership\Membership::Cancel($uid);
     } else {
         // Maybe just updating options
-        $vars = array('notified', 'expires', 'joined', 'position', 'plan_id',
-                'number', 'istrial');
+        $vars = array(
+            'notified', 'expires', 'joined', 'position', 'plan_id',
+            'number', 'istrial', 'links',
+        );
         foreach ($vars as $var) {
             if (isset($_POST['mem_'.$var]) &&
                 $_POST['mem_'.$var] != $_POST['mem_'.$var.'_orig']) {
@@ -1333,6 +1335,8 @@ function MEMB_getVar($A, $varname, $type = 'string')
     case 'float':
         return (float)$val;
         break;
+    case 'array':
+        return (array)$val;
     case 'string':
     default:
         return (string)$val;
