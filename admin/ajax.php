@@ -26,15 +26,15 @@ $result = array(
 );
 switch ($_POST['action']) {
 case 'remlinkuser':
-    \Membership\Link::RemLink($_POST['uid1'], $_POST['uid2']);
+    \Membership\Membership::remLink($_POST['uid2']);
     break;
 
 case 'addlinkuser':
-    \Membership\Link::AddLink($_POST['uid1'], $_POST['uid2']);
+    \Membership\Membership::addLink($_POST['uid1'], $_POST['uid2']);
     break;
 
 case 'emancipate':
-    \Membership\Link::Emancipate($_POST['uid1']);
+    \Membership\Membership::remLink($_POST['uid1']);
     break;
 
 case 'toggle':

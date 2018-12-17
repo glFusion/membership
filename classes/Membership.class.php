@@ -47,7 +47,7 @@ class Membership
         $this->isNew = true;
         $this->plan_id = '';
         $this->Plan = NULL;
-        $this->status = MEMBERSHIP_STATUS_ACTIVE;
+        $this->status = MEMBERSHIP_STATUS_DROPPED;
         $this->expires = MEMBERSHIP_today();
         $this->joined = $this->expires;
         $this->paid = '';
@@ -55,7 +55,8 @@ class Membership
         $this->old_status = $this->status;
         $this->mem_number = '';
         $this->istrial = 0;
-        if ($this->Read($this->uid)) {
+        $this->guid = '';
+        if ($this->uid > 1 && $this->Read($this->uid)) {
             $this->isNew = false;
         }
     }
@@ -91,6 +92,7 @@ class Membership
         case 'expires':
         case 'paid':
         case 'mem_number':
+        case 'guid':
             $this->properties[$key] = trim($value);
             break;
         }
@@ -111,6 +113,32 @@ class Membership
         } else {
             return NULL;
         }
+    }
+
+
+    /**
+     * Get an instance of a specific membership.
+     *
+     * @param   integer $uid    User ID to retrieve, default=current user
+     * @return  object      Membership object
+     */
+    public static function getInstance($uid = 0)
+    {
+        global $_USER;
+
+        if ($uid == 0) $uid = $_USER['uid'];
+        $uid = (int)$uid;
+        if ($uid > 1) {
+            $cache_key = 'member_' . $uid;
+            $retval = Cache::get($cache_key);
+            if ($retval === NULL) {
+                $retval = new self($uid);
+                Cache::set($cache_key, $retval, 'members');
+            }
+        } else {
+            $retval = new self();
+        }
+        return $retval;
     }
 
 
@@ -137,9 +165,13 @@ class Membership
             return false;
         } else {
             $A = DB_fetchArray($res1, false);
-            $this->SetVars($A);
-            $this->Plan = new Plan($this->plan_id);
-            return true;
+            if (!empty($A)) {
+                $this->SetVars($A);
+                $this->Plan = new Plan($this->plan_id);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -166,6 +198,8 @@ class Membership
         if (isset($A['mem_notified'])) $this->notified = $A['mem_notified'];
         if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
         if (isset($A['mem_istrial'])) $this->istrial = $A['mem_istrial'];
+        // This will never come from a form:
+        if (isset($A['mem_guid'])) $this->guid = $A['mem_guid'];
     }
 
 
@@ -256,7 +290,7 @@ class Membership
         $family_plans = empty($family_ids) ? '' : implode(',', $family_ids);
         $T->set_var('family_plans', $family_plans);
 
-        $relatives = Link::getRelatives($this->uid);
+        $relatives = $this->getLinks();
 
         // Put the relatives into an array to track if any links change.
         // Since links are done via ajax we have to check the db against
@@ -319,10 +353,15 @@ class Membership
             $this->SetVars($A);
         }
 
+        // Cannot save a membership for Anonymous
+        if ($this->uid < 2) {
+            return false;
+        }
+
         // The first thing is to check to see if we're removing this account
         // from the family so we don't update other members incorrectly
         if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
-            Link::Emancipate($this->uid);
+            self::remLink($this->uid);
         }
 
         $this->Plan = new Plan($this->plan_id);
@@ -338,16 +377,20 @@ class Membership
 
         // If this plan updates linked accounts, get all the accounts.
         if ($this->Plan->upd_links) {
-            $accounts = Link::getRelatives($this->uid);
+            $accounts = $this->getLinks();
             $accounts[$this->uid] = '';
+            Cache::clear('members');
         } else {
             $accounts = array($this->uid => '');
         }
         $this->joined = DB_escapeString($this->joined);
         $this->expires = DB_escapeString($this->expires);
 
-        // create a guid (just an md5()) for the membership
-        $guid = md5($this->uid . rand());
+        // Create a guid (just an md5()) for the membership.
+        // Only for memberships that don't already have one, e.g. new.
+        if ($this->guid == '') {
+            $this->guid = self::_makeGuid($this->uid);
+        }
         USES_lib_user();
 
         foreach ($accounts as $key => $name) {
@@ -371,16 +414,15 @@ class Membership
                         mem_joined = '" . DB_escapeString($this->joined) ."',
                         mem_expires = '" . DB_escapeString($this->expires) ."',
                         mem_status = {$this->status},
-                        mem_guid = '{$guid}',
+                        mem_guid = '{$this->guid}',
                         mem_number = '" . DB_EscapeString($this->mem_number) . "',
                         mem_notified = {$this->notified},
                         mem_istrial = {$this->istrial}
                     ON DUPLICATE KEY UPDATE
                         mem_plan_id = '" . DB_escapeString($this->plan_id) . "',
-                        mem_joined = '" . DB_escapeString($this->joined) . "',
                         mem_expires = '" . DB_escapeString($this->expires) . "',
                         mem_status = {$this->status},
-                        mem_guid = '{$guid}',
+                        mem_guid = '{$this->guid}',
                         mem_number = '" . DB_EscapeString($this->mem_number) . "',
                         mem_notified = {$this->notified},
                         mem_istrial = {$this->istrial}";
@@ -388,8 +430,7 @@ class Membership
             //COM_errorLog($sql);
             DB_query($sql, 1);
             if (DB_error()) {
-                COM_errorLog('MEMBERSHIP sql error: ' . $sql);
-                return false;
+                COM_errorLog(__CLASS__ . '::Save() sql error: ' . $sql);
             }
 
             // Add the member to the groups if the status has changed,
@@ -399,20 +440,24 @@ class Membership
             if ($this->status == MEMBERSHIP_STATUS_ACTIVE) {
                 USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
             }
-            self::updatePlugins($key, $old_status, $this->status);
+            self::updatePlugins('membership:' . $key, $old_status, $this->status);
         }
 
         // If this is a payment transaction, as opposed to a simple edit,
         // log the transaction info.
         // This only logs transactions for profile updates; Paypal
         // transactions are logged by the handlePurchase service function.
-        if (isset($A['mem_pmttype']) && !empty($A['mem_pmttype'])) {
+        $pmt_type = MEMB_getVar($A, 'mem_pmttype');
+        $pmt_amt = MEMB_getVar($A, 'mem_pmtamt', 'float', 0);
+        $quickrenew = MEMB_getVar($A, 'mem_quickrenew', 'integer', 0);
+        if (!empty($pmt_type) || $pmt_amt > 0 || $quickrenew == 1) {
             $this->AddTrans($A['mem_pmttype'], $A['mem_pmtamt'],
-                        $A['mem_pmtdesc'], $A['mem_pmtdate']);
+                        $A['mem_pmtdesc']);
         }
 
         // Remove the renewal popup message
         LGLIB_deleteMessage($this->uid, MEMBERSHIP_MSG_EXPIRING);
+        Cache::clear('members');
 
         return true;
     }   // function Save
@@ -425,6 +470,7 @@ class Membership
      * @param   boolean $inc_relatives  True to include relatives
      * @param   integer $old_status     Original status being changed, for logging
      * @param   integer $new_status     New status value to set
+     * @return  boolean     True on success, False on error
      */
     private static function _UpdateStatus($uid, $inc_relatives, $old_status, $new_status)
     {
@@ -432,20 +478,25 @@ class Membership
 
         $uid = (int)$uid;
         if ($uid < 2) return false;
+        $Mem = self::getInstance($uid);
         $new_status = (int)$new_status;
         USES_lib_user();
 
         // Remove the member from the membership group
         $groups = array();
+        $dt_sql = '';
         switch ($new_status) {
         case MEMBERSHIP_STATUS_EXPIRED:
             if (!empty($_CONF_MEMBERSHIP['member_group'])) {
                 $groups[] = $_CONF_MEMBERSHIP['member_group'];
             }
+            $dt_sql = ", mem_expires = '" . MEMBERSHIP_today() . "'";
+            break;
         }
         // Set membership status
         $sql = "UPDATE {$_TABLES['membership_members']} SET
                 mem_status = $new_status
+                $dt_sql
                 WHERE mem_uid = $uid";
         //echo $sql;die;
         DB_query($sql, 1);
@@ -454,22 +505,22 @@ class Membership
         foreach ($groups as $group) {
             USER_delGroup($group, $uid);
         }
-        self::updatePlugins($uid, $old_status, $new_status);
+        //self::updaePlugins($uid, $old_status, $new_status);
 
         // Now do the same thing for all the relatives.
         if ($inc_relatives) {
-            $relatives = Link::getRelatives($uid);
+            $relatives = $Mem->getLinks();
             foreach ($relatives as $key => $name) {
                 foreach ($groups as $group) {
                     USER_delGroup($group, $key);
                 }
                 DB_query("UPDATE {$_TABLES['membership_members']} SET
                         mem_status = $new_status
+                        $dt_sql
                         WHERE mem_uid = $key", 1);
             }
-            self::updatePlugins($key, $old_status, $new_status);
+            self::updatePlugins('membership:' . $key, $old_status, $new_status);
         }
-
         return true;
     }
 
@@ -619,7 +670,8 @@ class Membership
             $plan_name = $this->Plan->name;
             $plan_dscp = $this->Plan->description;
             $plan_id = $this->Plan->plan_id;
-            $relatives = Link::getRelatives($this->uid);
+            $relatives = $this->getLinks();
+            //$relatives = Link::getRelatives($this->uid);
             $mem_number = $this->mem_number;
             $sql = "SELECT descr FROM {$_TABLES['membership_positions']}
                     WHERE uid = $uid";
@@ -831,14 +883,15 @@ class Membership
         global $_CONF_MEMBERSHIP, $_TABLES;
 
         // Remove this user from the family
-        Link::Emancipate($uid);
+        //Link::Emancipate($uid);
+        self::remLink($uid);
 
         // Remove this user from the membership group
         USER_delGroup($_CONF_MEMBERSHIP['member_group'], $uid);
 
         // Delete this membership record
         DB_delete($_TABLES['membership_members'], 'mem_uid', $uid);
-
+        Cache::clear('members');     // Make sure members and links are cleared
         self::_disableAccount($uid);
     }
 
@@ -884,6 +937,11 @@ class Membership
      */
     public static function updatePlugins($uid, $old_status, $new_status)
     {
+        global $_CONF_MEMBERSHIP;
+
+        PLG_itemSaved($uid, $_CONF_MEMBERSHIP['pi_name']);
+        return;
+
         global $_TABLES, $_CONF_MEMBERSHIP, $_PLUGINS;
 
         // No change in status just return OK
@@ -1105,14 +1163,13 @@ class Membership
      * Return membership information for the getItemInfo function in functions.inc.
      *
      * @param   string  $what   Array of field names, already exploded
-     * @param   integer $uid    User ID (not used)
      * @param   array   $options    Additional options
      * @return  array       Array of fieldname=>value
      */
-    public function getItemInfo($what, $uid, $options = array())
+    public function getItemInfo($what, $options = array())
     {
         $retval = array();
-        $U = User::getInstance($uid);
+        $U = User::getInstance($this->uid);
         foreach ($what as $fld) {
             switch ($fld) {
             case 'id':
@@ -1141,6 +1198,143 @@ class Membership
             }
         }
         return $retval;
+    }
+
+
+    /**
+     * Create a unique identifier for a membership record.
+     * The same GUID is applied to all linked members.
+     *
+     * @param   string  $seed   Some seed value
+     * @return  string      Unique identifier
+     */
+    private static function _makeGuid($seed)
+    {
+        return md5((string)$seed . rand());
+    }
+
+
+    /**
+     * Link a membership to another membership.
+     * If the membership being linked ($uid2) already exists, then it is updated
+     * with information from the target account.
+     * If updating, The date joined and member number are not changed.
+     *
+     * @todo    Decide if link should succeed even if plan is not a family plan
+     * @param   integer $uid1   Target (master) account
+     * @param   integer $uid2   Account being linked into the family
+     * @return  boolean     True on success, False on error
+     */
+    public static function addLink($uid1, $uid2)
+    {
+        global $_TABLES, $_CONF_MEMBERSHIP;
+
+        $Mem1 = self::getInstance($uid1);
+        if ($Mem1->isNew) {
+            COM_errorLog("Cannot link user $uid2 to nonexistant membership for $uid1");
+            return false;
+        }
+        // TODO: Check here for $Mem1->Plan to see if it uses linked accounts?
+        $Mem2 = self::getInstance($uid2);
+        if ($Mem2->isNew) {
+            if ($_CONF_MEMBERSHIP['use_mem_number']) {
+                $mem_number = self::createMemberNumber($uid2);
+            } else {
+                $mem_number = '';
+            }
+        } else {
+            $mem_number = $Mem2->mem_number;
+        }
+        $mem_number = DB_escapeString($mem_number);
+
+        $sql = "INSERT INTO {$_TABLES['membership_members']} (
+                mem_uid, mem_plan_id, mem_joined, mem_expires, mem_status, mem_guid,
+                mem_number, mem_notified, mem_istrial
+            ) SELECT
+                $uid2, mem_plan_id, mem_joined, mem_expires, mem_status, mem_guid,
+                '$mem_number', mem_notified, mem_istrial
+                FROM {$_TABLES['membership_members']}
+                WHERE mem_uid = $uid1
+            ON DUPLICATE KEY UPDATE
+                mem_plan_id = '" . DB_escapeString($Mem1->plan_id) . "',
+                mem_expires = '" . DB_escapeString($Mem1->expires) . "',
+                mem_status = '{$Mem1->status}',
+                mem_guid = '{$Mem1->guid}',
+                mem_notified = '{$Mem1->notified}',
+                mem_istrial = '{$Mem1->istrial}'";
+        //echo $sql;die;
+        DB_query($sql);
+        if (DB_error()) {
+            COM_errorLog(__CLASS__ . "/addLink() error: $sql");
+            return false;
+        } else {
+            Cache::clear('members');
+            return true;
+        }
+    }
+
+
+    /**
+     * Remove a linked membership from the family.
+     * The GUID is changed so it is now a standalone membership, nothing else
+     * is changed.
+     *
+     * @param   integer $uid    Account ID being unlinked
+     * @return  boolean     True on success, False on error
+     */
+    public static function remLink($uid)
+    {
+        global $_TABLES;
+
+        $uid = (int)$uid;
+        if ($uid < 2) return false;
+
+        $sql = "UPDATE {$_TABLES['membership_members']}
+            SET mem_guid = '" . self::_makeGuid($uid) . "'
+            WHERE mem_uid = $uid";
+        DB_query($sql);
+        if (DB_error()) {
+            COM_errorLog(__CLASS__ . "::remLink() error: $sql");
+            return false;
+        } else {
+            Cache::clear('members');
+            return true;
+        }
+    }
+
+
+    /**
+     * Get all accounts related to the specified account.
+     *
+     * @param   mixed   $uid    User ID
+     * @return  array       Array of relatives (uid => username)
+     */
+    public function getLinks()
+    {
+        global $_TABLES, $_USER;
+
+        // If uid is empty, use the curent id
+        if ($this->uid < 1) return array();   // invalid user ID requested
+
+        $cache_key = 'links_' . $this->uid;
+        $relatives = Cache::get($cache_key);
+        if ($relatives === NULL) {
+            $relatives = array();
+            $sql = "SELECT m.mem_uid, u.fullname, u.username
+                    FROM {$_TABLES['membership_members']} m
+                    LEFT JOIN {$_TABLES['users']} u
+                    ON m.mem_uid = u.uid
+                    WHERE m.mem_guid = '" . DB_escapeString($this->guid) . "'
+                    AND m.mem_uid <> {$this->uid}";
+            //echo $sql;die;
+            $res = DB_query($sql, 1);
+            while ($A = DB_fetchArray($res, false)) {
+                $relatives[$A['mem_uid']] = empty($A['fullname']) ?
+                    $A['username'] : $A['fullname'];
+            }
+            Cache::set($cache_key, $relatives, 'members');
+        }
+        return $relatives;
     }
 
 }

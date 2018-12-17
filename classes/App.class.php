@@ -87,10 +87,10 @@ class App
                 ) );
                 $T->parse('row', 'DataRow', true);
             }
-            $M = self::getMember($uid);
+            $M = Membership::getInstance($uid);
             $rel_urls = '';
             if (!$M->isNew) {
-                $relatives = Link::getRelatives($M->uid);
+                $relatives = M->getLinks();
                 foreach ($relatives as $key=>$name) {
                     $rel_urls .= '&nbsp;&nbsp;<a href="' . $_CONF['site_url'] .
                         "/users.php?mode=profile&amp;uid=$key\">$name</a>";
@@ -140,7 +140,7 @@ class App
         $status = LGLIB_invokeService('profile', 'renderForm', $prf_args,
                 $output, $svc_msg);
         if ($status == PLG_RET_OK && !empty($output)) {
-            $M = self::getMember($uid);
+            $M = Membership::getInstance($uid);
             if (isset($_POST[$typeselect_var])) {
                 $sel = $_POST[$typeselect_var];
             } elseif ($M->isNew) {
@@ -307,10 +307,11 @@ class App
     /**
      * Get a membership object for the specified use ID.
      *
+     * @deprecated
      * @param   integer $uid    User ID
      * @return  object          Membership object
      */
-    private static function getMember($uid)
+    private static function XgetMember($uid)
     {
         static $members = array();
 
