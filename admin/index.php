@@ -100,9 +100,6 @@ case 'importusers':
 case 'quickrenew':
     $M = new \Membership\Membership($_POST['mem_uid']);
     $status = $M->Add($uid, $M->Plan->plan_id, 0);
-    if ($status !== false) {
-        $M->AddTrans('by admin', $_POST['mem_pmtamt']);
-    }
     return $status == true ? PLG_RET_OK : PLG_RET_ERROR;
 
 case 'savemember':
@@ -349,7 +346,7 @@ function MEMBERSHIP_listMembers()
         'sort' => true,
     );
 
-    $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'desc');
+    $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'asc');
     if (isset($_REQUEST['showexp'])) {
         $frmchk = 'checked="checked"';
         $exp_query = '';
@@ -374,8 +371,8 @@ function MEMBERSHIP_listMembers()
         'has_extras' => true,
         'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
     );
-    $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>' .
-            $LANG_MEMBERSHIP['show_expired'];
+    $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>&nbsp;' .
+            $LANG_MEMBERSHIP['show_expired'] . '&nbsp;&nbsp;';
 
     $del_action = '<button name="deletebutton" class="' .
                 MEM_getIcon('trash', 'danger') . ' memb-icon-button tooltip"'
@@ -406,7 +403,7 @@ function MEMBERSHIP_listMembers()
             . $LANG_MEMBERSHIP['regen_mem_numbers'];
     }
     $form_arr = array();
-    $retval .= ADMIN_list('membership_memberlist', __NAMESPACE__ . '\getField_member',
+    $retval .= ADMIN_list('membership_memberlist', 'MEMB_getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 $options, $form_arr);
     return $retval;
@@ -463,7 +460,15 @@ function MEMBERSHIP_listPlans()
         'help_url'   => ''
     );
     $form_arr = array();
-    $retval .= ADMIN_list('membership_planlist', __NAMESPACE__ . '\getField_plan',
+    $retval .= COM_createLink(
+        $LANG_MEMBERSHIP['new_plan'],
+        MEMBERSHIP_ADMIN_URL . '/index.php?view=editplan=x',
+        array(
+            'class' => 'uk-button uk-button-success',
+            'style' => 'float:left',
+        )
+    );
+    $retval .= ADMIN_list('membership_planlist', 'MEMB_getField_plan',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, '', '',
                 '', $form_arr);
     return $retval;
@@ -479,7 +484,7 @@ function MEMBERSHIP_listPlans()
  * @param   array   $icon_arr   Array of system icons
  * @return  string              HTML for the field cell
  */
-function getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
+function MEMB_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
@@ -542,7 +547,7 @@ function getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
  * @param   array   $icon_arr   Array of system icons
  * @return  string              HTML for the field cell
  */
-function getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
+function MEMB_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
@@ -635,7 +640,7 @@ function getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
  * @param  array   $icon_arr   Array of system icons
  * @return string              HTML for the field cell
  */
-function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
+function MEMB_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 {
     global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES,
             $LANG_ADMIN;
@@ -663,7 +668,7 @@ function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
         break;
 
     case 'links':
-        $links = \Membership\Link::getRelatives($A['mem_uid']);
+        $links = \Membership\Membership::getInstance($A['mem_uid'])->getLinks();
         $L = array();
         foreach ($links as $uid=>$fullname) {
             $L[] = MEMBER_CreateNameLink($uid);
@@ -712,18 +717,6 @@ function getField_member($fieldname, $fieldvalue, $A, $icon_arr)
         }
         break;
 
-    /*case 'action':
-        $retval = '<select name="action"
-            onchange="javascript: document.location.href=\'' .
-            MEMBERSHIP_ADMIN_URL . '/index.php?frm_id=' . $A['id'] .
-            '&mode=\'+this.options[this.selectedIndex].value">'. "\n";
-        $retval .= '<option value="">--Select Action--</option>'. "\n";
-        $retval .= '<option value="preview">Preview</option>'. "\n";
-        $retval .= '<option value="results">Results</option>'. "\n";
-        $retval .= '<option value="export">Export CSV</option>'. "\n";
-        $retval .= "</select>\n";
-        break;*/
-
     default:
         $retval = $fieldvalue;
 
@@ -744,8 +737,7 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
 {
     global $_CONF, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $LANG01;
 
-    $help_text = isset($LANG_MEMBERSHIP['adm_' . $mode]) ?
-            $LANG_MEMBERSHIP['adm_' . $mode] : '';
+    $help_text = MEMB_getVar($LANG_MEMBERSHIP, 'adm_' . $mode);
 
     $plan_active = false;
     $members_active = false;
@@ -756,17 +748,9 @@ function MEMBERSHIP_adminMenu($mode='', $help_text = '')
     $new_item_option = '';
     switch($mode) {
     case 'listplans':
-        $new_item_option = array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
-            'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_plan']}</span>",
-        );
         $plan_active = true;
         break;
     case 'positions':
-        $new_item_option = array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
-            'text' => "<span class=\"piMembershipAdminNewItem\">{$LANG_MEMBERSHIP['new_position']}</span>",
-        );
         $pos_active = true;
         break;
     case 'listmembers':
@@ -1005,7 +989,7 @@ function MEMBERSHIP_listTrans()
         ),
     );
     $form_arr = array();
-    return ADMIN_list('membership_listtrans', __NAMESPACE__ . '\getField_member',
+    return ADMIN_list('membership_listtrans', 'MEMB_getField_member',
                 $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
                 '', $form_arr);
 }
@@ -1108,7 +1092,15 @@ function MEMBERSHIP_listPositions()
         $_GET['query_limit'] = 20;
 
     $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
-    $display .= ADMIN_list('membership_positions', __NAMESPACE__ . '\getField_positions',
+    $display .= COM_createLink(
+        $LANG_MEMBERSHIP['new_position'],
+        MEMBERSHIP_ADMIN_URL . '/index.php?view=editpos=0',
+        array(
+            'class' => 'uk-button uk-button-success',
+            'style' => 'float:left',
+        )
+    );
+    $display .= ADMIN_list('membership_positions', 'MEMB_getField_positions',
             $header_arr, $text_arr, $query_arr, $defsort_arr,
             $filter, '', $options, '');
     $display .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
