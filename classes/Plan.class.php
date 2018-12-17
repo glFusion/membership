@@ -198,6 +198,24 @@ class Plan
 
 
     /**
+     * Get an instance of a specific membership.
+     *
+     * @param   string  $plan_id    Plan ID to retrieve
+     * @return  object      Plan object
+     */
+    public static function getInstance($plan_id = 0)
+    {
+        $cache_key = 'plan_' . $plan_id;
+        $retval = Cache::get($cache_key);
+        if ($retval === NULL) {
+            $retval = new self($plan_id);
+            Cache::set($cache_key, $retval, 'plans');
+        }
+        return $retval;
+    }
+
+
+    /**
      * Save the current values to the database.
      * Appends error messages to the $Errors property.
      *
@@ -270,7 +288,7 @@ class Plan
         if (!$this->hasErrors()) {
             $retval = true;
             $msg .= $LANG_MEMBERSHIP['succeeded'];
-            Cache::clear('plans');
+            Cache::clear();     // clear all since this might affect memberships
         } else {
             $retval = false;
             $msg .= $LANG_MEMBERSHIP['failed'];
@@ -320,7 +338,7 @@ class Plan
             }
         }
         DB_delete($_TABLES['membership_plans'], 'plan_id', $id);
-        Cache::clear('plans');
+        Cache::clear();     // clear all since this might affect memberships
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['msg_plan_deleted'],
         ) );
@@ -505,7 +523,7 @@ class Plan
                 WHERE plan_id='$id'";
         //echo $sql;die;
         DB_query($sql);
-        Cache::clear('plans');
+        Cache::clear();     // clear all since this might affect memberships
         return $newvalue;
     }
 
@@ -526,7 +544,7 @@ class Plan
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('detail', 'plan_detail.thtml');
 
-        $M = new Membership($_USER['uid']);
+        $M = Membership::getInstance($_USER['uid']);
         if ($M->CanPurchase()) {
             $price = $this->Price($M->isNew);
             $price_txt = COM_numberFormat($price, 2);
@@ -725,8 +743,6 @@ class Plan
     {
         global $_CONF_MEMBERSHIP;
 
-        USES_lglib_class_datecalc();
-
         if ($exp == '') $exp = MEMBERSHIP_today();
 
         // If a rolling membership period, just add a year to today or
@@ -738,7 +754,7 @@ class Plan
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
             if ($_CONF_MEMBERSHIP['expire_eom']) {
-                $exp_day = \Date_Calc::daysInMonth($month, $year);
+                $exp_day = \LGLib\Date_Calc::daysInMonth($month, $year);
             }
         } else {
             // If there's a fixed month for renewal, check if the membership
@@ -756,7 +772,7 @@ class Plan
                     $exp_year = $c_year - 1;
             }
             $exp_year += 1;
-            $exp_day = \Date_Calc::daysInMonth($exp_month, $exp_year);
+            $exp_day = \LGLib\Date_Calc::daysInMonth($exp_month, $exp_year);
         }
         return sprintf('%d-%02d-%02d', $exp_year, $exp_month, $exp_day);
     }
@@ -854,7 +870,7 @@ class Plan
             return $retval;
         }
 
-        $M = new Membership();
+        $M = Membership::getInstance();
         if ($M->isNew) {
             // New member, no expiration message
             $T->set_var('you_expire', '');
