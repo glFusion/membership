@@ -25,7 +25,8 @@ $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_number` varchar(40) DEFAULT '',
   `mem_istrial` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`mem_uid`),
-  KEY `plan_guid` (`mem_plan_id`,`mem_guid`)
+  KEY `plan_guid` (`mem_plan_id`,`mem_guid`),
+  KEY `guid` (`guid`)
 ) ENGINE=MyISAM";
 
 $_SQL['membership_plans'] = "CREATE TABLE `{$_TABLES['membership_plans']}` (
@@ -132,7 +133,10 @@ $_UPGRADE_SQL = array(
 '0.1.2' => array(
     "ALTER TABLE {$_TABLES['membership_plans']}
         CHANGE access grp_access int(11) unsigned not null default 2",
-  ),
+),
+'0.2.0' => array(
+    "ALTER TABLE {$_TABLES['membership_memberships']} ADD KEY (guid)",
+),
 );
 
 $_MEMBERSHIP_SAMPLEDATA = array(
