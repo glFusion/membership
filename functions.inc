@@ -386,7 +386,7 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
     $retval = '';
 
     if (($panel == '' || $panel == 'useredit') && $fieldset == '') {
-        $M = new \Membership\Membership($uid);
+        $M = \Membership\Membership::getInstance($uid);
         if (MEMBERSHIP_isManager()) {
             $retval .= $M->Editform();
         } else {
@@ -410,7 +410,7 @@ function plugin_user_changed_membership($uid=0)
     // Only managers can update membership data.
     if (!MEMBERSHIP_isManager()) return;
 
-    $M = new \Membership\Membership($uid);
+    $M = \Membership\Membership::getInstance($uid);
     $op = '';
     $need_save = false; // assume nothing to do
     $joined = isset($_POST['mem_joined']) ? $_POST['mem_joined'] : '';
@@ -442,7 +442,8 @@ function plugin_user_changed_membership($uid=0)
         // Check the linked accounts for changes. If changed, just call
         // the membership Save() function.
         if (!$need_save) {  // if we don't already need to save
-            $new_links = \Membership\Link::getRelatives($uid);
+            //$new_links = \Membership\Link::getRelatives($uid);
+            $new_links = \Membership\Membership::getInstance($uid)->getLinks();
             $old_links = json_decode($_POST['mem_old_links'], true);
             if (is_array($old_links)) { // check for valid json
                 foreach ($new_links as $uid=>$name) {
@@ -522,7 +523,7 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
     if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager())
         return '';
 
-    $M = new \Membership\Membership($uid);
+    $M = \Membership\Membership::getInstance($uid);
     $existingFields = $T->get_var('plugin_fields');
     $T->set_var('plugin_fields', $existingFields . $M->showInfo(false, $uid));
 }
@@ -788,19 +789,22 @@ function plugin_runScheduledTask_membership()
  */
 function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
 {
-    global $_TABLES, $_BD_CONF, $LANG_BD00, $_CONF;
+    global $_TABLES, $_CONF;
 
-    $subtype = isset($options['subtype']) ? $options['subtype'] : 'plan';
+    $parts = explode(':', $id);
+    $type = $parts[0];
+    $id = isset($parts[1]) ? $parts[1] : 0;
+//    $subtype = isset($options['subtype']) ? $options['subtype'] : 'plan';
     $properties = explode(',', $what);
     $retval = array();
     if ($id == '*') return $retval; // getAll not supported
 
-    switch ($subtype) {
+    switch ($type) {
     case 'plan':
         break;
     case 'membership':
-        $M = new \Membership\Membership($id);
-        $retval = $M->getItemInfo($properties, $id, $options);
+        $M = \Membership\Membership::getInstance($id);
+        $retval = $M->getItemInfo($properties, $options);
         break;
     }
 
@@ -861,7 +865,7 @@ function MEMBERSHIP_notifyExpiration()
             // Create a notification email message.
             $username = COM_getDisplayName($row['mem_uid']);
             if (!isset($Plans[$row['plan_id']])) {
-                $Plans[$row['plan_id']] = new \Membership\Plan($row['plan_id']);
+                $Plans[$row['plan_id']] = \Membership\Plan::getInstance($row['plan_id']);
             }
             $P = $Plans[$row['plan_id']];   // shortcut variable
 
@@ -1141,8 +1145,8 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 
 
 /**
- * Get the current membership info.
- * Uses a static variable for efficiency
+ * Get the membership info for the current user.
+ * Uses a static variable for efficiency.
  *
  * @return  object  Membership object
  */
@@ -1151,7 +1155,7 @@ function MEMBERSHIP_currentMembership()
     static $current = NULL;
 
     if ($current === NULL) {
-        $current = new \Membership\Membership();
+        $current = \Membership\Membership::getInstance();
     }
     return $current;
 }
