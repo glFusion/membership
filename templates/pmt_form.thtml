@@ -23,6 +23,12 @@
     <td>{$LANG_MEMBERSHIP['plan']}:</td>
     <td>{plan_name}</td>
   </tr>
+{!if mem_number}
+  <tr>
+    <td>{$LANG_MEMBERSHIP['mem_number']}:</td>
+    <td>{mem_number}</td>
+  </tr>
+{!endif}
   <tr>
     <td>{$LANG_MEMBERSHIP['membership_fee']}:</td>
     <td>{price_total} {currency}

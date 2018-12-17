@@ -138,8 +138,8 @@ case 'editapp':
     break;
 
 case 'pmtform':
-    $M = new \Membership\Membership();
-    $P = new \Membership\Plan($_GET['plan_id']);
+    $M = \Membership\Membership::getInstance();
+    $P = \Membership\Plan::getInstance($_GET['plan_id']);
     if (!$P->isNew) {
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('pmt', 'pmt_form.thtml');
@@ -155,6 +155,7 @@ case 'pmtform':
         $T->set_var(array(
             'member_name'   => COM_getDisplayName($uid),
             'member_username' => $_USER['username'],
+            'mem_number'    => $M->mem_number,
             'plan_name'     => $P->name,
             'price_total'   => sprintf('%4.2f', $price_total),
             'price_actual'  => sprintf('%4.2f', $price_actual),
