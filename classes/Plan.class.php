@@ -203,14 +203,9 @@ class Plan
      * @param   string  $plan_id    Plan ID to retrieve
      * @return  object      Plan object
      */
-    public static function getInstance($plan_id = 0)
+    public static function getInstance($plan_id = '')
     {
-        $cache_key = 'plan_' . $plan_id;
-        $retval = Cache::get($cache_key);
-        if ($retval === NULL) {
-            $retval = new self($plan_id);
-            Cache::set($cache_key, $retval, 'plans');
-        }
+        $retval = new self($plan_id);
         return $retval;
     }
 
@@ -785,15 +780,20 @@ class Plan
      */
     public static function getCurrency()
     {
+        global $_CONF_MEMBERSHIP;
         static $currency = NULL;
         if ($currency === NULL) {
-            $status = LGLIB_invokeService('paypal', 'getCurrency', array(),
+            if ($_CONF_MEMBERSHIP['enable_paypal']) {
+                $status = LGLIB_invokeService('paypal', 'getCurrency', array(),
                     $output, $svc_msg);
-            if ($status == PLG_RET_OK) {
-                $currency = $output;
+                if ($status == PLG_RET_OK) {
+                    $currency = $output;
+                }
             } else {
-                $currency = 'USD';
+                $currency = $_CONF_MEMBERSHIP['currency'];
             }
+
+            if (empty($currency)) $currency = 'USD';
         }
         return $currency;
     }
@@ -899,9 +899,7 @@ class Plan
             $T->set_var('footer', $LANG_MEMBERSHIP['return_to_edit']);
         }
 
-        $status = LGLIB_invokeService('paypal', 'getCurrency', array(),
-                $currency, $svc_msg);
-        if (empty($currency)) $currency = 'USD';
+        $currency = self::getCurrency();
         $lang_price = $LANG_MEMBERSHIP['price'];
 
         $T->set_block('planlist', 'PlanBlock', 'PBlock');

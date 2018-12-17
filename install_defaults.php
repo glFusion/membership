@@ -545,6 +545,18 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
+    // Currency to use if Paypal is *not* integrated.
+    array(
+        'name' => 'currency',
+        'default_value' => 'USD',
+        'type' => 'text',
+        'subgroup' => 10,
+        'fieldset' => 20,
+        'selection_array' => 0,
+        'sort' => 30,
+        'set' => true,
+        'group' => 'membership',
+    ),
 );
 
 
