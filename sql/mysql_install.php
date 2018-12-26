@@ -85,7 +85,12 @@ $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']}
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`)
 ) ENGINE=MyISAM";
- 
+
+$_SQL['membership_users'] = "CREATE TABLE `{$_TABLES['membership_users']}` (
+    `uid` int(11) unsigned NOT NULL,
+    `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
+    PRIMARY KEY (`uid`)";
+
 $_UPGRADE_SQL = array(
 '0.0.2' => array(
   "CREATE TABLE {$_TABLES['membership_log']} (
@@ -136,6 +141,10 @@ $_UPGRADE_SQL = array(
 ),
 '0.2.0' => array(
     "ALTER TABLE {$_TABLES['membership_memberships']} ADD KEY (guid)",
+    "CREATE TABLE `{$_TABLES['membership_users']}` (
+        `uid` int(11) unsigned NOT NULL,
+        `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
+        PRIMARY KEY (`uid`)",
 ),
 );
 

@@ -30,15 +30,14 @@ class User
      *
      * @param   integer $uid    Optional user ID
      */
-    public function __construct($uid='')
+    public function __construct($uid=0)
     {
         global $_USER;
 
-        if ($uid == '' || (is_array($_USER) && $uid == $_USER['uid'])) {
-            $this->SetVars($_USER);
-        } else {
-            $this->Read($uid);
+        if ($uid == 0) {
+            $uid = $_USER['uid'];
         }
+        $this->Read($uid);
     }
 
 
@@ -54,6 +53,7 @@ class User
         switch ($key) {
         case 'uid':
         case 'level':
+        case 'terms_accept':
             $this->properties[$key] = (int)$value;
             break;
         default:
@@ -131,8 +131,10 @@ class User
         //$A = Cache::get($cache_key);
         $A = NULL;  // temp until user caching works
         if ($A === NULL) {
-            $sql = "SELECT * from {$_TABLES['users']}
-                WHERE uid=$uid";
+            $sql = "SELECT * from {$_TABLES['users']} u
+                LEFT JOIN {$_TABLES['membership_users']} m
+                ON m.uid = u.uid
+                WHERE u.uid=$uid";
             $A = DB_fetchArray(DB_query($sql), false);
             //Cache::set($cache_key, $A, 'users');
         }
