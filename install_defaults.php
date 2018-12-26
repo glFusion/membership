@@ -166,33 +166,6 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
-    // Enable or require an application?
-    // 0 = No application used
-    // 1 = Application available, a link to update shows on the plugin index
-    // 2 = Required, the index page will redirect the use to update their app
-    array(
-        'name' => 'require_app',
-        'default_value' => 0,
-        'type' => 'select',
-        'subgroup' => 0,
-        'fieldset' => 0,
-        'selection_array' => 16,
-        'sort' => 100,
-        'set' => true,
-        'group' => 'membership',
-    ),
-    // Allow members to view their applications? Puts a link in the profiles, etc.
-    array(
-        'name' => 'view_app',
-        'default_value' => 0,
-        'type' => 'select',
-        'subgroup' => 0,
-        'fieldset' => 0,
-        'selection_array' => 3,
-        'sort' => 110,
-        'set' => true,
-        'group' => 'membership',
-    ),
     // Which glFusion blocks to show in our pages
     // 0 = none, 1 = left, 2 = right, 3 = both
     array(
@@ -290,7 +263,7 @@ $membershipConfigData = array(
         'default_value' => NULL,
         'type' => 'fieldset',
         'subgroup' => 0,
-        'fieldset' => 0,
+        'fieldset' => 10,
         'selection_array' => NULL,
         'sort' => 10,
         'set' => true,
@@ -336,7 +309,7 @@ $membershipConfigData = array(
         'default_value' => NULL,
         'type' => 'fieldset',
         'subgroup' => 0,
-        'fieldset' => 0,
+        'fieldset' => 20,
         'selection_array' => NULL,
         'sort' => 20,
         'set' => true,
@@ -372,6 +345,58 @@ $membershipConfigData = array(
         'fieldset' => 20,
         'selection_array' => 0,
         'sort' => 30,
+        'set' => true,
+        'group' => 'membership',
+    ),
+
+    // Application options
+    array(
+        'name' => 'fs_app',
+        'default_value' => NULL,
+        'type' => 'fieldset',
+        'subgroup' => 0,
+        'fieldset' => 30,
+        'selection_array' => NULL,
+        'sort' => 30,
+        'set' => true,
+        'group' => 'membership',
+    ),
+    // Enable or require an application?
+    // 0 = No application used
+    // 1 = Application available, a link to update shows on the plugin index
+    // 2 = Required, the index page will redirect the use to update their app
+    array(
+        'name' => 'require_app',
+        'default_value' => 0,
+        'type' => 'select',
+        'subgroup' => 0,
+        'fieldset' => 30,
+        'selection_array' => 16,
+        'sort' => 10,
+        'set' => true,
+        'group' => 'membership',
+    ),
+    // Plugin used to provide application services
+    array(
+        'name' => 'app_provider',
+        'default_value' => '',
+        'type' => 'select',
+        'subgroup' => 0,
+        'fieldset' => 30,
+        'selection_array' => 4,
+        'sort' => 30,
+        'set' => true,
+        'group' => 'membership',
+    ),
+    // Application form ID if the Forms plugin is used
+    array(
+        'name' => 'app_form_id',
+        'default_value' => 'pi_membership_app',
+        'type' => 'text',
+        'subgroup' => 0,
+        'fieldset' => 30,
+        'selection_array' => 0,
+        'sort' => 40,
         'set' => true,
         'group' => 'membership',
     ),
