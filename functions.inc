@@ -41,11 +41,11 @@ define('MEMBERSHIP_STATUS_ENABLED', 1);
 define('MEMBERSHIP_STATUS_ARREARS', 2);
 define('MEMBERSHIP_STATUS_EXPIRED', 4);
 define('MEMBERSHIP_STATUS_DROPPED', 128);
-define('MEMBERSHIP_APP_NONE', 0);
-define('MEMBERSHIP_APP_READ', 1);
-define('MEMBERSHIP_APP_CREATE', 2);
-define('MEMBERSHIP_APP_EDIT', 4);
-define('MEMBERSHIP_APP_ALLACCESS', 7);
+#define('MEMBERSHIP_APP_NONE', 0);
+#define('MEMBERSHIP_APP_READ', 1);
+#define('MEMBERSHIP_APP_CREATE', 2);
+#define('MEMBERSHIP_APP_EDIT', 4);
+#define('MEMBERSHIP_APP_ALLACCESS', 7);
 // Settings for whether a membership app is available and required
 define('MEMBERSHIP_APP_DISABLED', 0);
 define('MEMBERSHIP_APP_OPTIONAL', 1);
@@ -108,12 +108,30 @@ $_CONF_MEMBERSHIP['today'] = $_CONF_MEMBERSHIP['now']->format('Y-m-d', true);
 
 spl_autoload_register(function ($class)
 {
-    if (strpos($class, 'Membership\\') === 0) {
-        $class = str_replace('Membership\\', '', $class);
-        $path = __DIR__ . '/classes/' . $class . '.class.php';
-        if (file_exists($path)) {
-            include $path;
-        }
+    // project-specific namespace prefix
+    $prefix = 'Membership\\';
+
+    // does the class use the namespace prefix?
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        // no, move to the next registered autoloader
+        return;
+    }
+
+    // base directory for the namespace prefix
+    $base_dir = __DIR__ . '/classes/';
+
+    // get the relative class name
+    $relative_class = substr($class, $len);
+
+    // replace the namespace prefix with the base directory, replace namespace
+    // separators with directory separators in the relative class name, append
+    // with .php
+    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.class.php';
+
+    // if the file exists, require it
+    if (file_exists($file)) {
+        require $file;
     }
 });
 
@@ -652,8 +670,11 @@ function plugin_configmanager_select_app_form_membership()
 {
     global $_TABLES, $LANG_MEMBERSHIP;
 
-    $status = LGLIB_invokeService('forms', 'getFormInfo', array(),
-            $output, $msg);
+    $status = LGLIB_invokeService('forms', 'getFormInfo',
+        array(),
+        $output,
+        $msg
+    );
     $A = array($LANG_MEMBERSHIP['none'] => '');
     if ($status == PLG_RET_OK) {
         foreach ($output as $form) {
@@ -799,14 +820,39 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
 //    $subtype = isset($options['subtype']) ? $options['subtype'] : 'plan';
     $properties = explode(',', $what);
     $retval = array();
-    if ($id == '*') return $retval; // getAll not supported
 
     switch ($type) {
     case 'plan':
+        if ($id != '*') {
+            $plans = array(\Membership\Plan::getInstance($id));
+        } else {
+            $plans = \Membership\Plan::getPlans();
+        }
+        foreach ($plans as $plan) {
+            $props = $plan->getItemInfo($properties, $options);
+        }
+        $mapped = array();
+        foreach ($props as $key => $value) {
+            if ($id == '*') {
+                if ($value != '') {
+                    $mapped[$key] = $value;
+                }
+            } else {
+                $mapped[$key] = $value;
+            }
+        }
+
+        if ($id == '*') {
+            $retval[] = $mapped;
+        } else {
+            $retval = $mapped;
+            break;
+        }
         break;
     case 'membership':
+        if ($id == '*') return $retval; // getAll not supported
         $M = \Membership\Membership::getInstance($id);
-        $retval = $M->getItemInfo($properties, $options);
+        $props = $M->getItemInfo($properties, $options);
         break;
     }
 
@@ -814,11 +860,7 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
         $tRet = array_values($retval);
         $retval = $tRet[0];
     }
-    if ($retval === '' || (is_array($retval) && count($retval) == 0)) {
-        return NULL;
-    } else {
-        return $retval;
-    }
+    return $retval;
 }
 
 
@@ -879,7 +921,11 @@ function MEMBERSHIP_notifyExpiration()
                 'item_name' => $P->name,
                 'btn_type' => 'buy_now',
             );
-            $status = LGLIB_invokeService('paypal', 'genButton', $args, $output, $msg);
+            $status = LGLIB_invokeService('paypal', 'genButton',
+                $args,
+                $output,
+                $msg
+            );
             $button = ($status == PLG_RET_OK) ? $output[0] : '';
 
             $T = new Template($template_base);
@@ -1147,6 +1193,17 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 
 
 /**
+ * Return true to enable service functions.
+ *
+ * @return  boolean     True to enable web services
+ */
+function plugin_wsEnabled_membership()
+{
+    return true;
+}
+
+
+/**
  * Get the membership info for the current user.
  * Uses a static variable for efficiency.
  *
@@ -1327,6 +1384,7 @@ function MEMB_getVar($A, $varname, $type = 'string')
     $val = isset($A[$varname]) ? $A[$varname] : NULL;
     switch ($type) {
     case 'int':
+    case 'integer':
         return (int)$val;
         break;
     case 'bool':
