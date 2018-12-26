@@ -1,15 +1,15 @@
 <?php
 /**
-*   Provides automatic installation of the Membership plugin.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Provides automatic installation of the Membership plugin.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.0.1
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 
 if (!defined ('GVERSION')) {
     die ('This file can not be used on its own.');
@@ -25,77 +25,105 @@ require_once $_CONF['path'].'plugins/membership/functions.inc';
 require_once $_CONF['path'].'plugins/membership/sql/'. $_DB_dbms. '_install.php';
 
 /** Plugin installation options
-*   @global array $INSTALL_plugin['membership']
-*/
+ * @global array $INSTALL_plugin['membership']
+ */
 $INSTALL_plugin['membership'] = array(
-    'installer' => array('type' => 'installer', 
-            'version' => '1', 
-            'mode' => 'install'),
+    'installer'     => array(
+        'type'      => 'installer',
+        'version'   => '1',
+        'mode'      => 'install',
+    ),
 
-    'plugin' => array('type' => 'plugin', 
-            'name'      => $_CONF_MEMBERSHIP['pi_name'],
-            'ver'       => $_CONF_MEMBERSHIP['pi_version'], 
-            'gl_ver'    => $_CONF_MEMBERSHIP['gl_version'],
-            'url'       => $_CONF_MEMBERSHIP['pi_url'], 
-            'display'   => $_CONF_MEMBERSHIP['pi_display_name']),
+    'plugin' => array(
+        'type'      => 'plugin',
+        'name'      => $_CONF_MEMBERSHIP['pi_name'],
+        'ver'       => $_CONF_MEMBERSHIP['pi_version'],
+        'gl_ver'    => $_CONF_MEMBERSHIP['gl_version'],
+        'url'       => $_CONF_MEMBERSHIP['pi_url'],
+        'display'   => $_CONF_MEMBERSHIP['pi_display_name'],
+    ),
 
-    array('type' => 'table', 
-            'table'     => $_TABLES['membership_members'], 
-            'sql'       => $_SQL['membership_members']),
+    array(
+        'type'  => 'table',
+        'table' => $_TABLES['membership_members'],
+        'sql'   => $_SQL['membership_members'],
+    ),
 
-    array('type' => 'table', 
-            'table'     => $_TABLES['membership_plans'], 
-            'sql'       => $_SQL['membership_plans']),
+    array(
+        'type'  => 'table',
+        'table' => $_TABLES['membership_plans'],
+        'sql'   => $_SQL['membership_plans'],
+    ),
 
-    array('type' => 'table', 
-            'table'     => $_TABLES['membership_links'], 
-            'sql'       => $_SQL['membership_links']),
+    array(
+        'type'  => 'table',
+        'table' => $_TABLES['membership_links'],
+        'sql'   => $_SQL['membership_links'],
+    ),
 
-    array('type' => 'table', 
-            'table'     => $_TABLES['membership_trans'], 
-            'sql'       => $_SQL['membership_trans']),
+    array(
+        'type'  => 'table',
+        'table' => $_TABLES['membership_trans'],
+        'sql'   => $_SQL['membership_trans'],
+    ),
 
-    array('type' => 'table', 
-            'table'     => $_TABLES['membership_positions'], 
-            'sql'       => $_SQL['membership_positions']),
+    array(
+        'type'  => 'table',
+        'table' => $_TABLES['membership_positions'],
+        'sql'   => $_SQL['membership_positions'],
+    ),
 
-    array('type' => 'table', 
-            'table'     => $_TABLES['membership_log'], 
-            'sql'       => $_SQL['membership_log']),
+    array(
+        'type'  => 'table',
+        'table' => $_TABLES['membership_log'],
+        'sql'   => $_SQL['membership_log'],
+    ),
 
-    array('type' => 'group', 
-            'group' => 'membership Admin', 
-            'desc' => 'Users in this group can administer the Membership plugin',
-            'variable' => 'admin_group_id', 
-            'admin' => true,
-            'addroot' => true),
+    array(
+        'type'      => 'group',
+        'group'     => 'membership Admin',
+        'desc'      => 'Users in this group can administer the Membership plugin',
+        'variable'  => 'admin_group_id',
+        'admin'     => true,
+        'addroot'   => true,
+    ),
 
-    array('type' => 'group', 
-            'group' => 'membership Manage', 
-            'desc' => 'Users in this group can manage memberships',
-            'variable' => 'manage_group_id', 
-            'admin' => true,
-            'addroot' => true),
+    array(
+        'type'      => 'group',
+        'group'     => 'membership Manage',
+        'desc'      => 'Users in this group can manage memberships',
+        'variable'  => 'manage_group_id',
+        'admin'     => true,
+        'addroot'   => true,
+    ),
 
-    array('type' => 'feature', 
-            'feature' => 'membership.admin', 
-            'desc' => 'Membership Administration access',
-            'variable' => 'admin_feature_id'),
+    array(
+        'type'      => 'feature',
+        'feature'   => 'membership.admin',
+        'desc'      => 'Membership Administration access',
+        'variable'  => 'admin_feature_id',
+    ),
 
-    array('type' => 'feature', 
-            'feature' => 'membership.manage', 
-            'desc' => 'Membership Management access',
-            'variable' => 'manage_feature_id'),
+    array(
+        'type'      => 'feature',
+        'feature'   => 'membership.manage',
+        'desc'      => 'Membership Management access',
+        'variable'  => 'manage_feature_id',
+    ),
 
-    array('type' => 'mapping', 
-            'group' => 'admin_group_id', 
-            'feature' => 'admin_feature_id',
-            'log' => 'Adding Admin feature to the admin group'),
+    array(
+        'type'      => 'mapping',
+        'group'     => 'admin_group_id',
+        'feature'   => 'admin_feature_id',
+        'log'       => 'Adding Admin feature to the admin group',
+    ),
 
-    array('type' => 'mapping', 
-            'group' => 'manage_group_id', 
-            'feature' => 'manage_feature_id',
-            'log' => 'Adding Manager feature to the admin group'),
+    array(
+        'type'      => 'mapping',
+        'group'     => 'manage_group_id',
+        'feature'   => 'manage_feature_id',
+        'log'       => 'Adding Manager feature to the admin group',
+    ),
 
 );
 // A little trickery. If the plugin has been installed, the default membership
@@ -106,19 +134,20 @@ $INSTALL_plugin['membership'] = array(
 $c = DB_count($_TABLES['groups'], 'grp_name', 'membership Members');
 if ($c == 0) {
     $INSTALL_plugin['membership'][] = array(
-        'type' => 'group', 
-        'group' => 'membership Members', 
-        'desc' => 'Members are added to this group by default',
-        'variable' => 'members_group_id',
-        'admin' => false,
-        'addroot' => false
+        'type'      => 'group',
+        'group'     => 'membership Members',
+        'desc'      => 'Members are added to this group by default',
+        'variable'  => 'members_group_id',
+        'admin'     => false,
+        'addroot'   => false,
     );
 }
 
 
 /**
-* Puts the datastructures for this plugin into the glFusion database
-* Note: Corresponding uninstall routine is in functions.inc
+* Puts the datastructures for this plugin into the glFusion database.
+* Note: Corresponding uninstall routine is in functions.inc.
+*
 * @return   boolean True if successful False otherwise
 */
 function plugin_install_membership()
@@ -137,10 +166,10 @@ function plugin_install_membership()
 
 
 /**
-*   Loads the configuration records for the Online Config Manager
-*
-*   @return   boolean     true = proceed with install, false = an error occured
-*/
+ * Loads the configuration records for the Online Config Manager.
+ *
+ * @return  boolean     true = proceed with install, false = an error occured
+ */
 function plugin_load_configuration_membership()
 {
     global $_CONF, $_CONF_MEMBERSHIP, $_TABLES, $group_id;
@@ -148,7 +177,7 @@ function plugin_load_configuration_membership()
     require_once MEMBERSHIP_PI_PATH . '/install_defaults.php';
 
     // Get the member group ID that was saved previously.
-    $group_id = (int)DB_getItem($_TABLES['groups'], 'grp_id', 
+    $group_id = (int)DB_getItem($_TABLES['groups'], 'grp_id',
             "grp_name='{$_CONF_MEMBERSHIP['pi_name']} Members'");
 
     return plugin_initconfig_membership($group_id);
@@ -156,9 +185,8 @@ function plugin_load_configuration_membership()
 
 
 /**
-*   Create a membership form using the Forms plugin and initialize an
-*   empty log file.
-*/
+ * Create a membership form using the Forms plugin and initialize an empty log file.
+ */
 function plugin_postinstall_membership()
 {
     global $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $group_id,
@@ -257,11 +285,14 @@ function plugin_postinstall_membership()
         ),
     );
 
-    $args = array(
-        'form' => $form,
-        'fields' => $fields,
-    );
-    $status = LGLIB_invokeService('forms', 'createForm', $args, $output, $svc_msg);
+    /*$status = PLG_invokeService('forms', 'createForm',
+        array(
+            'form' => $form,
+            'fields' => $fields,
+        ),
+        $output,
+        $svc_msg
+    );*/
 
     // Create an empty log file
     $filename = $_CONF_MEMBERSHIP['pi_name'] . '.log';
