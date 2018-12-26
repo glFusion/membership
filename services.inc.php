@@ -43,12 +43,17 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     $plan_id = $A['item_id'][0];
     $plan_mod = isset($A['item_id'][1]) ? $A['item_id'][1] : '';
     // Create a return array with values to be populated later
-    $output = array('product_id' => 'membership:' . implode(':', $A['item_id']),
-            'name' => 'Unknown',
-            'short_description' => 'Unknown Membership Plan',
-            'description'       => '',
-            'price' => '0.00',
-            'fixed_q' => 1,
+    $output = array(
+        'product_id'        => 'membership:' . implode(':', $A['item_id']),
+        'name'              => 'Unknown',
+        'short_description' => 'Unknown Membership Plan',
+        'short_dscp'        => 'Unknown Membership Plan',
+        'description'       => '',
+        'dscp'              => '',
+        'price'             => '0.00',
+        'fixed_q'           => 1,
+        'url'               => '',
+        'have_detail_svc' => true,  // Tell Paypal to use it's detail page wrapper
     );
     $retval = PLG_RET_OK;       // assume response will be OK
 
@@ -56,13 +61,20 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     if ($P->plan_id != '') {
         $isnew = $plan_mod == 'renewal' ? false : true;
         $output['short_description'] = $P->name;
+        $output['short_dscp'] = $P->name;
         $output['name'] = 'Membership, ' . $P->plan_id;
         $output['description'] = $P->description;
+        $output['dscp'] = $P->description;
         $output['price'] = $P->price($isnew);
     } else {
         $retval = PLG_RET_ERROR;
     }
     return $retval;
+}
+function plugin_productinfo_membership($args)
+{
+    $status = service_productinfo_membership($args, $output, $svc_msg);
+    return $output;
 }
 
 
@@ -389,45 +401,22 @@ function service_status_membership($args, &$output, &$svc_msg)
             'expires' => '0000-00-00',
             'plan' => '',
         );
-        $res = DB_query("SELECT m.mem_status, m.mem_joined, m.mem_expires,
-                            p.name AS plan_name
-                        FROM {$_TABLES['membership_members']} m
-                        LEFT JOIN {$_TABLES['membership_plans']} p
-                            ON p.plan_id = m.mem_plan_id
-                        WHERE mem_uid = $uid", 1);
-        if ($res && DB_numRows($res) == 1) {
-            $A = DB_fetchArray($res, false);
-            if ($A['mem_expires'] > MEMBERSHIP_today()) {
+        $Mem = \Membership\Membership::getInstance($uid);
+        if (!$Mem->isNew) {
+            if ($Mem->expires > MEMBERSHIP_today()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ACTIVE;
-            } elseif ($A['mem_expires'] < MEMBERSHIP_dtEndGrace()) {
+            } elseif ($Mem->expires < MEMBERSHIP_dtEndGrace()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_EXPIRED;
             } else {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ARREARS;
             }
-            $info[$uid]['joined'] = $A['mem_joined'];
-            $info[$uid]['expires'] = $A['mem_expires'];
-            $info[$uid]['plan'] = $A['plan_name'];
+            $info[$uid]['joined'] = $Mem->joined;
+            $info[$uid]['expires'] = $Mem->expires;
+            $info[$uid]['plan'] = $Mem->Plan->name;
         }
     }
 
     $output = $info[$uid];
-    return PLG_RET_OK;
-}
-
-
-/**
- * Get the member type strings "Current", "Former", etc for each status.
- * Exposes MEMBERSHIP_membertypes() to other plugins.
- * Sets $output to an array of status=>string
- *
- * @param   array   $args       Not used
- * @param   mixed   $output     Not used
- * @param   mixed   $svc_msg    Not used
- * @return integer PLG_RET_OK
- */
-function service_membertypes_membership($args, &$output, &$svc_msg)
-{
-    $output = MEMBERSHIP_membertypes();
     return PLG_RET_OK;
 }
 
@@ -520,6 +509,34 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
             $output = $statuses[$myout['status']];
         }
     }
+    return PLG_RET_OK;
+}
+
+
+/**
+ * Get the product detail page for a specific item.
+ * Takes the item ID as a full paypal-compatible ID (membership:plan_id:opts)
+ * and creates the detail page for inclusion in the paypal catalog.
+ *
+ * @param   array   $args   Array containing item_id=>subscription:id:opts
+ * @param   mixed   $output Output holder variable
+ * @param   string  $svc_msg    Service message (not used)
+ * @return  integer         Status value
+ */
+function service_getDetailPage_membership($args, &$output, &$svc_msg)
+{
+    $output = '';
+    if (!is_array($args) || !isset($args['item_id'])) {
+        return PLG_RET_ERROR;
+    }
+    $item_info = explode(':', $args['item_id']);
+    if (!isset($item_info[1]) || empty($item_info[1])) {    // missing item ID
+        return PLG_RET_ERROR;
+    }
+    $output = \Membership\Plan::listPlans(true, true, $item_info[1]);
+    /*$P = Subscription\Product::getInstance($item_info[1]);
+    if ($P->isNew) return PLG_RET_ERROR;
+    $output = $P->Detail();*/
     return PLG_RET_OK;
 }
 
