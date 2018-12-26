@@ -3,7 +3,7 @@
 <h1>{$LANG_MEMBERSHIP['hdr_app_form']}</h1>
 <p>{$LANG_MEMBERSHIP['instr_app_form']} {exp_msg}</p>
 <p><hr /><br /></p>
-<form id="{form_id}" action="{site_url}/membership/index.php" method="post" class="uk-form uk-form-horizontal">
+<form id="membership_app_form" action="{site_url}/membership/index.php" method="post" class="uk-form uk-form-horizontal">
 <input type="hidden" name="mem_uid" value="{mem_uid}" />
 <input type="hidden" name="purch_url" value="{purch_url}" />
 {profile_fields}
@@ -15,32 +15,22 @@
 </p>
 {!endif}
 <hr />
-{!if terms_link}
+{!if terms_required}
 <a name="agree_terms"></a>
-<p class="{terms_cls}">{$LANG_MEMBERSHIP['agree_terms']}
-  <input 
-{!if terms_required_xx}
-  class="fValidate['required']"
-{!endif}
-id="terms_accept" type="checkbox" name="terms_accept" value="1" />
+<p class="uk-alert uk-alert-danger">{$LANG_MEMBERSHIP['agree_terms']}
+  <input id="terms_accept" type="checkbox" name="terms_accept" value="1" />
   <input id="terms_initial" type="text" name="terms_initial"
         size="5" maxlength="5" value="" />
- {terms_link}
-{!if terms_required}
-<img src="{site_url}/membership/images/required.png" width="16" height="16" class="tooltip" title="{$LANG_MEMBERSHIP['field_required']}" />
+  <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip" title="{$LANG_MEMBERSHIP['field_required']}"></i>
+{!if terms_link}
+  <br />{terms_link}
 {!endif}
 </p>
 <p>&nbsp;</p>
 {!endif}
-{!if is_uikit}
 <button id="saveapp" class="uk-button uk-button-success" type="submit" name="saveapp">{$LANG_MEMBERSHIP['submit']}</button>
 <button type="reset" class="uk-button uk-button-primary" name="reset">{$LANG_MEMBERSHIP['reset']}</button>
 <button type="reset" class="uk-button" onclick="location.href='{site_url}/index.php';" name="cancelapp">{$LANG_MEMBERSHIP['cancel']}</button>
-{!else}
-<input id="saveapp" class="lgButton green" type="submit" name="saveapp" value="{$LANG_MEMBERSHIP['submit']}" />
-<input type="reset" class="lgButton blue" name="reset" value="{$LANG_MEMBERSHIP['reset']}" />
-<input type="reset" class="lgButton grey" onclick="location.href='{site_url}/index.php';" name="cancelapp" value="{$LANG_MEMBERSHIP['cancel']}" />
-{!endif}
 </form>
 </div>
 {# end {templatelocation} #}
