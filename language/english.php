@@ -48,7 +48,7 @@ $LANG_MEMBERSHIP = array(
 //'must_login'    => 'Please <a href="%s">register</a> or <a href="%s">log in</a> to update your profile and purchase memberships.',
 'must_login'    => 'Please <a href="' . $_CONF['site_url'] . '/users.php?mode=new">register</a> or <a href="' . $_CONF['site_url'] .
         '/users.php?mode=login">log in</a> to update your profile and purchase memberships.',
-'return_to_edit' => "To update your application, click <a href=\"{$_CONF['site_url']}/membership/index.php\">here</a>.",
+'return_to_edit' => "To update your application, click <a href=\"{$_CONF['site_url']}/membership/index.php?editapp\">here</a>.",
 'err_name'      => 'Invalid Plan Name',
 'err_plan_id'   => 'Invalid Plan ID',
 'admin_title'   => 'Membership Administration',
@@ -182,7 +182,7 @@ $LANG_MEMBERSHIP = array(
 'blk_member_info' => 'Membership: %s<br />Expires: %s',
 'agree_terms' => 'By checking this box and entering my initials, I confirm that I have read and agree to the terms and conditions',
 //'terms_link' => 'Click <a href="%s" target="_new">here</a> to review.',
-'terms_link' => 'Click <a href="#agree_terms" onclick="popupWindow(\'%s\', \'Help\', 640, 480, 1)" class="toolbar">here</a> to review.',
+'terms_link' => 'Click <a href="#!agree_terms" onclick="popupWindow(\'%s\', \'Help\', 640, 480, 1)" class="toolbar">here</a> to review.',
 'err_terms_accept' => 'You must accept the terms and conditions.',
 'field_required' => 'This item cannot be left blank',
 'mailchimp_subscribe' => 'Subscribe to our mailing list?',
@@ -227,6 +227,7 @@ $LANG_fs['membership'] = array(
     'fs_mailchimp' => 'Mailchimp',
     'fs_mediagallery' => 'MediaGallery',
     'fs_paypal' => 'Paypal Plugin',
+    'fs_app' => 'Applications',
 );
 
 $LANG_confignames['membership'] = array(
@@ -270,6 +271,8 @@ $LANG_confignames['membership'] = array(
     'disable_expired' => 'Disable account upon expiration',
     'redir_after_purchase' => 'Redirect URL after purchase',
     'currency' => 'Currency if Paypal is <b>not</b> integrated',
+    'app_provider' => 'Plugin providing application',
+    'app_form_id' => 'Application form ID if Forms plugin is used',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']
@@ -277,6 +280,7 @@ $LANG_configselects['membership'] = array(
     0 => array('True' => 1, 'False' => 0),
     1 => array('True' => TRUE, 'False' => FALSE),
     3 => array('Yes' => 1, 'No' => 0),
+    4 => array('--None--' => '', 'Forms' => 'forms', 'Profile' => 'profile'),
     12 => array('No access' => 0, 'Read-Only' => 2, 'Read-Write' => 3),
     13 => array('None' => 0, 'Left' => 1, 'Right' => 2, 'Both' => 3),
     14 => array('00-Rolling' => 0, '01-January' => 1, '02-February' => 2,
