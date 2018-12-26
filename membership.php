@@ -30,6 +30,7 @@ $_TABLES['membership_trans']    = $prefix . 'trans';
 $_TABLES['membership_newusers'] = $prefix . 'newusers';
 $_TABLES['membership_log']      = $prefix . 'log';
 $_TABLES['membership_positions'] = $prefix . 'positions';
+$_TABLES['membership_users']    = $prefix . 'users';
 
 /**
 *   Global configuration array
