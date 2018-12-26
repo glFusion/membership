@@ -44,7 +44,7 @@ foreach($expected as $provided) {
 
 if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
     $uid = (int)$_GET['uid'];
-    $_CONF_MEMBERSHIP['view_app'] = MEMBERSHIP_APP_ALLACCESS;
+//    $_CONF_MEMBERSHIP['view_app'] = MEMBERSHIP_APP_ALLACCESS;
 } else {
     $uid = (int)$_USER['uid'];
 }
@@ -55,12 +55,14 @@ case 'saveapp':
     // If a user is editing their own app, and a purchase url is included,
     // then redirect to that url upon saving.
     if (!MEMBERSHIP_isManager()) $_POST['mem_uid'] = $_USER['uid'];
-    $args = array(
-        'uid'   => $_POST['mem_uid'],
-        'data'  => $_POST,
+    /*$status = LGLIB_invokeService('profile', 'saveData',
+        array(
+            'uid'   => $_POST['mem_uid'],
+            'data'  => $_POST,
+        ),
+        $output,
+        $svc_msg,
     );
-    $status = LGLIB_invokeService('profile', 'saveData', $args,
-        $output, $svc_msg);
     if ($status == PLG_RET_OK) {
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['your_info_updated'],
@@ -77,7 +79,7 @@ case 'saveapp':
     } else {
         // If an error occurred during saving, go back to editing.
         $view = 'edit';
-    }
+    }*/
     break;
 
 default:
@@ -139,7 +141,7 @@ function displayApp($uid = 0)
 {
     global $_USER;
 
-    $content = \Membership\App::Display($uid);
+    $content = \Membership\App::getInstance($uid)->Display();
     if (empty($content)) {
         COM_404();
     } else {

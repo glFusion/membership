@@ -40,7 +40,8 @@ foreach($expected as $provided) {
 }
 
 if (empty($action)) {
-    if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
+    if (\Membership\App::getInstance($_USER['uid'])->Validate() > 0) {
+    //if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
         $action = 'editapp';
     } else {
         $action = 'list';
@@ -49,7 +50,7 @@ if (empty($action)) {
 
 if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
     $uid = (int)$_GET['uid'];
-    $_CONF_MEMBERSHIP['view_app'] = MEMBERSHIP_APP_ALLACCESS;
+    //$_CONF_MEMBERSHIP['view_app'] = MEMBERSHIP_APP_ALLACCESS;
 } else {
     $uid = (int)$_USER['uid'];
 }
@@ -63,10 +64,10 @@ case 'cancelapp':
     COM_refresh($_CONF['site_url']);
     exit;
 case 'saveapp':
-    $status = \Membership\App::Save();
+    $status = \Membership\App::getInstance()->Save();
     if ($status == PLG_RET_OK) {
         LGLIB_storeMessage(array(
-                'message' => $LANG_MEMBERSHIP['your_info_updated'],
+            'message' => $LANG_MEMBERSHIP['your_info_updated'],
         ) );
         if ($_POST['mem_uid'] == $_USER['uid'] && !empty($_POST['purch_url'])) {
             if (!empty($_POST['app_membership_type'])) {
@@ -120,14 +121,14 @@ case 'detail':
 case 'app':
 case 'view':
     // Display the application within the normal glFusion site.
-    $content .= \Membership\App::Display($uid);
+    $content .= \Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
         $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/index.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'editapp':
     if (!COM_isAnonUser()) {
-        $content .= \Membership\App::Edit($uid);
+        $content .= \Membership\App::getInstance($uid)->Edit();
     } else {
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['must_login'],
@@ -181,13 +182,17 @@ case 'list1':
     // Show the plan list when coming from the app submission
     $allow_purchase = true;
     $have_app = true;
+    //var_dump(PLG_getItemInfo('membership', 'plan:*', 'id,name'));
+    //exit;
     $show_plan = isset($_GET['plan_id']) ? $_GET['plan_id'] : '';
     $content .= \Membership\Plan::listPlans($allow_purchase, $have_app, $show_plan);
     break;
 case 'list':
 default:
     // Show the plan list via direct entry.
-    $allow_purchase = $_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED ? true : false;
+    $have_app = \Membership\App::getInstance($_USER['uid'])->Validate() == 0 ? true : false;
+    //$allow_purchase = $_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED ? true : false;
+    $allow_purchase = true;
     $have_app = false;
     $show_plan = '';
     $content .= \Membership\Plan::listPlans($allow_purchase, $have_app, $show_plan);
