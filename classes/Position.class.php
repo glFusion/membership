@@ -108,7 +108,7 @@ class Position
         if ($r) {
             $A = DB_fetchArray($r, false);
             if (is_array($A)) {
-                $this->SetVars($A);
+                $this->setVars($A);
                 return true;
             }
         }
@@ -123,7 +123,7 @@ class Position
      * @param   boolean $fromDB     True if reading from the DB
      * @return  boolean     True on success, False on failure
      */
-    public function SetVars($A, $fromDB=true)
+    public function setVars($A, $fromDB=true)
     {
         if (!is_array($A)) return false;
 
@@ -162,7 +162,7 @@ class Position
         global $_TABLES;
 
         if (is_array($A) && !empty($A)) {
-            $this->SetVars($A, false);
+            $this->setVars($A, false);
         }
 
         if ($this->id == 0) {
