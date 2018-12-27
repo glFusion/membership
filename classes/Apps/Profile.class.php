@@ -100,13 +100,13 @@ class Profile extends \Membership\App
      *
      * @param   integer $uid    User ID
      * @param   array   $A      $_POST or NULL to check the current on-file app
-     * @return  integer         Number of errors found
+     * @return  boolean     True if app is valid, False if not
      */
     protected function _Validate($A = NULL)
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
-        $status = 0;
+        $status = true;
         // todo: Add method to check new application from $_POST
         if ($A === NULL) {      // checking existing application
             $x = PLG_invokeService('profile', 'validate',
@@ -117,7 +117,7 @@ class Profile extends \Membership\App
                 $svc_msg
             );
             if ($x != PLG_RET_OK) {
-                $status++;
+                $status = false;
             }
         }
         return $status;

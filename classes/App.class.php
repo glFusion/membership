@@ -416,13 +416,17 @@ class App
      *
      * @param   integer $uid    User ID
      * @param   array   $A      $_POST or NULL to check the current on-file app
-     * @return  integer         Number of errors found
+     * @return  boolean     True if app is valid, False if not
      */
     public function Validate($A = NULL)
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
-        $status = 0;
+        if ($this->uid < 2) {
+            return false;
+        }
+
+        $status = true;
         // Check that the terms acceptance is supplied, or was done within a year
         $terms_accept = 0;
         if ($_CONF_MEMBERSHIP['terms_accept']) {
@@ -438,7 +442,7 @@ class App
             if ($terms_accept < time() - 31536000) {
                 COM_setMsg($LANG_MEMBERSHIP['err_terms_accept'], 'error', 1);
                 $_POST['app_errors']['terms_accept'] = 1;
-                $status++;
+                $status = false;
             }
         }
 
@@ -448,7 +452,7 @@ class App
         }
 
         // Now validate according to the plugin supplying the application
-        $status += $this->_Validate($A);
+        $status = $this->_Validate($A);
         return $status;
     }
 
