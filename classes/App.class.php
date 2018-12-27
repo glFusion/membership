@@ -344,7 +344,7 @@ class App
         // If selection is populated, this can't be a new membership
         $isNew = $sel == '' ? true : false;
         while ($A = DB_fetchArray($res, false)) {
-            $P->SetVars($A, true);
+            $P->setVars($A, true);
             $retval[$P->plan_id] = array(
                 'plan_id' => $P->plan_id,
                 'sel' => $P->plan_id == $sel ? ' checked="checked"' : '',

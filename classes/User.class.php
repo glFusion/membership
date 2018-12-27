@@ -107,7 +107,7 @@ class User
      *
      * @param   array $info Array containing user info fields
      */
-    public function SetVars($info)
+    public function setVars($info)
     {
         foreach ($info as $key=>$value) {
             $this->$key = $value;
@@ -117,7 +117,7 @@ class User
 
 
     /**
-     * Reads user information from the database and calls SetVars() to set up the variables.
+     * Reads user information from the database and calls setVars() to set up the variables.
      * Not called if this object is used to represent the current user.
      *
      * @param   integer $uid    User ID to read
@@ -139,7 +139,7 @@ class User
             //Cache::set($cache_key, $A, 'users');
         }
         if (!empty($A)) {
-            $this->SetVars($A);
+            $this->setVars($A);
         }
     }
 
