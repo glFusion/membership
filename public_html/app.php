@@ -20,11 +20,6 @@ if (COM_isAnonUser()) COM_404();
 
 USES_membership_functions();
 
-// Clean $_POST and $_GET, in case magic_quotes_gpc is set
-if (GVERSION < '1.3.0') {
-    $_POST = LGLIB_stripslashes($_POST);
-    $_GET = LGLIB_stripslashes($_GET);
-}
 $msg = '';
 $expected = array(
     'prt', 'view', 'edit',
