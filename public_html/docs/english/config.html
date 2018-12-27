@@ -38,7 +38,7 @@
 
       <dl id="desc_grace_days">
         <dt>Grace Period</dt>
-        <dd>Enter the grace period for membership expirations.  This is the number of days after a membership expires during which the member will still be able to access the additional features.  Enter "0" to have the membership terminate immediately upon expiration.</dd>
+        <dd>Enter the grace period for membership expirations. This is the number of days after a membership expires during which the member will still be able to access the additional features. Enter "0" to have the membership terminate immediately upon expiration.</dd>
       </dl>
 
       <dl id="desc_drop_days">
@@ -47,19 +47,19 @@
 There is no automatic facility for deleting membership records completely from the database. If a membership is created in error it must be deleted manually.</dd>
       </dl>
 
-      <dl id="desc_expire_eom">
+      <dl id="desc_expires_eom">
         <dt>Round expiration up to end of month?</dt>
         <dd>Select whether to round the expiration date to the end of the month. For example, if a member joins on July 15, selecting "Yes" here will have their membership expire on July 31 of next year.</dd>
       </dl>
 
       <dl id="desc_early_renewal">
         <dt>Early Renewal</dt>
-        <dd>This is the number of days prior to a membership's expiration when it may be renewed.  You probably want to allow members to renew at least a few days before their memberships expire.</dd>
+        <dd>This is the number of days prior to a membership's expiration when it may be renewed. You probably want to allow members to renew at least a few days before their memberships expire.</dd>
       </dl>
 
       <dl id="desc_notifydays">
         <dt>Days before expiration to send notifications</dt>
-        <dd>This is the number of days prior to expiration when notifications will be sent to members. Only one notification will be sent per expiration; when the membership is renewed the flag is reset to that an email will be sent before the new expiration date. Enter "-1" to disable notifications completely.</dd>
+        <dd>This is the number of days prior to expiration when notifications will be sent to members. Only one notification will be sent per expiration; when the membership is renewed the flag is reset so that an email will be sent before the new expiration date. Enter "-1" to disable notifications completely.</dd>
       </dl>
 
       <dl id="desc_notifymethod">
@@ -82,9 +82,14 @@ There is no automatic facility for deleting membership records completely from t
         <dd>Select whether members are required or able to fill out an application.</dd>
       </dl>
 
-      <dl id="desc_view_app">
-        <dt>View App?</dt>
-        <dd>Select whether members can view their application.</dd>
+      <dl id="desc_app_provider">
+          <dt>Application Provider</dt>
+          <dd>Select the plugin to provide the application functionality if an application is optional or required.</dd>
+      </dl>
+
+      <dl id="desc_app_form_id">
+          <dt>Application Form ID</dt>
+          <dd>Enter the ID of the application form if the Forms plugin is used. Version 0.2.0+ of the Forms plugin is required.</dd>
       </dl>
 
       <dl id="desc_displayblocks">
@@ -99,7 +104,7 @@ There is no automatic facility for deleting membership records completely from t
 
       <dl id="desc_debug">
         <dt>Log debugging messages?</dt>
-        <dd>Select "Yes" to enable verbose logging to the glFusion error log.  Select "No" to turn off logging. Memberships, expirations and cancellations are always logged to the plugin's log.</dd>
+        <dd>Select "Yes" to enable verbose logging to the glFusion error log. Select "No" to turn off logging. Memberships, expirations and cancellations are always logged to the plugin's log.</dd>
       </dl>
 
       <dl id="desc_adm_def_view">

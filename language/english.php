@@ -255,7 +255,7 @@ $LANG_confignames['membership'] = array(
     'payable_to' => 'Make checks payable to:',
     'remit_to' => 'Remittance Address',
     'adm_def_view' => 'Default Administrative View',
-    'terms_accept' => 'Offer or require acceptance of terms?',
+    'terms_accept' => 'Require acceptance of terms?',
     'terms_url' => 'URL to terms and conditions',
     'update_maillist' => 'Update mailing list segment?',
     'segment_active' => 'Segment for active members',
@@ -273,6 +273,7 @@ $LANG_confignames['membership'] = array(
     'currency' => 'Currency if Paypal is <b>not</b> integrated',
     'app_provider' => 'Plugin providing application',
     'app_form_id' => 'Application form ID if Forms plugin is used',
+    'expires_eom' => 'Memberships expire at end of month?',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']
