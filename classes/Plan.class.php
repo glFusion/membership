@@ -42,7 +42,7 @@ class Plan
      *
      * @param   integer $id  Optional plan ID
      */
-    function __construct($id = '')
+    public function __construct($id = '')
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
@@ -70,7 +70,7 @@ class Plan
      * @param   string  $var    Name of property to set.
      * @param   mixed   $value  New value for property.
      */
-    function __set($var, $value='')
+    public function __set($var, $value='')
     {
         switch ($var) {
         case 'plan_id':
@@ -113,7 +113,7 @@ class Plan
      * @param   string  $var    Name of property to retrieve.
      * @return  mixed           Value of property, NULL if undefined.
      */
-    function __get($var)
+    public function __get($var)
     {
         if (isset($this->properties[$var])) {
             return $this->properties[$var];
@@ -129,7 +129,7 @@ class Plan
      * @param   array   $row        Array of values, from DB or $_POST
      * @param   boolean $fromDB     True if read from DB, false if from $_POST
      */
-    public function SetVars($row, $fromDB=false)
+    public function setVars($row, $fromDB=false)
     {
         global $_CONF_MEMBERSHIP;
 
@@ -145,11 +145,14 @@ class Plan
         if ($fromDB) {
             $this->fees = @unserialize($row['fees']);
             $this->old_plan_id = $row['plan_id'];
-        } else {
-            if ($_CONF_MEMBERSHIP['period_start'] > 0 &&
-                     is_array($row['fee'])) {
+        } elseif (is_array($row['fee'])) {  // should always be an array from the form
+            if ($_CONF_MEMBERSHIP['period_start'] > 0) {
+                // Each month has a specified new and renewal fee
                 $this->fees = $row['fee'];
             } else {
+                // Expand the single new/renewal fee into all 12 months
+                $this->fees['new'] = array();
+                $this->fees['renew'] = array();
                 for ($i = 0; $i < 12; $i++) {
                     $this->fees['new'][$i] = (float)$row['fee_new'];
                     $this->fees['renew'][$i] = (float)$row['fee_renew'];
@@ -191,7 +194,7 @@ class Plan
                 Cache::set($cache_key, $row, 'plans');
             }
         }
-        $this->SetVars($row, true);
+        $this->setVars($row, true);
         $this->isNew = false;
         return true;
     }
@@ -222,7 +225,7 @@ class Plan
         global $_TABLES, $LANG_MEMBERSHIP;
 
         if (is_array($A)) {
-            $this->SetVars($A);
+            $this->setVars($A);
         }
 
         if ($this->plan_id == '') {
@@ -668,10 +671,14 @@ class Plan
                 'tax'           => 0,
                 'btn_type'      => 'pay_now',
                 'add_cart'      => true,
-                '_ret_url'      => $return,
+                //'_ret_url'      => $return,
+                'unique'        => true,
             );
-            $status = LGLIB_invokeService('paypal', 'genButton', $vars,
-                    $output, $svc_msg);
+            $status = LGLIB_invokeService('paypal', 'genButton',
+                $vars,
+                $output,
+                $svc_msg
+            );
             if ($status == PLG_RET_OK && is_array($output)) {
                 if ($_CONF_MEMBERSHIP['enable_paypal'] < 2) {
                     // A little trickery to only allow add-to-cart button
@@ -784,15 +791,10 @@ class Plan
         static $currency = NULL;
         if ($currency === NULL) {
             if ($_CONF_MEMBERSHIP['enable_paypal']) {
-                $status = LGLIB_invokeService('paypal', 'getCurrency', array(),
-                    $output, $svc_msg);
-                if ($status == PLG_RET_OK) {
-                    $currency = $output;
-                }
+                $currency = PLG_callFunctionForOnePlugin('plugin_getCurrency_paypal');
             } else {
                 $currency = $_CONF_MEMBERSHIP['currency'];
             }
-
             if (empty($currency)) $currency = 'USD';
         }
         return $currency;
@@ -814,7 +816,7 @@ class Plan
                 FROM {$_TABLES['membership_plans']}
                 WHERE enabled = 1 " . SEC_buildAccessSql();
         if (!empty($plan_id)) {
-            $sql .= " AND plan_id = '" . DB_escapeString($show_plan) . "'";
+            $sql .= " AND plan_id = '" . DB_escapeString($plan_id) . "'";
         }
         $cache_key = md5($sql);
         $plans = Cache::get($cache_key);
@@ -833,16 +835,15 @@ class Plan
      * Display the membership plans available.
      * Supports autotags in the plan_list.thtml template.
      *
-     * @param   boolean $allow_purchase True to display payment buttons
-     * @param   boolean $have_app       True if the app has just been updated
      * @param   string  $show_plan      A single plan_id to show (selected on app)
      * @return  string      HTML for product catalog.
      */
-    public static function listPlans($allow_purchase = true, $have_app = false, $show_plan = '')
+    public static function listPlans($show_plan = '')
     {
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
                 $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
 
+        $have_app = App::getInstance($_USER['uid'])->Validate() == 0 ? true : false;
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('planlist', 'plan_list.thtml');
         $T->set_var('is_uikit', $_SYSTEM['framework'] == 'uikit' ? 'true' : '');
@@ -862,7 +863,7 @@ class Plan
             return $T->finish($T->get_var('output', 'planlist'));
         }
 
-        $Plans = self::getPlans();
+        $Plans = self::getPlans($show_plan);
         if (empty($Plans)) {
             $T->parse('output', 'planlist');
             $retval = $T->finish($T->get_var('output', 'planlist'));
@@ -890,7 +891,7 @@ class Plan
                     sprintf($LANG_MEMBERSHIP['please_complete_app'],
                             MEMBERSHIP_PI_URL . '/index.php?editapp'));
             } elseif ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED
-                    && !$have_app) {
+                && !$have_app) {
                 $T->set_var('app_msg',
                     sprintf($LANG_MEMBERSHIP['plan_list_app_footer'],
                             MEMBERSHIP_PI_URL . '/index.php?editapp'));
@@ -909,23 +910,24 @@ class Plan
             $fee = $P->Fee();
             $price_total = $price + $fee;
             $buttons = '';
-            if ($allow_purchase) {
-                switch($M->CanPurchase()) {
-                case MEMBERSHIP_CANPURCHASE:
-                    $exp_ts = strtotime($M->expires);
-                    $exp_format = strftime($_CONF['shortdate'], $exp_ts);
+            switch($M->CanPurchase()) {
+            case MEMBERSHIP_CANPURCHASE:
+                $exp_ts = strtotime($M->expires);
+                $exp_format = strftime($_CONF['shortdate'], $exp_ts);
+                if ($have_app) {
                     $output = $P->MakeButton($price_total, $M->isNew(),
                         $_CONF_MEMBERSHIP['redir_after_purchase']);
-                    if (!empty($output))
+                    if (!empty($output)) {
                         $buttons = implode('', $output);
-                    break;
-                case MEMBERSHIP_NEED_APP:
-                    $buttons = sprintf($LANG_MEMBERSHIP['app_required'], MEMBERSHIP_PI_URL . '/app.php');
-                    break;
-                default:
-                    $exp_format = '';
-                    $buttons = '';
+                    }
                 }
+                break;
+            case MEMBERSHIP_NEED_APP:
+                 $buttons = sprintf($LANG_MEMBERSHIP['app_required'], MEMBERSHIP_PI_URL . '/app.php');
+                break;
+            default:
+                $exp_format = '';
+                $buttons = '';
             }
             $T->set_var(array(
                 'plan_id'   => $P->plan_id,
@@ -944,6 +946,33 @@ class Plan
         }
         $T->parse('output', 'planlist');
         return PLG_replacetags($T->finish($T->get_var('output', 'planlist')));
+    }
+
+
+    /**
+     * Return plan information for the getItemInfo function in functions.inc.
+     *
+     * @param   string  $what   Array of field names, already exploded
+     * @param   array   $options    Additional options
+     * @return  array       Array of fieldname=>value
+     */
+    public function getItemInfo($what, $options = array())
+    {
+        $retval = array();
+        foreach ($what as $fld) {
+            switch ($fld) {
+            case 'id':
+                $retval[$fld] = $this->plan_id;
+                break;
+            default:
+                $retval[$fld] = $this->$fld;
+                if ($retval[$fld] === NULL) {
+                    $retval[$fld] = '';
+                }
+                break;
+            }
+        }
+        return $retval;
     }
 
 }

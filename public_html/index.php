@@ -176,23 +176,14 @@ case 'pmtform':
 
 case 'list1':
     // Show the plan list when coming from the app submission
-    $allow_purchase = true;
-    $have_app = true;
-    //var_dump(PLG_getItemInfo('membership', 'plan:*', 'id,name'));
-    //exit;
     $show_plan = isset($_GET['plan_id']) ? $_GET['plan_id'] : '';
-    $content .= \Membership\Plan::listPlans($allow_purchase, $have_app, $show_plan);
+    $content .= \Membership\Plan::listPlans($show_plan);
     break;
 
 case 'list':
 default:
     // Show the plan list via direct entry.
-    $have_app = \Membership\App::getInstance($_USER['uid'])->Validate() == 0 ? true : false;
-    //$allow_purchase = $_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED ? true : false;
-    $allow_purchase = true;
-    $have_app = false;
-    $show_plan = '';
-    $content .= \Membership\Plan::listPlans($allow_purchase, $have_app, $show_plan);
+    $content .= \Membership\Plan::listPlans();
     break;
 }
 
