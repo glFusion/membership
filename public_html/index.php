@@ -130,10 +130,6 @@ case 'editapp':
     if (!COM_isAnonUser()) {
         $content .= \Membership\App::getInstance($uid)->Edit();
     } else {
-        LGLIB_storeMessage(array(
-            'message' => $LANG_MEMBERSHIP['must_login'],
-            'persist' => true
-        ) );
         $content .= SEC_loginRequiredForm();
     }
     break;
@@ -187,6 +183,7 @@ case 'list1':
     $show_plan = isset($_GET['plan_id']) ? $_GET['plan_id'] : '';
     $content .= \Membership\Plan::listPlans($allow_purchase, $have_app, $show_plan);
     break;
+
 case 'list':
 default:
     // Show the plan list via direct entry.
