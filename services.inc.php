@@ -527,16 +527,13 @@ function service_getDetailPage_membership($args, &$output, &$svc_msg)
 {
     $output = '';
     if (!is_array($args) || !isset($args['item_id'])) {
-        return PLG_RET_ERROR;
+        return PLG_RET_PRECONDITION_FAILED;
     }
     $item_info = explode(':', $args['item_id']);
     if (!isset($item_info[1]) || empty($item_info[1])) {    // missing item ID
-        return PLG_RET_ERROR;
+        return PLG_RET_PRECONDITION_FAILED;
     }
-    $output = \Membership\Plan::listPlans(true, true, $item_info[1]);
-    /*$P = Subscription\Product::getInstance($item_info[1]);
-    if ($P->isNew) return PLG_RET_ERROR;
-    $output = $P->Detail();*/
+    $output = \Membership\Plan::listPlans($item_info[1]);
     return PLG_RET_OK;
 }
 
