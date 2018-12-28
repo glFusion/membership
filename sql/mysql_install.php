@@ -1,15 +1,15 @@
 <?php
 /**
-*   Table definitions for the Membership plugin
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Table definitions for the Membership plugin.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.2.0
+ * @license     http://opensource.org/licenses/gpl-2.0.php 
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 
 /** @global array $_TABLES */
 global $_TABLES;
@@ -92,60 +92,58 @@ $_SQL['membership_users'] = "CREATE TABLE `{$_TABLES['membership_users']}` (
     PRIMARY KEY (`uid`)";
 
 $_UPGRADE_SQL = array(
-'0.0.2' => array(
-  "CREATE TABLE {$_TABLES['membership_log']} (
-    id int(11) unsigned NOT NULL auto_increment,
-    uid mediumint(11) unsigned NOT NULL,
-    dt datetime NOT NULL,
-    type varchar(255),
-    data text,
-    PRIMARY KEY (`id`),
-    key `uid_dt` ( uid, dt )
-    ) ENGINE=MyISAM",
-  ),
-'0.0.5' => array(
-  "CREATE TABLE {$_TABLES['membership_positions']} (
-    id int(11) unsigned NOT NULL auto_increment,
-    type varchar(255) NOT NULL,
-    orderby int(11) unsigned default 10,
-    descr varchar(255) NOT NULL DEFAULT '',
-    contact varchar(255) NOT NULL DEFAULT '',
-    uid mediumint(11) unsigned NOT NULL default 0,
-    enabled tinyint(1) unsigned NOT NULL default 1,
-    show_vacant tinyint(1) unsigned NOT NULL default 1,
-    PRIMARY KEY (`id`),
-    KEY `uid` (`uid`)
-    ) ENGINE=MyISAM",
-    "INSERT INTO {$_TABLES['membership_positions']}
-      (id, type, orderby, descr)  VALUES
-        (0, 'Board', 10, 'President'),
-        (0, 'Board', 20, 'Vice-President'),
-        (0, 'Board', 30, 'Secretary'),
-        (0, 'Board', 40, 'Treasurer')",
-  ),
-'0.0.6' => array(
-  "ALTER TABLE {$_TABLES['membership_members']}
-    DROP mem_position",
-  "ALTER TABLE {$_TABLES['membership_positions']}
-    ADD grp_id int(11) unsigned not null default 0",
-  ),
-'0.1.1' => array(
-  "ALTER TABLE {$_TABLES['membership_members']}
-    ADD mem_number varchar(40) DEFAULT '',
-    ADD mem_istrial tinyint(1) unsigned default 0",
-    "UPDATE {$_TABLES['membership_plans']} SET access = 2 WHERE access = 1",
-  ),
-'0.1.2' => array(
-    "ALTER TABLE {$_TABLES['membership_plans']}
-        CHANGE access grp_access int(11) unsigned not null default 2",
-),
-'0.2.0' => array(
-    "ALTER TABLE {$_TABLES['membership_memberships']} ADD KEY (guid)",
-    "CREATE TABLE `{$_TABLES['membership_users']}` (
-        `uid` int(11) unsigned NOT NULL,
-        `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
-        PRIMARY KEY (`uid`)",
-),
+    '0.0.2' => array(
+        "CREATE TABLE {$_TABLES['membership_log']} (
+            id int(11) unsigned NOT NULL auto_increment,
+            uid mediumint(11) unsigned NOT NULL,
+            dt datetime NOT NULL,
+            type varchar(255),
+            data text,
+            PRIMARY KEY (`id`),
+            key `uid_dt` ( uid, dt )
+            ) ENGINE=MyISAM",
+    ),
+    '0.0.5' => array(
+        "CREATE TABLE {$_TABLES['membership_positions']} (
+            id int(11) unsigned NOT NULL auto_increment,
+            type varchar(255) NOT NULL,
+            orderby int(11) unsigned default 10,
+            descr varchar(255) NOT NULL DEFAULT '',
+            contact varchar(255) NOT NULL DEFAULT '',
+            uid mediumint(11) unsigned NOT NULL default 0,
+            enabled tinyint(1) unsigned NOT NULL default 1,
+            show_vacant tinyint(1) unsigned NOT NULL default 1,
+            PRIMARY KEY (`id`),
+            KEY `uid` (`uid`)
+            ) ENGINE=MyISAM",
+        "INSERT INTO {$_TABLES['membership_positions']}
+            (id, type, orderby, descr)  VALUES
+            (0, 'Board', 10, 'President'),
+            (0, 'Board', 20, 'Vice-President'),
+            (0, 'Board', 30, 'Secretary'),
+            (0, 'Board', 40, 'Treasurer')",
+    ),
+    '0.0.6' => array(
+        "ALTER TABLE {$_TABLES['membership_members']} DROP mem_position",
+        "ALTER TABLE {$_TABLES['membership_positions']} ADD grp_id int(11) unsigned not null default 0",
+    ),
+    '0.1.1' => array(
+        "ALTER TABLE {$_TABLES['membership_members']}
+            ADD mem_number varchar(40) DEFAULT '',
+            ADD mem_istrial tinyint(1) unsigned default 0",
+        "UPDATE {$_TABLES['membership_plans']} SET access = 2 WHERE access = 1",
+    ),
+    '0.1.2' => array(
+        "ALTER TABLE {$_TABLES['membership_plans']}
+            CHANGE access grp_access int(11) unsigned not null default 2",
+    ),
+    '0.2.0' => array(
+        "ALTER TABLE {$_TABLES['membership_memberships']} ADD KEY (guid)",
+        "CREATE TABLE `{$_TABLES['membership_users']}` (
+            `uid` int(11) unsigned NOT NULL,
+            `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
+            PRIMARY KEY (`uid`)",
+    ),
 );
 
 $_MEMBERSHIP_SAMPLEDATA = array(
