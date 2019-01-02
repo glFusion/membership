@@ -7,6 +7,6 @@
     <phpversion>7.0.0</phpversion>
     <url>http://www.leegarner.com</url>
     <maintainer>Lee Garner</maintainer>
-    <requires>lglib</requires>
+    <requires>lglib,1.0.9</requires>
     <requires>profile</requires>
 </plugin>

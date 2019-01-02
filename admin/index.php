@@ -843,7 +843,13 @@ function MEMBER_CreateNameLink($uid, $fullname='')
         if ($fullname == '') {
             $fullname = COM_getDisplayName($uid);
         }
-        $fullname = \LGLib\NameParser::LCF($fullname);
+        $fullname = PLG_callFunctionForOnePlugin('plugin_parseName_lglib',
+            array(
+                1 => $fullname,
+                2 => 'LCF',
+            )
+        );
+        //$fullname = \LGLib\NameParser::LCF($fullname);
         $retval[$uid] = '<span rel="rel_' . $uid .
             '" onmouseover="MEM_highlight(' . $uid .
             ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
