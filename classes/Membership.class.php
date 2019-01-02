@@ -166,7 +166,7 @@ class Membership
         } else {
             $A = DB_fetchArray($res1, false);
             if (!empty($A)) {
-                $this->SetVars($A);
+                $this->setVars($A);
                 $this->Plan = new Plan($this->plan_id);
                 return true;
             } else {
@@ -181,7 +181,7 @@ class Membership
      *
      * @param   array   $A      Array of values
      */
-    public function SetVars($A)
+    public function setVars($A)
     {
         if (!is_array($A))
             return false;
@@ -233,10 +233,11 @@ class Membership
     {
         global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
-        $T = MEMBERSHIP_getTemplate(array(
-            'editmember' => 'editmember',
-            'tips'  => 'tooltipster',
-            'js'    => 'editmember_js',
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T->set_file(array(
+            'editmember' => 'editmember.thtml',
+            'tips' => 'tooltipster.thtml',
+            'js' => 'editmember_js.thtml',
         ) );
         $T->set_var(array(
             'my_uid'    => $this->uid,
@@ -245,8 +246,7 @@ class Membership
             'hlp_member_edit' => $LANG_MEMBERSHIP['hlp_member_edit'],
             'doc_url'       => MEMBERSHIP_getDocURL('edit_member.html',
                                             $_CONF['language']),
-            //'viewApp'   => self::hasApp($this->uid) ? 'true' : '',
-            'viewApp'   => 'true',
+            'viewApp'   => \Membership\App::getInstance($this->uid)->Exists(),
             'notified_chk' => $this->notified == 1 ? 'checked="checked"' : '',
             'notified_orig' => $this->notified == 1 ? 1 : 0,
             'plan_id_orig' => $this->plan_id,
@@ -256,7 +256,6 @@ class Membership
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
             'mem_istrial' => $this->istrial,
             'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
-            'iconset' => $_CONF_MEMBERSHIP['_iconset'],
         ) );
         if ($action_url != '') {
             $T->set_var(array(
@@ -352,7 +351,7 @@ class Membership
                 self::Cancel($this->uid);
                 return true;        // cancellation is a valid operation
             }
-            $this->SetVars($A);
+            $this->setVars($A);
         }
 
         // Cannot save a membership for Anonymous
@@ -381,6 +380,14 @@ class Membership
             foreach ($arr as $link_id) {
                 self::addLink($this->uid, $link_id);
             }
+        }
+
+        // After the links have been updated, check for the "Cancel" checkbox.
+        // If set, cancel this member's membership along with all the new links
+        // and return.
+        if (isset($A['mem_cancel'])) {
+            self::Cancel($this->uid);
+            return true;
         }
 
         // Date has been updated with a later date. If updated to an earlier
@@ -696,23 +703,23 @@ class Membership
             }
         }
         $position = implode(', ', $positions);
-        $app_link = '';     // no app link by default
-        if (!$this->isNew && $_CONF_MEMBERSHIP['require_app'] > 0) {
-            $app_link = 'true';
+        if (!$this->isNew && $_CONF_MEMBERSHIP['require_app'] > 0 &&
+            \Membership\App::getInstance($uid)->Exists()
+        ) {
+            $app_link = true;
+        } else {
+            $app_link = false;
         }
-
         $LT = new \Template(MEMBERSHIP_PI_PATH . '/templates/');
         $LT->set_file(array(
             'block' => 'profileblock.thtml',
         ));
         $LT->set_var(array(
-            'is_uikit'  => $_SYSTEM['framework'] == 'uikit' ? 'true' : '',
             'joined'    => $joined,
             'expires'   => $expires,
             'plan_name' => $plan_name,
             'plan_description' => $plan_dscp,
             'plan_id'   => $plan_id,
-            //'app_link'  => self::hasApp($uid) ? 'true' : '',
             'app_link'  => $app_link,
             'my_uid'    => $uid,
             'panel'     => $panel ? 'true' : '',
@@ -765,32 +772,6 @@ class Membership
         } else {
             return false;
         }
-    }
-
-
-    /**
-     * Determine if an application exists in the forms plugin for this member.
-     * If view_app is not allowed, returns false.
-     *
-     * @param   integer $uid    User ID
-     * @return  boolean     True if an app is found, False if not
-     */
-    public static function hasApp($uid)
-    {
-        global $_CONF_MEMBERSHIP;
-
-        $hasApp = false;
-        // Get the application form to provide a link
-        if ($_CONF_MEMBERSHIP['view_app'] && $_CONF_MEMBERSHIP['app_form'] != '') {
-            $status = LGLIB_invokeService('forms', 'resultId',
-                array('frm_id' => $_CONF_MEMBERSHIP['app_form'],
-                    'uid' => $uid),
-                $output, $msg);
-            if ($status == PLG_RET_OK && $output > 0) {
-                $hasApp = true;
-            }
-        }
-        return $hasApp;
     }
 
 
@@ -948,22 +929,19 @@ class Membership
      * @param   integer $uid            User ID
      * @param   integer $old_status     Original member status
      * @param   integer $new_status     New member status
-     * @return  integer     Service status code (PLG_RET_OK, etc.);
      */
     public static function updatePlugins($uid, $old_status, $new_status)
     {
-        global $_CONF_MEMBERSHIP;
-
-        PLG_itemSaved($uid, $_CONF_MEMBERSHIP['pi_name']);
-        return;
-
         global $_TABLES, $_CONF_MEMBERSHIP, $_PLUGINS;
 
         // No change in status just return OK
         if ($old_status == $new_status) {
-            return PLG_RET_OK;
+            return;
         }
 
+        PLG_itemSaved($uid, $_CONF_MEMBERSHIP['pi_name']);
+
+        /*
         // Gets statuses from plugin config into an array
         //  my_status_name => mailchimp_value_name
         $statuses = MEMBERSHIP_memberstatuses();
@@ -974,12 +952,12 @@ class Membership
                 $statuses[$new_status] : null;
         if ($new_status === null) {
             // unrecognized status received
-            return PLG_RET_ERROR;
+            return;
         }
 
         // 1. Update the Mailchimp plugin
         if ($_CONF_MEMBERSHIP['update_maillist']) {
-            $status = LGLIB_invokeService('mailchimp', 'updateuser',
+            $status = PLGinvokeService('mailchimp', 'updateuser',
                 array(
                     'uid' => $uid,
                     'params' => array(
@@ -988,7 +966,8 @@ class Membership
                         ),
                     ),
                 ),
-                $output, $svc_msg
+                $output,
+                $svc_msg
             );
             if ($status != PLG_RET_OK) {
                 COM_errorLog('Membership: Error updating mailling list. ' .
@@ -996,6 +975,7 @@ class Membership
                 $retval = $status;
             }
         }
+        */
 
         // 2. Update the image quota in mediagallery.
         // Mediagallery doesn't have a service function, have to update the
@@ -1021,25 +1001,27 @@ class Membership
                         $size = $min * 1048576;
                         break;
                     }
-                    // Update the MG uerpref table with the new quota.
-                    // Ignore errors, nothing to be done about them here.
-                    $sql = "INSERT INTO {$_TABLES['mg_userprefs']}
+                    if ($size != $quota) {
+                        // Update the MG uerpref table with the new quota.
+                        // Ignore errors, nothing to be done about them here.
+                        $sql = "INSERT INTO {$_TABLES['mg_userprefs']}
                                 (`uid`, `quota`)
                             VALUES
                                 ($uid, $size)
                             ON DUPLICATE KEY UPDATE
-                                quota = '$size'";
-                    DB_query($sql, 1);
+                                    quota = '$size'";
+                        DB_query($sql, 1);
+                    }
                 }
             }
-         }
+        }
 
-       return $retval;
+        return;
     }
 
 
     /**
-     * Create a membership numbe.r
+     * Create a membership number.
      * Calls CUSTOM_createMemberNumber() if defined, otherwise
      * uses sprintf() and the member's uid to create the ID.
      *
@@ -1064,6 +1046,7 @@ class Membership
 
 
     /**
+     * Determine if this is a new membership or a renewal.
      * For pricing purposes trial memberships are considered "new".
      *
      * @return  string  String indicating 'new' or 'renewal' for pricing
@@ -1212,6 +1195,7 @@ class Membership
                 break;
             }
         }
+        //var_dump($retval);die;
         return $retval;
     }
 

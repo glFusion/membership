@@ -39,7 +39,7 @@ class Forms extends \Membership\App
         $this->frm_id = $_CONF_MEMBERSHIP['app_form_id'];
         parent::__construct($uid);
         // Get the result ID if the user has filled out the form
-        $status = LGLIB_invokeService('forms', 'resultId',
+        $status = PLG_invokeService('forms', 'resultId',
             array(
                 'frm_id' => $this->frm_id,
                 'uid' => $this->uid,
@@ -63,7 +63,7 @@ class Forms extends \Membership\App
         global $_USER;
 
         // Get the ID of the result record for this application
-        $status = LGLIB_invokeService('forms', 'getValues',
+        $status = PLG_invokeService('forms', 'getValues',
             array(
                 'frm_id' => $this->frm_id,
                 'uid' => $this->uid,
@@ -92,7 +92,7 @@ class Forms extends \Membership\App
      */
     protected function getEditForm()
     {
-        $status = LGLIB_invokeService('forms', 'renderForm',
+        $status = PLG_invokeService('forms', 'renderForm',
             array(
                 'uid' => $this->uid,
                 'frm_id' => $this->frm_id,
@@ -109,7 +109,7 @@ class Forms extends \Membership\App
     /**
      * Save the member application via the Profile plugin.
      *
-     * @return  integer     Status from LGLIB_invokeService()
+     * @return  integer     Status from PLG_invokeService()
      */
     protected function _Save()
     {
@@ -120,7 +120,7 @@ class Forms extends \Membership\App
             'uid'   => $_POST['mem_uid'],
             'data'  => $_POST,
         );
-        $status = LGLIB_invokeService($this->plugin, 'saveData',
+        $status = PLG_invokeService($this->plugin, 'saveData',
             $args,
             $output,
             $svc_msg

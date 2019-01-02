@@ -119,7 +119,7 @@ class App
 
         if ($this->uid == 0 || !MEMBERSHIP_isManager()) $uid = $_USER['uid'];
         $retval = '';
-        $status = LGLIB_invokeService($this->plugin, 'getValues',
+        $status = PLG_invokeService($this->plugin, 'getValues',
             array(
                 'uid'=>$uid,
             ),
@@ -179,7 +179,6 @@ class App
             'profile_fields' => $this->getEditForm(),
             'exp_msg'       => $M->isNew ? '' :
                 sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires),
-            'is_uikit'      => $_CONF_MEMBERSHIP['_is_uikit'],
         ) );
         if ($_CONF_MEMBERSHIP['update_maillist']) {
             $status = PLG_invokeService('mailchimp', 'issubscribed',
@@ -247,7 +246,7 @@ class App
             'frm_id'    => $this->frm_id,
         );
         $typeselect_var = 'app_membership_type';
-        $status = LGLIB_invokeService($this->plugin, 'renderForm',
+        $status = PLG_invokeService($this->plugin, 'renderForm',
             $prf_args,
             $output,
             $svc_msg
@@ -271,7 +270,6 @@ class App
                 'profile_fields' => $output,
                 'exp_msg'       => $M->isNew ? '' :
                     sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires),
-                'is_uikit'      => $_CONF_MEMBERSHIP['_is_uikit'],
             ) );
             if ($_CONF_MEMBERSHIP['update_maillist']) {
                 $status = PLG_invokeService('mailchimp', 'issubscribed',
@@ -363,7 +361,7 @@ class App
      * This is a wrapper around other functions; at the moment only
      * saving the user profile is supported.
      *
-     * @return  integer     Status from LGLIB_invokeService()
+     * @return  integer     Status from PLG_invokeService()
      */
     public function Save()
     {

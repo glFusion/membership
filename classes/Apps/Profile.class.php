@@ -30,7 +30,7 @@ class Profile extends \Membership\App
         global $_USER, $_CONF;
 
         $retval = array();
-        $status = LGLIB_invokeService('profile', 'getValues',
+        $status = PLG_invokeService('profile', 'getValues',
             array(
                 'uid' => $this->uid,
             ),
@@ -62,7 +62,7 @@ class Profile extends \Membership\App
             'form_id'   => 'membership_profile_form',
         );
         //$typeselect_var = 'app_membership_type';
-        $status = LGLIB_invokeService('profile', 'renderForm',
+        $status = PLG_invokeService('profile', 'renderForm',
             $prf_args,
             $output,
             $svc_msg
@@ -74,7 +74,7 @@ class Profile extends \Membership\App
     /**
      * Save the member application via the Profile plugin.
      *
-     * @return  integer     Status from LGLIB_invokeService()
+     * @return  integer     Status from PLG_invokeService()
      */
     protected function _Save()
     {
@@ -86,7 +86,7 @@ class Profile extends \Membership\App
             'data'  => $_POST,
         );
 
-        $status = LGLIB_invokeService('profile', 'saveData',
+        $status = PLG_invokeService('profile', 'saveData',
             $args,
             $output,
             $svc_msg
