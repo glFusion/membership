@@ -74,4 +74,13 @@ function siteFooter()
     return $retval;
 }
 
+
+// Determine if the paypal plugin is installed and integration is enabled.
+// If the plugin is missing, reset the enable_paypal config var.
+if ($CONF_MEMBERSHIP['enable_paypal']) {
+    if (!isset($_PLUGINS) || !is_array($_PLUGINS) || !in_array('paypal', $_PLUGINS)) {
+        $_CONF_MEMBERSHIP['enable_paypal'] = 0;
+    }
+}
+
 ?>
