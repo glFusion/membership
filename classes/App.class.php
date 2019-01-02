@@ -48,6 +48,10 @@ class App
 
         if ($uid == 0) $uid = $_USER['uid'];
         $uid = (int)$uid;
+        if (!in_array($_CONF_MEMBERSHIP['app_provider'], self::supportedPlugins())) {
+            return new self($uid);
+        }
+
         switch ($_CONF_MEMBERSHIP['app_provider']) {
         case 'profile':
             $retval = new \Membership\Apps\Profile($uid);
@@ -56,6 +60,7 @@ class App
             $retval = new \Membership\Apps\Forms($uid);
             break;
         default:
+            // Shouldn't get here as the configured plugin should be supported
             $retval = new self($uid);
             break;
         }
@@ -488,6 +493,24 @@ class App
     protected function getEditForm()
     {
         return '';
+    }
+
+
+    /**
+     * Get an arra of plugins that are supported and available for applications.
+     *
+     * @return  array   Array of plugin names
+     */
+    public static function supportedPlugins()
+    {
+        // Start with all the supported plugins
+        $plugins = array('forms', 'profile');
+        foreach ($plugins as $idx=> $pi_name) {
+            if (!function_exists('plugin_chkVersion_' . $pi_name)) {
+                unset($plugins[$idx]);
+            }
+        }
+        return $plugins;
     }
 
 }

@@ -630,6 +630,17 @@ function plugin_configmanager_select_member_all_group_membership()
 }
 
 
+function plugin_configmanager_select_app_provider_membership()
+{
+    global $LANG_MEMBERSHIP;
+
+    $retval = array($LANG_MEMBERSHIP['none'] => '');
+    foreach (\Membership\App::supportedPlugins() as $pi_name) {
+        $retval[ucfirst($pi_name)] = $pi_name;
+    }
+    return $retval;
+}
+
 /**
  * Get a selection of groups for current and arrears members.
  *
