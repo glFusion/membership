@@ -1,6 +1,11 @@
 # glFusion Membership Plugin - Change Log
 
 ## 0.2.2
+Release TBD
+- Remove support for non-UIkit themes.
+- Members can always view their own application.
+- Applications can be provided by the Profile or Forms plugin.
+- Enable web services so plugins can call `PLG_invokeService()`.
 - Correct namespace usage
 - Make service functions compatible with Paypal 0.6.0
 - Use Uikit datepicker
