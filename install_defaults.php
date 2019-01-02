@@ -390,12 +390,12 @@ $membershipConfigData = array(
     ),
     // Application form ID if the Forms plugin is used
     array(
-        'name' => 'app_form_id',
+        'name' => 'app_form',
         'default_value' => 'pi_membership_app',
-        'type' => 'text',
+        'type' => 'select',
         'subgroup' => 0,
         'fieldset' => 30,
-        'selection_array' => 0,
+        'selection_array' => 0, // uses helper function
         'sort' => 40,
         'set' => true,
         'group' => 'membership',
