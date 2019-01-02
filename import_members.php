@@ -1,22 +1,22 @@
 <?php
 /**
-*   Import current members from a glFusion group into the Membership table
-*   Intended to be used only once after the Membership plugin is installed.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2015 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.1.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Import current members from a glFusion group into the Membership table.
+ * Intended to be used only once after the Membership plugin is installed.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2015 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.1.1
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 
 /**
-*   Import members into the Membership table
-*
-*   @return array   Array if (successes, failures)
-*/
+ * Import members into the Membership table.
+ *
+ * @return  string  Results text
+ */
 function MEMBERSHIP_import()
 {
     global $_TABLES, $_CONF;
@@ -37,7 +37,7 @@ function MEMBERSHIP_import()
     $existing = 0;
     $failed = '';
     while ($A = DB_fetchArray($res, false)) {
-        $M = new \Membership\Membership($A['ug_uid']);
+        $M = \Membership\Membership::getInstance($A['ug_uid']);
         if ($M->plan_id !== '') {
             $existing++;
             continue;
@@ -52,6 +52,6 @@ function MEMBERSHIP_import()
     }
     return $existing . ' Existing Memberships<br />' . $successes . ' Successes<br />' . $failures . ' Failures:<br />' .
             $failed;
-
 }
+
 ?>

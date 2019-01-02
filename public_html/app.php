@@ -50,31 +50,6 @@ case 'saveapp':
     // If a user is editing their own app, and a purchase url is included,
     // then redirect to that url upon saving.
     if (!MEMBERSHIP_isManager()) $_POST['mem_uid'] = $_USER['uid'];
-    /*$status = LGLIB_invokeService('profile', 'saveData',
-        array(
-            'uid'   => $_POST['mem_uid'],
-            'data'  => $_POST,
-        ),
-        $output,
-        $svc_msg,
-    );
-    if ($status == PLG_RET_OK) {
-        LGLIB_storeMessage(array(
-            'message' => $LANG_MEMBERSHIP['your_info_updated'],
-        ) );
-        if ($_POST['mem_uid'] == $_USER['uid'] && !empty($_POST['purch_url'])) {
-            // only redirect members to purchase, not admins.
-            $M = new \Membership\Membership();
-            if ($M->canPurchase()) {
-                echo COM_refresh($_POST['purch_url']);
-                exit;
-            }
-        }
-        $view = 'view';
-    } else {
-        // If an error occurred during saving, go back to editing.
-        $view = 'edit';
-    }*/
     break;
 
 default:
@@ -94,16 +69,16 @@ case 'prt':
 case 'view':
 default:
     // Display the application within the normal glFusion site.
-    //$content .= displayApp($uid);
-    $content .= \Membership\App::Display();
+    $content .= \Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
         $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/app.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'edit':
-    $status = LGLIB_invokeService('profile', 'renderForm',
+    $output = \Membership\App::getInstance($uid)->Edit();
+/*    $status = LGLIB_invokeService('profile', 'renderForm',
                 array('uid'=>$uid), $output, $svc_msg);
-    if ($status == PLG_RET_OK && !empty($output)) {
+    if ($status == PLG_RET_OK && !empty($output)) {*/
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('app', 'app_form.thtml');
         $T->set_var(array(
@@ -113,16 +88,16 @@ case 'edit':
         ) );
         $T->parse('output', 'app');
         $content .= $T->finish($T->get_var('output'));
-    }
+    //}
     break;
 }
 
-$display = MEMBERSHIP_siteHeader();
+$display = \Membership\siteHeader();
 $display .= LGLIB_showAllMessages(true);
 if (!empty($msg))
     $display .= COM_showMessage($msg, $_CONF_MEMBERSHIP['pi_name']);
 $display .= $content;
-$display .= MEMBERSHIP_siteFooter();
+$display .= \Membership\siteFooter();
 echo $display;
 
 
