@@ -465,6 +465,31 @@ class App
         return false;
     }
 
+
+    /**
+     * Validate the application entry in case other validation was bypassed.
+     * Default return is true.
+     *
+     * @param   array   $A      $_POST or NULL to check the current on-file app
+     * @return  boolean     True if app is valid, False if not
+     */
+    protected function _Validate($A = NULL)
+    {
+        return true;
+    }
+
+
+    /**
+     * Get the prompts and fields for the application.
+     * Default is empty value if neither Profile nor Forms are used.
+     *
+     * @return  string      HTML for application form
+     */
+    protected function getEditForm()
+    {
+        return '';
+    }
+
 }
 
 ?>
