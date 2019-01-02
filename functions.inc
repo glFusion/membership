@@ -86,10 +86,6 @@ if (file_exists(MEMBERSHIP_PI_PATH . '/config.php')) {
     include_once MEMBERSHIP_PI_PATH . '/config.php';
 }
 
-// This is temporary, and will be included in glFusion 1.6.0
-$_CONF_MEMBERSHIP['_is_uikit'] = $_SYSTEM['framework'] == 'uikit' ? true : false;
-$_CONF_MEMBERSHIP['_iconset'] = $_CONF_MEMBERSHIP['_is_uikit'] ? 'uk-icon' : 'fa fa';
-
 $_CONF_MEMBERSHIP['now'] = new Date('now', $_CONF['timezone']);
 $_CONF_MEMBERSHIP['today'] = $_CONF_MEMBERSHIP['now']->format('Y-m-d', true);
 
@@ -170,7 +166,7 @@ function plugin_getmenuitems_membership()
 {
     global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
-    $icon = '&nbsp;<i class="' . $_CONF_MEMBERSHIP['_iconset'] . '-group"></i>';
+    $icon = '&nbsp;<i class="uk-icon uk-icon-group"></i>';
     $menuitems = array(
         $LANG_MEMBERSHIP['block_title'] . $icon => MEMBERSHIP_PI_URL . '/index.php',
     );
@@ -429,82 +425,7 @@ function plugin_user_changed_membership($uid=0)
     if (!MEMBERSHIP_isManager()) return;
 
     $M = \Membership\Membership::getInstance($uid);
-    $op = '';
-    $need_save = false; // assume nothing to do
-    $joined = isset($_POST['mem_joined']) ? $_POST['mem_joined'] : '';
-
-    if ($M->isNew && !empty($_POST['mem_plan_id'])) {
-        // A new member, previously with no plan
-        $M->Add($uid, $_POST['mem_plan_id'], $_POST['mem_expires'], $joined);
-        $op = 'created';
-    } elseif (isset($_POST['mem_quickrenew'])) {
-        // A renewing member via quick renewal
-        $M->Renew($_POST);
-        $op = 'renewed';
-    } elseif (isset($_POST['mem_cancel'])) {
-        // Cancel the membership
-        \Membership\Membership::Cancel($uid);
-    } else {
-        // Maybe just updating options
-        $vars = array(
-            'notified', 'expires', 'joined', 'position', 'plan_id',
-            'number', 'istrial', 'links',
-        );
-        foreach ($vars as $var) {
-            if (isset($_POST['mem_'.$var]) &&
-                $_POST['mem_'.$var] != $_POST['mem_'.$var.'_orig']) {
-                $need_save = true;
-                $op = 'updated';
-                break;
-            }
-        }
-
-        // Check the linked accounts for changes. If changed, just call
-        // the membership Save() function.
-        if (!$need_save) {  // if we don't already need to save
-            //$new_links = \Membership\Link::getRelatives($uid);
-            $new_links = \Membership\Membership::getInstance($uid)->getLinks();
-            $old_links = json_decode($_POST['mem_old_links'], true);
-            if (is_array($old_links)) { // check for valid json
-                foreach ($new_links as $uid=>$name) {
-                    if (!isset($old_links[$uid])) {
-                        $need_save = true;
-                        break;
-                    }
-                }
-                if (!$need_save) {
-                    foreach ($old_links as $uid=>$name) {
-                        if (!isset($new_links[$uid])) {
-                            $need_save = true;
-                        }
-                    }
-                }
-            } else {
-                // force save if links json is missing or bad
-                $need_save = true;
-            }
-        }
-    }
-
-    // Perform a general save if required
-    if ($need_save) {
-        $M->Save($_POST);
-    }
-
-    // Log a transaction if any payment information was changed.
-    foreach (array('mem_pmtdesc', 'mem_pmtamt', 'mem_pmttype') as $pmt) {
-        if (!empty($_POST[$pmt])) {
-            $M->AddTrans($_POST['mem_pmttype'], $_POST['mem_pmtamt'],
-                $_POST['mem_pmtdesc']);
-            break;
-        }
-    }
-
-    // Log a mesage if any operation was done
-    if ($op != '') {
-        MEMBERSHIP_auditLog('Membership ' . $op . ' for ' .
-            COM_getDisplayName($uid) . ' (' . $uid . ')');
-    }
+    $M->Save($_POST);
 }
 
 
@@ -670,7 +591,7 @@ function plugin_configmanager_select_app_form_membership()
 {
     global $_TABLES, $LANG_MEMBERSHIP;
 
-    $status = LGLIB_invokeService('forms', 'getFormInfo',
+    $status = PLG_invokeService('forms', 'getFormInfo',
         array(),
         $output,
         $msg
@@ -1237,75 +1158,6 @@ function MEMBERSHIP_memberstatuses()
         MEMBERSHIP_STATUS_DROPPED => $_CONF_MEMBERSHIP['segment_dropped'],
     );
     return $types;
-}
-
-
-/**
- * Helper function to get a template object.
- *
- * @param   string  $name   Base name of template, e.g. "editor"
- * @param   string  $id     ID of template, e.g. "editform"
- * @param   string  $path   Optional path if not "templates/"
- * @return  string      Full filename, e.g. "editor.uikit.thtml"
- */
-function MEMBERSHIP_getTemplate($name, $id='', $path='')
-{
-    global $_CONF_MEMBERSHIP;
-
-    // Put parameters into an array if not already.
-    if (!is_array($name) && !empty($id)) {
-        $templates = array($id => $name);
-    } elseif (is_array($name)) {
-        $templates = $name;
-    }
-
-    // Add additional path info if needed
-    if (!empty($path) && $path[0] == '/') $path = substr($path, 1);
-    if (substr($path, 0, 9) != 'templates') {
-        $path = 'templates/' . $path;
-    }
-
-    // May use "switch" later, for now there are only two options
-    $tpltype = $_CONF_MEMBERSHIP['_is_uikit'] ? '.uikit' : '';
-    foreach ($templates as $t_id =>$t_name) {
-        if (file_exists(__DIR__ . "/$path/$t_name$tpltype.thtml")) {
-            $templates[$t_id] = "$t_name$tpltype.thtml";
-        } else {
-            $templates[$t_id] = "$t_name.thtml";
-        }
-    }
-    $T = new Template(__DIR__ . '/' . $path);
-    $T->set_file($templates);
-    return $T;
-}
-
-
-/**
- * Get an icon from the CSS icon set, either UIkit or FontAwesome
- *
- * @param   string  $name   Base name of icon, e.g. "edit" for "uk-icon-edit"
- * @param   string  $style  Style name from local CSS
- * @return  string      Class names for icon
- */
-function MEM_getIcon($name, $style='info')
-{
-    global $_CONF_MEMBERSHIP;
-
-    if ($style != '')
-        $style = ' mbr-icon-' . $style;
-    return $_CONF_MEMBERSHIP['_iconset'] . '-' . $name . $style;
-}
-
-
-/**
- * Get the prefix for CSS icons depending on whether UIkit is being used.
- *
- * @return  string      Icon prefix.
- */
-function MEMBERSHIP_iconPrefix()
-{
-    global $_CONF_MEMBERSHIP;
-    return $_CONF_MEMBERSHIP['_is_uikit'] ? 'uk-icon-' : 'fa fa-icon-';
 }
 
 

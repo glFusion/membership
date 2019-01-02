@@ -286,7 +286,8 @@ class Position
     {
         global $_TABLES;
 
-        $T = MEMBERSHIP_getTemplate('position_form', 'editform');
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T->set_file('editform', 'position_form.thtml');
         $T->set_var(array(
             'action_url'    => MEMBERSHIP_ADMIN_URL,
             'id'            => $this->id,

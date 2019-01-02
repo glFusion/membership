@@ -43,4 +43,14 @@ $_CONF_MEMBERSHIP['gl_version']        = '1.6.0';
 $_CONF_MEMBERSHIP['pi_url']            = 'http://www.leegarner.com';
 $_CONF_MEMBERSHIP['pi_display_name']   = 'Membership';
 
+$_CONF_MEMBERSHIP['icons'] = array(
+    'delete'    => '<i class="uk-icon uk-icon-trash-o uk-text-danger"></i>',
+    'copy'      => '<i class="uk-icon uk-icon-clone"></i>',
+    'edit'      => '<i class="uk-icon uk-icon-edit"></i>',
+    'arrow-up'  => '<i class="uk-icon uk-icon-arrow-up"></i>',
+    'arrow-down'=> '<i class="uk-icon uk-icon-arrow-down"></i>',
+    'reset'     => '<i class="uk-icon uk-icon-refresh"></i>',
+    'regen'     => '<i class="uk-icon uk-icon-cogs"></i>',
+);
+
 ?>

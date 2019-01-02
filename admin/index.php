@@ -35,6 +35,7 @@ USES_membership_functions();
 //USES_lglib_class_nameparser();
 
 $content = '';
+$footer = '';
 
 // so we'll check for it and see if we should use it, but by using $action
 // and $view we don't tend to conflict with glFusion's $mode.
@@ -94,7 +95,7 @@ case 'regenbutton':
 case 'importusers':
     require_once MEMBERSHIP_PI_PATH . '/import_members.php';
     $view = 'importform';
-    $import_text = MEMBERSHIP_import();
+    $footer .= MEMBERSHIP_import();
     break;
 
 case 'quickrenew':
@@ -195,9 +196,9 @@ default:
 // Select the page to display
 switch ($view) {
 case 'importform':
-    //$import_text = MEMBERSHIP_import();
     $content .= MEMBERSHIP_adminMenu('importform', '');
-    $LT = MEMBERSHIP_getTemplate('import_form', 'form');
+    $LT = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+    $LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
         $content .= "Imported $successes successfully<br />\n";
         $content .= "$import_failures failed<br />\n";
@@ -218,11 +219,9 @@ case 'importform':
     $LT->set_var(array(
         'frm_grp_options' => $grp_options,
         'plan_sel'      => $plan_sel,
-        'iconset'       => $_CONF_MEMBERSHIP['_iconset'],
     ) );
     $LT->parse('import_form','form');
     $content .= $LT->finish($LT->get_var('import_form'));
-    //$content .= '<p>' . $import_text . '</p>';
     break;
 
 case 'editmember':
@@ -294,6 +293,7 @@ $T->parse('output','page');
 $output .= $T->finish($T->get_var('output'));
 $output .= LGLIB_showAllMessages();
 $output .= $content;
+if ($footer != '') $output .= '<p>' . $footer . '</p>' . LB;
 $output .= \Membership\siteFooter();
 echo $output;
 
@@ -305,7 +305,7 @@ echo $output;
  */
 function MEMBERSHIP_listMembers()
 {
-    global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP, $_IMAGE_TYPE,
+    global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP,
         $_CONF_MEMBERSHIP;
 
     $retval = '';
@@ -374,18 +374,26 @@ function MEMBERSHIP_listMembers()
     $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>&nbsp;' .
             $LANG_MEMBERSHIP['show_expired'] . '&nbsp;&nbsp;';
 
-    $del_action = '<button name="deletebutton" class="' .
-                MEM_getIcon('trash', 'danger') . ' memb-icon-button tooltip"'
-            . ' style="vertical-align:text-bottom;" title="' . $LANG_ADMIN['delete']
-            . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['q_del_member']
-            . '\');"></button>'
-            . $LANG_ADMIN['delete'];
-    $renew_action = '<button name="renewbutton" class="'
-            . MEM_getIcon('refresh', 'ok') . ' memb-icon-button tooltip"'
-            . ' style="vertical-align:text-bottom;" title="'
-            . $LANG_MEMBERSHIP['renew_all']
-            . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew']
-            . '\');"></button>' . $LANG_MEMBERSHIP['renew'];
+    $del_action = COM_createLink(
+        $_CONF_MEMBERSHIP['icons']['delete'],
+        '!#',
+        array(
+            'style' => 'vertical-align:text-bottom;',
+            'title' => $LANG_ADMIN['delete'],
+            'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_member']}');",
+            'class' => 'tooltip',
+        )
+    ) . '&nbsp;' . $LANG_ADMIN['delete'];
+    $renew_action = COM_createLink(
+        $_CONF_MEMBERSHIP['icons']['reset'],
+        '!#',
+        array(
+            'style' => 'vertical-align:text-bottom;',
+            'title' => $LANG_MEMBERSHIP['renew_all'],
+            'onclick' => "return confirm('{$LANG_MEMBERSHIP['confirm_renew']}');",
+            'class' => 'tooltip',
+        )
+    ) . '&nbsp;' . $LANG_MEMBERSHIP['renew'];
     $options = array(
         'chkdelete' => 'true',
         'chkfield' => 'mem_uid',
@@ -393,14 +401,16 @@ function MEMBERSHIP_listMembers()
     );
 
     if ($_CONF_MEMBERSHIP['use_mem_number'] == 2) {
-        $options['chkactions'] .=
-            '<button name="regenbutton" class="'
-            . MEM_getIcon('cogs', 'ok') . ' memb-icon-button tooltip"'
-            . ' title="' . $LANG_MEMBERSHIP['regen_mem_numbers']
-            . '" onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen'] . '\');"'
-            . ' style="cursor:pointer;vertical-align:text-bottom;"'
-            . '"></button>'
-            . $LANG_MEMBERSHIP['regen_mem_numbers'];
+        $options['chkactions'] .= COM_createLink(
+            $_CONF_MEMBERSHIP['icons']['regen'],
+            '!#',
+            array(
+                'title' => $LANG_MEMBERSHIP['regen_mem_numbers'],
+                'onclick' => "return confirm('{$LANG_MEMBERSHIP['confirm_regen']}');",
+                'style' => '"cursor:pointer;vertical-align:text-bottom;',
+                'class' => 'tooltip',
+            )
+        ) . '&nbsp;' . $LANG_MEMBERSHIP['regen_mem_numbers'];
     }
     $form_arr = array();
     $retval .= ADMIN_list('membership_memberlist', 'MEMB_getField_member',
@@ -462,7 +472,7 @@ function MEMBERSHIP_listPlans()
     $form_arr = array();
     $retval .= COM_createLink(
         $LANG_MEMBERSHIP['new_plan'],
-        MEMBERSHIP_ADMIN_URL . '/index.php?view=editplan=x',
+        MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
         array(
             'class' => 'uk-button uk-button-success',
             'style' => 'float:left',
@@ -494,7 +504,7 @@ function MEMB_getField_plan($fieldname, $fieldvalue, $A, $icon_arr)
     switch($fieldname) {
     case 'edit':
         $retval = COM_createLink(
-            '<i class="' . MEM_getIcon('edit', 'info') . '"></i>',
+            $_CONF_MEMBERSHIP['icons']['edit'],
             MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
         );
         break;
@@ -557,7 +567,7 @@ function MEMB_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
     switch($fieldname) {
     case 'editpos':
         $retval = COM_createLink(
-            '<i class="' . MEM_getIcon('edit', 'info') . '"></i>',
+            $_CONF_MEMBERSHIP['icons']['edit'],
             MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'],
             array(
                 'class' => 'tooltip',
@@ -568,18 +578,18 @@ function MEMB_getField_positions($fieldname, $fieldvalue, $A, $icon_arr)
 
     case 'move':
         $retval .= COM_createLink(
-            '<i class="' . MEM_getIcon('arrow-up', 'info') . '"></i>',
+            $_CONF_MEMBERSHIP['icons']['arrow-up'],
             MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=up&id=' . $A['id']
         );
         $retval .= '&nbsp;' . COM_createLink(
-            '<i class="' . MEM_getIcon('arrow-down', 'info') . '"></i>',
+            $_CONF_MEMBERSHIP['icons']['arrow-down'],
             MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=down&id=' . $A['id']
         );
         break;
 
     case 'deletepos':
         $retval = COM_createLink(
-            '<i class="' . MEM_getIcon('trash', 'danger') . '"></i>',
+            $_CONF_MEMBERSHIP['icons']['delete'],
             MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
             array(
                 'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');",
@@ -652,9 +662,12 @@ function MEMB_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
     case 'edit':
         $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
         $retval = COM_createLink(
-            '<i class="' . MEM_getIcon('edit', 'info') . ' tooltip" title="' .
-            $LANG_ADMIN['edit'] . '"></i>',
-            MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp
+            $_CONF_MEMBERSHIP['icons']['edit'],
+            MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
+            array(
+                'class' => 'tooltip',
+                'title' => $LANG_ADMIN['edit'],
+            )
         );
         break;
 
@@ -1094,7 +1107,7 @@ function MEMBERSHIP_listPositions()
     $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
     $display .= COM_createLink(
         $LANG_MEMBERSHIP['new_position'],
-        MEMBERSHIP_ADMIN_URL . '/index.php?view=editpos=0',
+        MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
         array(
             'class' => 'uk-button uk-button-success',
             'style' => 'float:left',
