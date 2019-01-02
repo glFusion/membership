@@ -154,11 +154,13 @@ class Plan
                 $this->fees['new'] = array();
                 $this->fees['renew'] = array();
                 for ($i = 0; $i < 12; $i++) {
-                    $this->fees['new'][$i] = (float)$row['fee_new'];
-                    $this->fees['renew'][$i] = (float)$row['fee_renew'];
+                    $this->fees['new'][$i] = (float)$row['fee']['new'];
+                    $this->fees['renew'][$i] = (float)$row['fee']['renew'];
                 }
             }
             $this->fees['fixed'] = (float)$row['fixed_fee'];
+        } else {
+            var_dump($row);die;
         }
     }
 
@@ -398,7 +400,8 @@ class Plan
             $postmode_html = 'selected="selected"';
         }
 
-        $T = MEMBERSHIP_getTemplate('plan_form', 'product');
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T->set_file('product', 'plan_form.thtml');
         $action_url = MEMBERSHIP_ADMIN_URL . '/index.php';
         if ($editor_type == '_advanced') {
             $T->set_var('show_adveditor','');
@@ -471,14 +474,11 @@ class Plan
         }
 
         if (self::hasMembers($this->id)) {
-            $sql = "SELECT plan_id, name
-                    FROM {$_TABLES['membership_plans']}
-                    WHERE plan_id <> '{$this->plan_id}'";
-            $res = DB_query($sql);
-            $sel = '';
-            while ($A = DB_fetchArray($res, false)) {
-                $sel .= '<option value="' . $A['plan_id'] . '">' . $A['name'] .
-                    '</option>' . LB;
+            foreach (self::getPlans() as $P) {
+                if ($P->plan_id != $this->id) {
+                    $sel .= '<option value="' . $P->plan_id . '">' . $P->name .
+                        '</option>' . LB;
+                }
             }
             $T->set_var(array(
                 'has_members'   => 'true',
@@ -604,7 +604,9 @@ class Plan
     {
         global $_TABLES;
 
-        if (DB_count($_TABLES['membership_members'], 'mem_plan_id', $id) > 0) {
+        if (empty($id)) return false;
+
+        if (DB_count($_TABLES['membership_members'], 'mem_plan_id', DB_escapeString($id)) > 0) {
             return true;
         } else {
             return false;
@@ -756,7 +758,7 @@ class Plan
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
             if ($_CONF_MEMBERSHIP['expire_eom']) {
-                $exp_day = \LGLib\Date_Calc::daysInMonth($month, $year);
+                $exp_day = cal_days_in_month(CAL_GREGORIAN, $month, $year);
             }
         } else {
             // If there's a fixed month for renewal, check if the membership
@@ -774,7 +776,7 @@ class Plan
                     $exp_year = $c_year - 1;
             }
             $exp_year += 1;
-            $exp_day = \LGLib\Date_Calc::daysInMonth($exp_month, $exp_year);
+            $exp_day = cal_days_in_month(CAL_GREGORIAN, $exp_month, $exp_year);
         }
         return sprintf('%d-%02d-%02d', $exp_year, $exp_month, $exp_day);
     }
@@ -846,7 +848,6 @@ class Plan
         $have_app = App::getInstance($_USER['uid'])->Validate() == 0 ? true : false;
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('planlist', 'plan_list.thtml');
-        $T->set_var('is_uikit', $_SYSTEM['framework'] == 'uikit' ? 'true' : '');
         if (COM_isAnonUser()) {
             // Anonymous must log in to purchase
             //$T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
@@ -907,8 +908,13 @@ class Plan
         foreach ($Plans as $P) {
             $description = $P->description;
             $price = $P->Price($M->isNew(), 'actual');
-            $fee = $P->Fee();
-            $price_total = $price + $fee;
+            if ($_CONF_MEMBERSHIP['enable_paypal']) {
+                $fee = $P->Fee();
+                $price_total = $price + $fee;
+            } else {
+                $price_total = $price;
+                $fee = 0;
+            }
             $buttons = '';
             switch($M->CanPurchase()) {
             case MEMBERSHIP_CANPURCHASE:
