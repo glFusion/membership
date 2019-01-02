@@ -4,17 +4,11 @@
   <fieldset>
   <legend>{$LANG_MEMBERSHIP['block_title']}</legend>
 {!else}
-  {!if is_uikit}
 <nav class="uk-navbar">
   <div class="uk-navbar-content">
   {$LANG_MEMBERSHIP['block_title']}
   </div>
 </nav>
-  {!else}
-<div class="profile-header">
-  {$LANG_MEMBERSHIP['block_title']}
-</div>
-  {!endif}
 {!endif}
 <table border="0">
   <tr>
@@ -62,10 +56,8 @@
   <tr>
     <td>{$LANG_MEMBERSHIP['application']}:</td>
     <td>
-      <!--<a href="#!" onclick="popupWindow('{site_url}/membership/app.php?uid={uid}&amp;prt', 'Application', 640, 480, 1)" class="toolbar">{$LANG_MEMBERSHIP['view_app']}</a>-->
-      <a href="{site_url}/membership/index.php?view&amp;uid={my_uid}" class="toolbar">{$LANG_MEMBERSHIP['view']}</a>&nbsp;&nbsp;&nbsp;
-      <!--<a href="{site_url}/membership/index.php?prt&amp;uid={my_uid}" target="_blank" class="toolbar">{$LANG_MEMBERSHIP['print']}</a>-->
-      <a href="{site_url}/membership/app.php?prt&amp;uid={my_uid}" target="_blank" class="toolbar">{$LANG_MEMBERSHIP['print']}</a>
+      <a href="#!" onclick="popupWindow('{site_url}/membership/app.php?uid={uid}&amp;prt', 'Application', 640, 480, 1)" class="toolbar">{$LANG_MEMBERSHIP['view']}</a>&nbsp;&nbsp;
+      <a href="{site_url}/membership/index.php?prt&amp;uid={my_uid}" target="_blank" class="toolbar">{$LANG_MEMBERSHIP['print']}</a>
     </td>
   </tr>
   {!endif}
