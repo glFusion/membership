@@ -40,8 +40,7 @@ foreach($expected as $provided) {
 }
 
 if (empty($action)) {
-    if (\Membership\App::getInstance($_USER['uid'])->Validate() > 0) {
-    //if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
+    if (!\Membership\App::getInstance($_USER['uid'])->Validate()) {
         $action = 'editapp';
     } else {
         $action = 'list';

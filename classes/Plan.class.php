@@ -845,7 +845,7 @@ class Plan
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
                 $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
 
-        $have_app = App::getInstance($_USER['uid'])->Validate() == 0 ? true : false;
+        $have_app = App::getInstance($_USER['uid'])->Validate();
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('planlist', 'plan_list.thtml');
         if (COM_isAnonUser()) {
