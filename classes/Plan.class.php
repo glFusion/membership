@@ -886,7 +886,7 @@ class Plan
             }
             $T->set_var('exp_msg_class', 'info');
         }
-        if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED) {
+        if (App::isRequired() > MEMBERSHIP_APP_DISABLED) {
             if ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_OPTIONAL) {
                 $T->set_var('app_msg',
                     sprintf($LANG_MEMBERSHIP['please_complete_app'],

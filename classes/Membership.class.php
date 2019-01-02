@@ -703,8 +703,9 @@ class Membership
             }
         }
         $position = implode(', ', $positions);
-        if (!$this->isNew && $_CONF_MEMBERSHIP['require_app'] > 0 &&
-            \Membership\App::getInstance($uid)->Exists()
+        if (!$this->isNew &&
+            App::isRequired() > MEMBERSHIP_APP_DISABLED &&
+            App::getInstance($uid)->Exists()
         ) {
             $app_link = true;
         } else {

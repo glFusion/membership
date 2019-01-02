@@ -48,9 +48,10 @@ class App
 
         if ($uid == 0) $uid = $_USER['uid'];
         $uid = (int)$uid;
-        if (!in_array($_CONF_MEMBERSHIP['app_provider'], self::supportedPlugins())) {
-            return new self($uid);
-        }
+
+        // Update the require_app and app_provider config vars if the provider
+        // plugin is unavailable
+        self::isRequired();
 
         switch ($_CONF_MEMBERSHIP['app_provider']) {
         case 'profile':
@@ -60,7 +61,6 @@ class App
             $retval = new \Membership\Apps\Forms($uid);
             break;
         default:
-            // Shouldn't get here as the configured plugin should be supported
             $retval = new self($uid);
             break;
         }
@@ -449,7 +449,7 @@ class App
             }
         }
 
-        if ($_CONF_MEMBERSHIP['require_app'] != MEMBERSHIP_APP_REQUIRED) {
+        if (self::isRequired() != MEMBERSHIP_APP_REQUIRED) {
             // App is not required, return status now.
             return $status;
         }
@@ -511,6 +511,26 @@ class App
             }
         }
         return $plugins;
+    }
+
+
+    /**
+     * Determine if an application is required.
+     * If the configured app provider is not available, then set require_app
+     * to "disabled" and the app provider to nothing.
+     *
+     * @return  integer     Value of configured require_app value
+     */
+    function isRequired()
+    {
+        global $_CONF_MEMBERSHIP;
+
+        if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED &&
+            !in_array($_CONF_MEMBERSHIP['app_provider'], self::supportedPlugins())) {
+            $_CONF_MEMBERSHIP['require_app'] = MEMBERSHIP_APP_DISABLED;
+            $_CONF_MEMBERSHIP['app_provider'] = '';
+        }
+        return $_CONF_MEMBERFSHIP['require_app'];
     }
 
 }
