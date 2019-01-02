@@ -134,6 +134,17 @@ case 'editapp':
     }
     break;
 
+case 'prt':
+    // Create a printable view of the application
+    $content .= \Membership\App::getInstance($uid)->Display();
+    if (empty($content)){
+        COM_404();
+    } else {
+        echo $content;
+        exit;
+    }
+    break;
+
 case 'pmtform':
     $M = \Membership\Membership::getInstance();
     $P = \Membership\Plan::getInstance($_GET['plan_id']);
