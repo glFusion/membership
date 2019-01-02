@@ -18,8 +18,8 @@ namespace Membership;
  */
 class User
 {
-    /** Internal properties accessed via `__set()` and `__get()`
-    *  @var array */
+    /** Internal properties accessed via `__set()` and `__get()`.
+    * @var array */
     private $properties;
 
 
@@ -141,26 +141,6 @@ class User
         if (!empty($A)) {
             $this->setVars($A);
         }
-    }
-
-
-    /**
-     * Gets the user's last name by assuming that everything after the
-     * first space in the fullname is the last name.
-     * Also sets the local lastname variable for future use.
-     *
-     * @return  string      Last Name
-     */
-    public function getLastName()
-    {
-        // If we haven't cached the last name, then calculate it
-        if ($this->lastname == '') {
-            $this->lastname = \LGLib\NameParser::L($this->fullname);
-            if ($this->lastname == '') {    // still not found?
-                $this->lastname = $this->fullname;
-            }
-        }
-        return $this->lastname;
     }
 
 }   // class User
