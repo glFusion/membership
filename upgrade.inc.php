@@ -25,7 +25,7 @@ require_once __DIR__ . '/sql/mysql_install.php';
  */
 function MEMBERSHIP_do_upgrade($dvlp=false)
 {
-    global $_PLUGIN_INFO, $_CONF_MEMBERSHIP, $_UPGRADE_SQL;
+    global $_PLUGIN_INFO, $_CONF_MEMBERSHIP, $_UPGRADE_SQL, $_TABLES;
 
     if (isset($_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']])) {
         if (is_array($_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']])) {
@@ -104,7 +104,8 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
 
     if (!COM_checkVersion($current_ver, '0.2.0')) {
         $current_ver = '0.2.0';
-        if (!MEMBERSHIP_do_set_version($current_ver)) return false;
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
 
     // Final version update to catch updates that don't go through

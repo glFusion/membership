@@ -30,7 +30,7 @@ if (function_exists('CACHE_clear')) {
 \Membership\Cache::clear();
 
 // Force the plugin version to the previous version and do the upgrade
-$_PLUGIN_INFO['membership']['pi_version'] = '1.1.0';
+$_PLUGIN_INFO['membership']['pi_version'] = '0.1.3';
 MEMBERSHIP_do_upgrade(true);
 
 // need to clear the template cache so do it here
