@@ -3,9 +3,9 @@
  * Public entry point for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012 Lee Garner
+ * @copyright   Copyright (c) 2012-2019 Lee Garner
  * @package     subscription
- * @version     v0.0.1
+ * @version     v0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -18,8 +18,6 @@ require_once '../lib-common.php';
 if (!in_array('membership', $_PLUGINS)) {
     COM_404();
 }
-
-USES_membership_functions();
 
 $content = '';
 $expected = array(
@@ -127,7 +125,13 @@ case 'view':
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'editapp':
     if (!COM_isAnonUser()) {
-        $content .= \Membership\App::getInstance($uid)->Edit();
+        $F = \Membership\App::getInstance($uid);
+        if (!$F->isValidForm()) {
+            COM_errorLog("Membership: Application form invalid - " . print_r($F,true));
+            COM_404();
+            exit;
+        }
+        $content .= $F->Edit();
     } else {
         $content .= SEC_loginRequiredForm();
     }
@@ -197,10 +201,10 @@ default:
     break;
 }
 
-$display = \Membership\siteHeader($pageTitle);
+$display = \Membership\Menu::siteHeader($pageTitle);
 $display .= LGLIB_showAllMessages();
 $display .= $content;
-$display .= \Membership\siteFooter();
+$display .= \Membership\Menu::siteFooter();
 echo $display;
 exit;
 

@@ -162,7 +162,11 @@ class App
     }
 
 
-
+    /**
+     * Provide the editing page for an application.
+     *
+     * @return  string      HTML for application edit form.
+     */
     public function Edit()
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
@@ -299,7 +303,6 @@ class App
                 ) );
             }
             if ($_CONF_MEMBERSHIP['terms_accept']) {
-                var_dump($U);die;
                 $T->set_var(array(
                     'terms_required'    => true,
                     'terms_cls' => isset($_POST['app_errors']['terms_accept']) ? 'app_error' : '',
@@ -373,7 +376,7 @@ class App
         global $_TABLES, $_CONF_MEMBERSHIP, $_CONF, $_USER;
 
         $uid = (int)$_POST['mem_uid'];
-        if ($this->Validate($_POST) == 0) {
+        if ($this->Validate($_POST)) {
             $status = $this->_Save();   // call plugin-specific save function
 
             if ($status == PLG_RET_OK) {
@@ -425,7 +428,7 @@ class App
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
-        if ($this->uid < 2) {
+        if ($this->uid < 2 || !$this->isValidForm()) {
             return false;
         }
 
@@ -448,7 +451,6 @@ class App
                 $status = false;
             }
         }
-
         if (self::isRequired() != MEMBERSHIP_APP_REQUIRED) {
             // App is not required, return status now.
             return $status;
@@ -503,6 +505,11 @@ class App
      */
     public static function supportedPlugins()
     {
+        static $plugins = NULL;
+        if ($plugins !== NULL) {
+            return $pluginsl;
+        }
+
         // Start with all the supported plugins
         $plugins = array('forms', 'profile');
         foreach ($plugins as $idx=> $pi_name) {
@@ -521,16 +528,34 @@ class App
      *
      * @return  integer     Value of configured require_app value
      */
-    function isRequired()
+    public static function isRequired()
     {
         global $_CONF_MEMBERSHIP;
+        static $isRequired = NULL;
 
-        if ($_CONF_MEMBERSHIP['require_app'] > MEMBERSHIP_APP_DISABLED &&
-            !in_array($_CONF_MEMBERSHIP['app_provider'], self::supportedPlugins())) {
-            $_CONF_MEMBERSHIP['require_app'] = MEMBERSHIP_APP_DISABLED;
-            $_CONF_MEMBERSHIP['app_provider'] = '';
+        if ($isRequired !== NULL) {
+            return $isRequired;
+        } elseif (!in_array($_CONF_MEMBERSHIP['app_provider'], self::supportedPlugins())) {
+            $isRequired = false;
+        } elseif ($_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED) {
+            $isRequired = false;
+        } else {
+            $isRequired = true;
         }
-        return $_CONF_MEMBERFSHIP['require_app'];
+        return $isRequired;
+    }
+
+
+    /**
+     * Check if the form is valid.
+     * Used mainly when the Forms plugin is used in case the configured form
+     * id doesn't correspond to an actual form.
+     *
+     * @return  boolean     True if form can be used, False if not.
+     */
+    public function isValidForm()
+    {
+        return true;
     }
 
 }

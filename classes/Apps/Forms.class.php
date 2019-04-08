@@ -27,6 +27,10 @@ class Forms extends \Membership\App
      * @var integer */
     private $result_id = 0;
 
+    /** Mark if this form can't be used (non-existent, undefined)
+     * @var boolean */
+    private $isValid = true;
+
     /**
      * Constructor. Sets the form ID and gets the result set ID for the user.
      *
@@ -38,17 +42,33 @@ class Forms extends \Membership\App
 
         $this->frm_id = $_CONF_MEMBERSHIP['app_form_id'];
         parent::__construct($uid);
-        // Get the result ID if the user has filled out the form
-        $status = PLG_invokeService('forms', 'resultId',
+
+        // Check that the form exists and can be filled out.
+        $status = PLG_invokeService($this->plugin, 'getFormInfo',
             array(
                 'frm_id' => $this->frm_id,
-                'uid' => $this->uid,
+                'perm' =>  2,
             ),
             $output,
             $svc_msg
         );
-        if ($status == PLG_RET_OK) {
-            $this->result_id = $output;
+        if ($status != PLG_RET_OK || empty($output)) {
+            $this->isValid = false;
+        } else {
+            // Get the result ID if the user has filled out the form
+            $status = PLG_invokeService($this->plugin, 'resultId',
+                array(
+                    'frm_id' => $this->frm_id,
+                    'uid' => $this->uid,
+                ),
+                $output,
+                $svc_msg
+            );
+            if ($status == PLG_RET_OK) {
+                $this->result_id = $output;
+            } else {
+                $this->isValid = false;
+            }
         }
     }
 
@@ -63,7 +83,7 @@ class Forms extends \Membership\App
         global $_USER;
 
         // Get the ID of the result record for this application
-        $status = PLG_invokeService('forms', 'getValues',
+        $status = PLG_invokeService($this->plugin, 'getValues',
             array(
                 'frm_id' => $this->frm_id,
                 'uid' => $this->uid,
@@ -92,7 +112,7 @@ class Forms extends \Membership\App
      */
     protected function getEditForm()
     {
-        $status = PLG_invokeService('forms', 'renderForm',
+        $status = PLG_invokeService($this->plugin, 'renderForm',
             array(
                 'uid' => $this->uid,
                 'frm_id' => $this->frm_id,
@@ -142,21 +162,17 @@ class Forms extends \Membership\App
         $status = true;
         // todo: Add method to check new application from $_POST
         if ($A === NULL) {      // checking existing application
-            if ($status == PLG_RET_OK) {
-                $x = PLG_invokeService($this->plugin, 'validate',
-                    array(
-                        'uid' => $this->uid,
-                        'frm_id' => $this->frm_id,
-                        'vars' => $A,
-                        'res_id' => $this->result_id,
-                    ),
-                    $output,
-                    $svc_msg
-                );
-                if ($x != PLG_RET_OK) {
-                    $status = false;
-                }
-            } else {
+            $x = PLG_invokeService($this->plugin, 'validate',
+                array(
+                    'uid' => $this->uid,
+                    'frm_id' => $this->frm_id,
+                    'vars' => $A,
+                    'res_id' => $this->result_id,
+                ),
+                $output,
+                $svc_msg
+            );
+            if ($x != PLG_RET_OK) {
                 $status = false;
             }
         }
@@ -173,6 +189,19 @@ class Forms extends \Membership\App
     public function Exists()
     {
         return $this->result_id > 0 ? true : false;
+    }
+
+
+    /**
+     * Check if the form is valid.
+     * Used mainly when the Forms plugin is used in case the configured form
+     * id doesn't correspond to an actual form.
+     *
+     * @return  boolean     True if form can be used, False if not.
+     */
+    public function isValidForm()
+    {
+        return $this->isValid;  // set in __construct() if form is found
     }
 
 }
