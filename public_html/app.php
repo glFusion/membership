@@ -18,8 +18,6 @@ require_once '../lib-common.php';
 // No application available for anonymous users
 if (COM_isAnonUser()) COM_404();
 
-USES_membership_functions();
-
 $msg = '';
 $expected = array(
     'prt', 'view', 'edit',
@@ -92,12 +90,12 @@ case 'edit':
     break;
 }
 
-$display = \Membership\siteHeader();
+$display = \Membership\Menu::siteHeader();
 $display .= LGLIB_showAllMessages(true);
 if (!empty($msg))
     $display .= COM_showMessage($msg, $_CONF_MEMBERSHIP['pi_name']);
 $display .= $content;
-$display .= \Membership\siteFooter();
+$display .= \Membership\Menu::siteFooter();
 echo $display;
 
 

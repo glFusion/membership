@@ -1,30 +1,30 @@
 <?php
 /**
- * Home page for the Member List.
+ * Show members by group
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2014 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2014-2019 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     0.1.3
+ * @version     v0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 
 require_once '../lib-common.php';
-if (empty($_GET['type'])) {
+COM_setArgNames(array('type'));
+$type = COM_getArgument('type');
+if (empty($type)) {
     COM_404();
 }
 
-USES_membership_functions();
-
 $autotag = array(
     'parm1' => 'grouplist',
-    'parm2' => $_GET['type'],
+    'parm2' => $type,
     'tagstr' => 'tagstr',
 );
-echo \Membership\siteHeader();
+echo \Membership\Menu::siteHeader();
 echo plugin_autotags_membership('parse', 'tagstr', $autotag);
-echo \Membership\siteFooter();
+echo \Membership\Menu::siteFooter();
 
 ?>
