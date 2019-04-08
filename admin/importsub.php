@@ -32,10 +32,6 @@ if (!MEMBERSHIP_isAdmin()) {
     exit;
 }
 
-// Import administration functions
-//USES_lib_admin();
-USES_membership_functions();
-
 // Set view and action variables.  We use $action for things to do, and
 // $view for the page to show.  $mode is often set by glFusion functions,
 // so we'll check for it and see if we should use it, but by using $action
@@ -118,9 +114,9 @@ default:
 case 'none':
     break;
 }
-$output = MEMBERSHIP_siteHeader();
+$output = \Membership\Menu::siteHeader();
 $output .= $content;
-$output .= MEMBERSHIP_siteFooter();
+$output .= \Membership\Menu::siteFooter();
 echo $output;
 
 ?>

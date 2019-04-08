@@ -28,12 +28,6 @@ if (!MEMBERSHIP_isManager()) {
     exit;
 }
 
-// Import administration functions
-USES_lib_admin();
-USES_membership_functions();
-// This is used in several user list functions
-//USES_lglib_class_nameparser();
-
 $content = '';
 $footer = '';
 
@@ -149,7 +143,7 @@ case 'saveplan':
     if ($status == true) {
         $view = 'listplans';
     } else {
-        $content .= MEMBERSHIP_adminMenu('editplan', '');
+        $content .= \Membership\Menu::Admin('editplan');
         $content .= $P->PrintErrors($LANG_MEMBERSHIP['error_saving']);
         $content .= $P->Edit();
         $view = 'none';
@@ -165,7 +159,7 @@ case 'saveposition':
         exit;
     } else {
         // Redisplay the edit form in case of error, keeping $_POST vars
-        $content .= MEMBERSHIP_adminMenu('editpos', '');
+        $content .= \Membership\Menu::Admin('editpos');
         $content .= $P->Edit();
         $view = 'none';
     }
@@ -196,7 +190,7 @@ default:
 // Select the page to display
 switch ($view) {
 case 'importform':
-    $content .= MEMBERSHIP_adminMenu('importform', '');
+    $content .= \Membership\Menu::Admin('importform');
     $LT = new \Template(MEMBERSHIP_PI_PATH . '/templates');
     $LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
@@ -227,30 +221,30 @@ case 'importform':
 case 'editmember':
     $M = new \Membership\Membership($actionval);
     $showexp = isset($_GET['showexp']) ? '?showexp' : '';
-    $content .= MEMBERSHIP_adminMenu('listmembers', '');
+    $content .= \Membership\Menu::Admin('listmembers');
     $content .= $M->Editform(MEMBERSHIP_ADMIN_URL . '/index.php' . $showexp);
     break;
 
 case 'editplan':
     $plan_id = isset($_REQUEST['plan_id']) ? $_REQUEST['plan_id'] : '';
     $P = new \Membership\Plan($plan_id);
-    $content .= MEMBERSHIP_adminMenu($view, '');
+    $content .= \Membership\Menu::Admin($view);
     $content .= $P->Edit();
     break;
 
 case 'editpos':
     $P = new \Membership\Position($actionval);
-    $content .= MEMBERSHIP_adminMenu($view, '');
+    $content .= \Membership\Menu::Admin($view);
     $content .= $P->Edit();
     break;
 
 case 'listmembers':
-    $content .= MEMBERSHIP_adminMenu($view, '');
+    $content .= \Membership\Menu::Admin($view);
     $content .= MEMBERSHIP_listMembers();
     break;
 
 case 'stats':
-    $content .= MEMBERSHIP_adminMenu($view, '');
+    $content .= \Membership\Menu::Admin($view);
     $content .= MEMBERSHIP_summaryStats();
     break;
 
@@ -259,7 +253,7 @@ case 'none':
     break;
 
 case 'listtrans':
-    $content .= MEMBERSHIP_adminMenu($view, '');
+    $content .= \Membership\Menu::Admin($view);
     $content .= MEMBERSHIP_listTrans();
     break;
 
@@ -270,19 +264,19 @@ case 'positions':
             \Membership\Position::Delete($id);
         }
     }
-    $content .= MEMBERSHIP_adminMenu($view, '');
+    $content .= \Membership\Menu::Admin($view);
     $content .= MEMBERSHIP_listPositions();
     break;
 
 case 'listplans':
 default:
     $view = 'listplans';
-    $content .= MEMBERSHIP_adminMenu($view, '');
+    $content .= \Membership\Menu::Admin($view);
     $content .= MEMBERSHIP_listPlans();
     break;
 
 }
-$output = \Membership\siteHeader();
+$output = \Membership\Menu::siteHeader();
 $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
 $T->set_file('page', 'admin_header.thtml');
 $T->set_var(array(
@@ -294,7 +288,7 @@ $output .= $T->finish($T->get_var('output'));
 $output .= LGLIB_showAllMessages();
 $output .= $content;
 if ($footer != '') $output .= '<p>' . $footer . '</p>' . LB;
-$output .= \Membership\siteFooter();
+$output .= \Membership\Menu::siteFooter();
 echo $output;
 
 
@@ -740,90 +734,6 @@ function MEMB_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 
 
 /**
- * Create the admin menu at the top of the list and form pages.
- *
- * @param   string  $mode   Current view name
- * @param   string  $help_text  Optional helptext associated with this view
- * @return  string      HTML for admin menu section
- */
-function MEMBERSHIP_adminMenu($mode='', $help_text = '')
-{
-    global $_CONF, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $LANG01;
-
-    $help_text = MEMB_getVar($LANG_MEMBERSHIP, 'adm_' . $mode);
-
-    $plan_active = false;
-    $members_active = false;
-    $trans_active = false;
-    $pos_active = false;
-    $import_active = false;
-    $stats_active = false;
-    $new_item_option = '';
-    switch($mode) {
-    case 'listplans':
-        $plan_active = true;
-        break;
-    case 'positions':
-        $pos_active = true;
-        break;
-    case 'listmembers':
-        $members_active = true;
-        break;
-    case 'listtrans':
-        $trans_active = true;
-        break;
-    case 'stats':
-        $stats_active = true;
-        break;
-    case 'importform':
-        $import_active = true;
-        break;
-    }
-
-    $menu_arr = array(
-        array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listplans=x',
-            'text' => $LANG_MEMBERSHIP['list_plans'],
-            'active' => $plan_active,
-        ),
-        array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
-            'text' => $LANG_MEMBERSHIP['list_members'],
-            'active' => $members_active,
-        ),
-        array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
-            'text' => $LANG_MEMBERSHIP['transactions'],
-            'active' => $trans_active,
-        ),
-        array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?stats',
-            'text' => $LANG_MEMBERSHIP['member_stats'],
-            'active' => $stats_active,
-        ),
-        array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
-            'text' => $LANG_MEMBERSHIP['positions'],
-            'active' => $pos_active,
-        ),
-        array(
-            'url' => MEMBERSHIP_ADMIN_URL . '/index.php?importform',
-            'text' => $LANG_MEMBERSHIP['import'],
-            'active' => $import_active,
-        ),
-        array(
-            'url' => $_CONF['site_admin_url'],
-            'text' => $LANG01[53],
-        ),
-    );
-    if (!empty($new_item_option)) {
-        $menu_arr[] = $new_item_option;
-    }
-    return ADMIN_createMenu($menu_arr, $help_text, plugin_geticon_membership());
-}
-
-
-/**
  * Display the member's full name in the "Last, First" format with a link.
  * Also sets class and javascript to highlight the same user's name elsewhere
  * on the page.
@@ -843,18 +753,23 @@ function MEMBER_CreateNameLink($uid, $fullname='')
         if ($fullname == '') {
             $fullname = COM_getDisplayName($uid);
         }
-        $fullname = PLG_callFunctionForOnePlugin('plugin_parseName_lglib',
+        $parsed = PLG_callFunctionForOnePlugin('plugin_parseName_lglib',
             array(
                 1 => $fullname,
                 2 => 'LCF',
             )
         );
+        if ($parsed === false ) {
+            $parsed = $fullname;
+        }
         //$fullname = \LGLib\NameParser::LCF($fullname);
         $retval[$uid] = '<span rel="rel_' . $uid .
             '" onmouseover="MEM_highlight(' . $uid .
             ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
-            COM_createLink($fullname,
-            $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $uid)
+            COM_createLink(
+                $parsed,
+                $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $uid
+            )
             . '</span>';
     }
     return $retval[$uid];
