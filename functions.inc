@@ -131,10 +131,6 @@ spl_autoload_register(function ($class)
     }
 });
 
-/** Import plugin-specific functions */
-function USES_membership_functions()
-{   require_once MEMBERSHIP_PI_PATH . '/membership_functions.inc.php'; }
-
 require_once MEMBERSHIP_PI_PATH . '/services.inc.php';
 
 /**
@@ -289,12 +285,13 @@ function plugin_itemdeleted_membership($id, $type)
 /**
  * Update the Membership plugin.
  *
+ * @param   boolean $dvlp   True if this is a development update
  * @return  boolean     True on success, False on failure
  */
-function plugin_upgrade_membership()
+function plugin_upgrade_membership($dvlp=false)
 {
     require_once __DIR__ . '/upgrade.inc.php';
-    return MEMBERSHIP_do_upgrade();
+    return MEMBERSHIP_do_upgrade($dvlp);
 }
 
 
@@ -581,7 +578,7 @@ function MEMBERSHIP_errorMessage($msg, $type = '', $header = '')
  *
  * @return  array   Array of form name & id
  */
-function plugin_configmanager_select_app_form_membership()
+function plugin_configmanager_select_app_form_id_membership()
 {
     global $_TABLES, $LANG_MEMBERSHIP;
 
