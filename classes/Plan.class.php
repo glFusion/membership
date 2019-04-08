@@ -661,7 +661,7 @@ class Plan
         $retval = array();
         $is_renewal = $isnew ? 'new' : 'renewal';
 
-        if ($_CONF_MEMBERSHIP['enable_paypal'] > 0) {
+        if (self::ShopEnabled()) {
             $vars = array(
                 'item_number'   => 'membership:' . $this->plan_id .
                             ':' . $is_renewal,
@@ -682,7 +682,7 @@ class Plan
                 $svc_msg
             );
             if ($status == PLG_RET_OK && is_array($output)) {
-                if ($_CONF_MEMBERSHIP['enable_paypal'] < 2) {
+                if (self::ShopEnabled()) {
                     // A little trickery to only allow add-to-cart button
                     // if not using buy-now + cart
                     $output = array('add_cart' => $output['add_cart']);
@@ -792,7 +792,7 @@ class Plan
         global $_CONF_MEMBERSHIP;
         static $currency = NULL;
         if ($currency === NULL) {
-            if ($_CONF_MEMBERSHIP['enable_paypal']) {
+            if (self::ShopEnabled()) {
                 $currency = PLG_callFunctionForOnePlugin('plugin_getCurrency_paypal');
             } else {
                 $currency = $_CONF_MEMBERSHIP['currency'];
@@ -908,7 +908,7 @@ class Plan
         foreach ($Plans as $P) {
             $description = $P->description;
             $price = $P->Price($M->isNew(), 'actual');
-            if ($_CONF_MEMBERSHIP['enable_paypal']) {
+            if (self::ShopEnabled()) {
                 $fee = $P->Fee();
                 $price_total = $price + $fee;
             } else {
@@ -979,6 +979,30 @@ class Plan
             }
         }
         return $retval;
+    }
+
+
+    /**
+     * Determine if the Shop plugin is installed and integration is enabled.
+     *
+     * @return  boolean     True if the integration is enabled, False if not.
+     */
+    public static function ShopEnabled()
+    {
+        global $_PLUGINS, $_CONF_MEMBERSHIP;
+
+        static $enabled = NULL;
+
+        if ($enabled !== NULL) {
+            return $enabled;
+        }
+        $enabled = $_CONF_MEMBERSHIP['enable_paypal'];
+        if ($enabled) {
+            if (!is_array($_PLUGINS) || !in_array('shop', $_PLUGINS)) {
+                $enabled = false;
+            }
+        }
+        return $enabled;
     }
 
 }
