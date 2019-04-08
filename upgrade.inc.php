@@ -141,13 +141,17 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
         COM_errorLog("No SQL update for $current_ver");
         return true;
     }
+    $sql_err_msg = 'SQL Error during Membership plugin update';
+    if ($dvlp) {
+        $sql_err_msg .= ' - Ignored';
+    }
     // Execute SQL now to perform the upgrade
     COM_errorLOG("--Updating Membership to version $version");
     foreach ($_UPGRADE_SQL[$version] as $q) {
         COM_errorLOG("Membership Plugin $version update: Executing SQL => $q");
         DB_query($q, '1');
         if (DB_error()) {
-            COM_errorLog("SQL Error during Membership plugin update",1);
+            COM_errorLog($sql_err_msg, 1);
             if (!$dvlp) return false;
         }
     }

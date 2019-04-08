@@ -23,7 +23,6 @@ if (!SEC_inGroup('Root')) {
     COM_404();
     exit;
 }
-require_once MEMBERSHIP_PI_PATH . '/upgrade.inc.php';   // needed for set_version()
 if (function_exists('CACHE_clear')) {
     CACHE_clear();
 }
@@ -31,12 +30,13 @@ if (function_exists('CACHE_clear')) {
 
 // Force the plugin version to the previous version and do the upgrade
 $_PLUGIN_INFO['membership']['pi_version'] = '0.1.3';
-MEMBERSHIP_do_upgrade(true);
+plugin_upgrade_membership(true);
 
 // need to clear the template cache so do it here
 if (function_exists('CACHE_clear')) {
     CACHE_clear();
 }
+\Membership\Cache::clear();
 header('Location: '.$_CONF['site_admin_url'].'/plugins.php?msg=600');
 exit;
 
