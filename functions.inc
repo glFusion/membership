@@ -844,7 +844,9 @@ function MEMBERSHIP_notifyExpiration()
                 'item_name' => $P->name,
                 'btn_type' => 'buy_now',
             );
-            $status = LGLIB_invokeService('paypal', 'genButton',
+            $status = LGLIB_invokeService(
+                'shop',
+                'genButton',
                 $args,
                 $output,
                 $msg

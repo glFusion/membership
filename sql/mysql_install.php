@@ -145,6 +145,8 @@ $_UPGRADE_SQL = array(
             `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
             PRIMARY KEY (`uid`)
         ) ENGINE=MyISAM",
+        "UPDATE {$_TABLES['conf_values']} SET name='enable_shop'
+            WHERE group_name='membership' AND name='enable_paypal'",
     ),
 );
 

@@ -7,8 +7,8 @@ Release TBD
 - Applications can be provided by the Profile or Forms plugin.
 - Enable web services so plugins can call `PLG_invokeService()`.
 - Correct namespace usage
-- Make service functions compatible with Paypal 0.6.0
 - Use Uikit datepicker
+- Change Paypal plugin to Shop
 
 ## 0.2.0
 - Implement PHP class autoloader

@@ -715,12 +715,19 @@ function MEMB_getField_member($fieldname, $fieldvalue, $A, $icon_arr)
 
     case 'tx_txn_id':
         $non_gw = array('', 'cc', 'check', 'cash');
+        $retval = $fieldvalue;
         if (!empty($fieldvalue) && !in_array($A['tx_gw'], $non_gw)) {
-            $retval = COM_createLink($fieldvalue, $_CONF['site_admin_url'] .
-                '/plugins/paypal/index.php?ipnlog=x&op=single&txn_id=' .
-                urlencode($fieldvalue));
-        } else {
-            $retval = $fieldvalue;
+            $status = LGLIB_invokeService(
+                'shop', 'getUrl',
+                array(
+                    'id'    => $fieldvalue,
+                    'type'  => 'ipn',
+                ),
+                $output, $svc_msg
+            );
+            if ($status == PLG_RET_OK) {
+                $retval = COM_createLink($fieldvalue, $url);
+            }
         }
         break;
 

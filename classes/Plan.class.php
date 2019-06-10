@@ -676,7 +676,9 @@ class Plan
                 //'_ret_url'      => $return,
                 'unique'        => true,
             );
-            $status = LGLIB_invokeService('paypal', 'genButton',
+            $status = LGLIB_invokeService(
+                'shop',
+                'genButton',
                 $vars,
                 $output,
                 $svc_msg
@@ -783,7 +785,7 @@ class Plan
 
 
     /**
-     * Wrapper function for the Paypal plugin's getCurrency() function.
+     * Wrapper function for the Shop plugin's getCurrency() function.
      *
      * @return  string  Currency type, "USD" by default.
      */
@@ -793,8 +795,9 @@ class Plan
         static $currency = NULL;
         if ($currency === NULL) {
             if (self::ShopEnabled()) {
-                $currency = PLG_callFunctionForOnePlugin('plugin_getCurrency_paypal');
-            } else {
+                $currency = PLG_callFunctionForOnePlugin('plugin_getCurrency_shop');
+            }
+            if ($currency === false) {
                 $currency = $_CONF_MEMBERSHIP['currency'];
             }
             if (empty($currency)) $currency = 'USD';
@@ -996,7 +999,7 @@ class Plan
         if ($enabled !== NULL) {
             return $enabled;
         }
-        $enabled = $_CONF_MEMBERSHIP['enable_paypal'];
+        $enabled = $_CONF_MEMBERSHIP['enable_shop'];
         if ($enabled) {
             if (!is_array($_PLUGINS) || !in_array('shop', $_PLUGINS)) {
                 $enabled = false;

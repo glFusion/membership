@@ -531,9 +531,9 @@ $membershipConfigData = array(
         'group' => 'membership',
     ),
 
-    // Fieldset - Paypal plugin options
+    // Fieldset - Shop plugin options
     array(
-        'name' => 'fs_paypal',
+        'name' => 'fs_shop',
         'default_value' => NULL,
         'type' => 'fieldset',
         'subgroup' => 10,
@@ -543,11 +543,11 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
-    // Enable integration with the Paypal plugin
+    // Enable integration with the Shop plugin
     // If not enabled, only manual payments will be available
     // 0 - disabled, 1 = cart only, 2 = buy now + cart
     array(
-        'name' => 'enable_paypal',
+        'name' => 'enable_shop',
         'default_value' => 2,
         'type' => 'select',
         'subgroup' => 10,
@@ -558,7 +558,7 @@ $membershipConfigData = array(
         'group' => 'membership',
     ),
     // Redirect to another page after the "Add to Cart" button is clicked.
-    // Requires Paypal integration.
+    // Requires Shop integration.
     array(
         'name' => 'redir_after_purchase',
         'default_value' => '',
@@ -570,7 +570,7 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
-    // Currency to use if Paypal is *not* integrated.
+    // Currency to use if Shop is *not* integrated.
     array(
         'name' => 'currency',
         'default_value' => 'USD',

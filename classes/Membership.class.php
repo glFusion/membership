@@ -467,7 +467,7 @@ class Membership
 
         // If this is a payment transaction, as opposed to a simple edit,
         // log the transaction info.
-        // This only logs transactions for profile updates; Paypal
+        // This only logs transactions for profile updates; Shop
         // transactions are logged by the handlePurchase service function.
         $pmt_type = MEMB_getVar($A, 'mem_pmttype');
         $pmt_amt = MEMB_getVar($A, 'mem_pmtamt', 'float', 0);
@@ -604,7 +604,7 @@ class Membership
 
     /**
      * Add a new membership record, or extend an existing one.
-     * Used by Paypal processing to automatically add or update a membership.
+     * Used by Shop processing to automatically add or update a membership.
      *
      * @uses    self::Save()
      * @param   integer $uid        User ID

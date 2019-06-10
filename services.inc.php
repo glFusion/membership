@@ -2,7 +2,7 @@
 /**
  * Service functions for the Membership plugin.
  * This file provides functions to be called by other plugins, such
- * as the PayPal plugin.
+ * as the Shop plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
@@ -53,7 +53,7 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
         'price'             => '0.00',
         'fixed_q'           => 1,
         'url'               => '',
-        'have_detail_svc' => true,  // Tell Paypal to use it's detail page wrapper
+        'have_detail_svc' => true,  // Tell Shop to use it's detail page wrapper
     );
     $retval = PLG_RET_OK;       // assume response will be OK
 
@@ -90,7 +90,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES, $_CONF_MEMBERSHIP;
 
-    // Called by Paypal IPN, so $args should be an array, but just in case...
+    // Called by Shop IPN, so $args should be an array, but just in case...
     if (!is_array($args)) return PLG_RET_ERROR;
 
     // Must have an item ID following the plugin name
@@ -515,8 +515,8 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
 
 /**
  * Get the product detail page for a specific item.
- * Takes the item ID as a full paypal-compatible ID (membership:plan_id:opts)
- * and creates the detail page for inclusion in the paypal catalog.
+ * Takes the item ID as a full shop-compatible ID (membership:plan_id:opts)
+ * and creates the detail page for inclusion in the shop catalog.
  *
  * @param   array   $args   Array containing item_id=>subscription:id:opts
  * @param   mixed   $output Output holder variable

@@ -226,7 +226,7 @@ $LANG_fs['membership'] = array(
     'fs_checkpay' => 'Manual Payment Options',
     'fs_mailchimp' => 'Mailchimp',
     'fs_mediagallery' => 'MediaGallery',
-    'fs_paypal' => 'Paypal Plugin',
+    'fs_shop' => 'Shop Plugin',
     'fs_app' => 'Applications',
 );
 
@@ -265,12 +265,12 @@ $LANG_confignames['membership'] = array(
     'manage_mg_quota' => 'Manage the user Album quota?',
     'mg_quota_member' => 'User Album quota for members (MB)',
     'mg_quota_nonmember' => 'User Album quota for non-members (MB)',
-    'enable_paypal' => 'Enable Paypal Payments?',
+    'enable_shop' => 'Enable Shop Payments?',
     'mem_num_fmt' => 'Format for membership numbers',
     'use_mem_number' => 'Use membership numbers?',
     'disable_expired' => 'Disable account upon expiration',
     'redir_after_purchase' => 'Redirect URL after purchase',
-    'currency' => 'Currency if Paypal is <b>not</b> integrated',
+    'currency' => 'Currency if Shop is <b>not</b> integrated',
     'app_provider' => 'Plugin providing application',
     'app_form_id' => 'Application form ID if Forms plugin is used',
     'expires_eom' => 'Memberships expire at end of month?',
