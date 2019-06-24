@@ -71,6 +71,13 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     }
     return $retval;
 }
+/**
+ * Non-service function to get product information.
+ *
+ * @see     service_productinfo_membership()
+ * @param   array   $args   Array of arguments.
+ * @return  array   Array of product information.
+ */
 function plugin_productinfo_membership($args)
 {
     $status = service_productinfo_membership($args, $output, $svc_msg);

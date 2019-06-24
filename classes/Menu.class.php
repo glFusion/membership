@@ -12,6 +12,10 @@
  */
 namespace Membership;
 
+/**
+ * Class to provide page headers and menus.
+ * @package membership
+ */
 class Menu
 {
     /**

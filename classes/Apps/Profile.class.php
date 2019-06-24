@@ -98,8 +98,7 @@ class Profile extends \Membership\App
     /**
      * Validate the application entry in case other validation was bypassed.
      *
-     * @param   integer $uid    User ID
-     * @param   array   $A      $_POST or NULL to check the current on-file app
+     * @param   array|null  $A      $_POST or NULL to check the current on-file app
      * @return  boolean     True if app is valid, False if not
      */
     protected function _Validate($A = NULL)

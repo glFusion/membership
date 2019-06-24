@@ -1,14 +1,14 @@
 <?php
 /**
- *   Configuration Defaults for the Membership plugin for glFusion.
+ * Configuration Defaults for the Membership plugin for glFusion.
  *
- *   @author     Lee Garner <lee@leegarner.com>
- *   @copyright  Copyright (c) 2012-2018 Lee Garner
- *   @package    membership
- *   @version    0.2.0
- *   @license    http://opensource.org/licenses/gpl-2.0.php
- *               GNU Public License v2 or later
- *   @filesource
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2018 Lee Garner
+ * @package     membership
+ * @version     v0.2.0
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
  *
  */
 

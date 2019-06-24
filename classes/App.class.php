@@ -26,6 +26,13 @@ class App
      * @var string */
     protected $plugin = '';
 
+
+    /**
+     * Constructor.
+     * Sets the plugin name and user ID.
+     *
+     * @param   integer $uid    User ID associated to the application
+     */
     public function __construct($uid = 0)
     {
         global $_USER, $_CONF_MEMBERSHIP;
@@ -37,7 +44,7 @@ class App
 
 
     /**
-     * Get an instance of a specific membership.
+     * Get an instance of a specific member application.
      *
      * @param   integer $uid    User ID to retrieve, default=current user
      * @return  object      Membership object
@@ -49,9 +56,11 @@ class App
         if ($uid == 0) $uid = $_USER['uid'];
         $uid = (int)$uid;
 
-        // Update the require_app and app_provider config vars if the provider
-        // plugin is unavailable
-        self::isRequired();
+        // If the provider plugin is not available, just return an empty
+        // object so calls to object methods won't fail.
+        if (!self::providerAvailable()) {
+            return new self($uid);
+        }
 
         switch ($_CONF_MEMBERSHIP['app_provider']) {
         case 'profile':
@@ -61,6 +70,7 @@ class App
             $retval = new \Membership\Apps\Forms($uid);
             break;
         default:
+            // Unknown app provider config, return a blank object.
             $retval = new self($uid);
             break;
         }
@@ -117,7 +127,6 @@ class App
      * @param   integer $uid    User ID to display
      * @return  string      HTML to display application
      */
-    //private static function DisplayProfile($uid)
     public function XDisplay()
     {
         global $_USER, $_CONF;
@@ -243,7 +252,6 @@ class App
      * @param   integer $uid    User ID to edit
      * @return  string      HTML for application form
      */
-    //private static function EditProfile($uid)
     public function XEdit()
     {
         global $LANG_MEMBERSHIP, $_CONF, $_CONF_MEMBERSHIP;
@@ -420,8 +428,7 @@ class App
     /**
      * Validate the application entry in case other validation was bypassed.
      *
-     * @param   integer $uid    User ID
-     * @param   array   $A      $_POST or NULL to check the current on-file app
+     * @param   array|null  $A      $_POST or NULL to check the current on-file app
      * @return  boolean     True if app is valid, False if not
      */
     public function Validate($A = NULL)
@@ -434,7 +441,8 @@ class App
 
         $status = true;
         // Check that the terms acceptance is supplied, or was done within a year
-        $terms_accept = 0;
+        // This is done if terms are enabled regardless of whether an app is
+        // used.
         if ($_CONF_MEMBERSHIP['terms_accept']) {
             $U = User::getInstance($this->uid);
             $terms_accept = $U->terms_accept;
@@ -451,7 +459,7 @@ class App
                 $status = false;
             }
         }
-        if (self::isRequired() != MEMBERSHIP_APP_REQUIRED) {
+        if (!self::isRequired()) {
             // App is not required, return status now.
             return $status;
         }
@@ -512,6 +520,8 @@ class App
 
         // Start with all the supported plugins
         $plugins = array('forms', 'profile');
+        // Now verify that the plugin is installed and enabled, and remove
+        // from the list if not.
         foreach ($plugins as $idx=> $pi_name) {
             if (!function_exists('plugin_chkVersion_' . $pi_name)) {
                 unset($plugins[$idx]);
@@ -523,10 +533,10 @@ class App
 
     /**
      * Determine if an application is required.
-     * If the configured app provider is not available, then set require_app
-     * to "disabled" and the app provider to nothing.
+     * Returns true if the require_app config value is set, unless the app
+     * provider plugin is not available.
      *
-     * @return  integer     Value of configured require_app value
+     * @return  boolean     True if an app is required, False if not.
      */
     public static function isRequired()
     {
@@ -535,14 +545,36 @@ class App
 
         if ($isRequired !== NULL) {
             return $isRequired;
-        } elseif (!in_array($_CONF_MEMBERSHIP['app_provider'], self::supportedPlugins())) {
+        } elseif (!self::providerAvailable()) {
+            // Don't require an app if the provider plugin is not available
             $isRequired = false;
         } elseif ($_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED) {
+            // App is not required
             $isRequired = false;
         } else {
             $isRequired = true;
         }
         return $isRequired;
+    }
+
+
+    /**
+     * Check if the configured app provider plugin is available.
+     *
+     * @return  boolean     True if the provider is available, False if not.
+     */
+    public static function providerAvailable()
+    {
+        global $_CONF_MEMBERSHIP;
+        static $isAvailable = NULL;
+
+        if ($isAvailable === NULL) {
+            $isAvailable = in_array(
+                $_CONF_MEMBERSHIP['app_provider'],
+                self::supportedPlugins()
+            );
+        }
+        return $isAvailable;
     }
 
 

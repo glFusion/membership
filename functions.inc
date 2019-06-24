@@ -1,14 +1,14 @@
 <?php
 /**
- *   Public API functions for the Membership plugin for glFusion.
+ * Public API functions for the Membership plugin for glFusion.
  *
- *   @author     Lee Garner <lee@leegarner.com>
- *   @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
- *   @package    membership
- *   @version    0.2.2
- *   @license    http://opensource.org/licenses/gpl-2.0.php
- *               GNU Public License v2 or later
- *   @filesource
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.2.2
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
  */
 if (!defined ('GVERSION')) {
     die ('This file can not be used on its own.');
@@ -621,6 +621,11 @@ function plugin_configmanager_select_member_all_group_membership()
 }
 
 
+/**
+ * Configuration helper to select the plugin used for membrership applications.
+ *
+ * @return  array   Array of plugins
+ */
 function plugin_configmanager_select_app_provider_membership()
 {
     global $LANG_MEMBERSHIP;
