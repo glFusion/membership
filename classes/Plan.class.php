@@ -567,11 +567,19 @@ class Plan
             // Anonymous must log in to purchase
             $T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
             $T->set_var('exp_msg_class', 'alert');
-        } elseif ($M->expires >= MEMBERSHIP_today() &&
-                 $M->plan_id == $this->plan_id) {
-            $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
-                    $M->plan_id, $M->expires));
-            $T->set_var('exp_msg_class', 'info');
+        } elseif ($M->plan_id == $this->plan_id) {
+            if ($M->expires >= MEMBERSHIP_today()) {
+                $T->set_var(
+                    'you_expire',
+                    sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires)
+                );
+                $T->set_var('exp_msg_class', 'info');
+            } else {
+                $T->set_var(
+                    'you_expire',
+                    sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->expires)
+                );
+            }
         }
         $T->parse('output', 'detail');
         return $T->finish($T->get_var('output', 'detail'));
@@ -905,11 +913,20 @@ class Plan
         }
 
         $currency = self::getCurrency();
-        $lang_price = $LANG_MEMBERSHIP['price'];
 
         $T->set_block('planlist', 'PlanBlock', 'PBlock');
         foreach ($Plans as $P) {
             $description = $P->description;
+            if ($M->plan_id == $P->plan_id) {
+                if ($M->expires < MEMBERSHIP_today) {
+                    $T->set_var(
+                        'cur_plan_msg',
+                        sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->expires)
+                    );
+                }
+            } else {
+                $T->clear_var('cur_plan_msg');
+            }
             $price = $P->Price($M->isNew(), 'actual');
             if (self::ShopEnabled()) {
                 $fee = $P->Fee();

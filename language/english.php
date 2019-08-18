@@ -44,6 +44,7 @@ $LANG_MEMBERSHIP = array(
 'print'         => 'Print',
 'exp_notice'    => 'Membership Expiration',
 'you_expire'    => 'Your current membership (%s) expires %s.',
+'curr_plan_expired' => 'Your current plan, expired %s',
 'renew_within'  => 'You can renew your membership within %d days of expiration',
 //'must_login'    => 'Please <a href="%s">register</a> or <a href="%s">log in</a> to update your profile and purchase memberships.',
 'must_login'    => 'Please <a href="' . $_CONF['site_url'] . '/users.php?mode=new">register</a> or <a href="' . $_CONF['site_url'] .

@@ -9,6 +9,7 @@ Release TBD
 - Correct namespace usage
 - Use Uikit datepicker
 - Change Paypal plugin to Shop
+- Add a message to plan lists indicating the latest plan if expired.
 
 ## 0.2.0
 - Implement PHP class autoloader

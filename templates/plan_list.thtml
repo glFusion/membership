@@ -22,15 +22,20 @@
     <div id="pluginMembershipPlanName">
       <h2>{name}</h2>
     </div>
-    {!if description}
-    <div id="pluginMembershipDescription">{description}</div>
-    {!endif}
+{!if description}
+    <div id="pluginMembershipDescription">
+      {description}
+{!if cur_plan_msg}
+      <br /><i class="uk-icon uk-icon-forward"></i>&nbsp;<span style="font-style:italic;">{cur_plan_msg}</span>
+{!endif}
+    </div>
+{!endif}
   </div>
   <div class="pluginMembershipButtons">
     {purchase_btn}
   </div>
   <div id="pluginMembershipPrice">
-    {lang_price}: {price} {currency}
+    {$LANG_MEMBERSHIP['price']}: {price} {currency}
     {!if fee}
     <br />({price_actual} + {fee} {$LANG_MEMBERSHIP['processing_fee']})
     {!endif}
