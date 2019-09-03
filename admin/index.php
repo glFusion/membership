@@ -760,7 +760,8 @@ function MEMBER_CreateNameLink($uid, $fullname='')
         if ($fullname == '') {
             $fullname = COM_getDisplayName($uid);
         }
-        $parsed = PLG_callFunctionForOnePlugin('plugin_parseName_lglib',
+        $parsed = PLG_callFunctionForOnePlugin(
+            'plugin_parseName_lglib',
             array(
                 1 => $fullname,
                 2 => 'LCF',
@@ -769,7 +770,6 @@ function MEMBER_CreateNameLink($uid, $fullname='')
         if ($parsed === false ) {
             $parsed = $fullname;
         }
-        //$fullname = \LGLib\NameParser::LCF($fullname);
         $retval[$uid] = '<span rel="rel_' . $uid .
             '" onmouseover="MEM_highlight(' . $uid .
             ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
