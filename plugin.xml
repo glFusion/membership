@@ -1,6 +1,6 @@
 <plugin>
     <id>membership</id>
-    <name>Forms</name>
+    <name>Membership</name>
     <description>Provides an interface to manage club members.</description>
     <version>0.2.0</version>
     <glfusionversion>1.7.0</glfusionversion>
