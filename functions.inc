@@ -801,11 +801,13 @@ function MEMBERSHIP_notifyExpiration()
     global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
 
     // Return if we're not configured to notify users.
-    if ($_CONF_MEMBERSHIP['notifydays'] < 0 ||
-        $_CONF_MEMBERSHIP['notifymethod'] == MEMBERSHIP_NOTIFY_NONE) {
+    if (
+        $_CONF_MEMBERSHIP['notifydays'] < 0 ||
+        $_CONF_MEMBERSHIP['notifymethod'] == MEMBERSHIP_NOTIFY_NONE
+    ) {
         return;
     }
-    $exp_chk = MEMBERSHIP_today()->add(new \DateInterval("P{$_CONF_MEMBERSHIP['notifydays']}D"));
+    $exp_chk = Membership\Dates::add("P{$_CONF_MEMBERSHIP['notifydays']}D")->format('Y-m-d');
     $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
     $sql = "SELECT m.mem_uid, m.mem_notified,
                 p.plan_id, p.name, p.description,
@@ -817,7 +819,7 @@ function MEMBERSHIP_notifyExpiration()
                 ON u.uid = m.mem_uid
             WHERE m.mem_notified = 0
             AND m.mem_status IN ($stat)
-            AND m.mem_expires < '" . $exp_check->format('Y-m-d') . "'";
+            AND m.mem_expires < '$exp_chk'";
     //COM_errorLog($sql);
     $r = DB_query($sql);
     if (!$r)

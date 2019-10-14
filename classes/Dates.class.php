@@ -28,6 +28,7 @@ class Dates
     public static function Now()
     {
         global $_CONF;
+
         return $_CONF['_now'];
     }
 
@@ -54,8 +55,7 @@ class Dates
     {
         global $_CONF_MEMBERSHIP;
 
-        $dt = clone self::Now();
-        return $dt->add(new \DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
+        return self::add("P{$_CONF_MEMBERSHIP['early_renewal']}D");
     }
 
 
@@ -69,8 +69,7 @@ class Dates
     {
         global $_CONF_MEMBERSHIP;
 
-        $dt = clone self::Now();
-        return $dt->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
+        return self::sub("P{$_CONF_MEMBERSHIP['grace_days']}D");
     }
 
 
@@ -82,9 +81,41 @@ class Dates
      */
     public static function plusOneYear($dt = NULL)
     {
-        $dt = clone self::Now();
-        return $dt->add(new \DateInterval("P1Y"))->format('Y-m-d', true);
+        return self::add("P1Y")->format('Y-m-d', true);
     }
+
+
+    /**
+     * Add some interval to the current date.
+     *
+     * @param   string  $interval   Interval string, e.g. "P10D"
+     * @param   object  $dtobj      Optional date object, default = Now()
+     * @return      Updated date object
+     */
+    public static function add($interval, $dtobj = NULL)
+    {
+        if ($dtobj === NULL) {
+            $dtobj = clone self::Now();
+        }
+        return $dtobj->add(new \DateInterval($interval));
+    }
+
+
+    /**
+     * Subtract some interval from the current date.
+     *
+     * @param   string  $interval   Interval string, e.g. "P10D"
+     * @param   object  $dtobj      Optional date object, default = Now()
+     * @return      Updated date object
+     */
+    public static function sub($interval, $dtobj = NULL)
+    {
+        if ($dtobj === NULL) {
+            $dtobj = clone self::Now();
+        }
+        return $dtobj->sub(new \DateInterval($interval));
+    }
+
 }
 
 ?>
