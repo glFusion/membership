@@ -20,15 +20,15 @@ class Membership
 {
     /** Local properties accessed via `__set()` and `__get()`.
      * @var array */
-    var $properties = array();
+    private $properties = array();
 
     /** Flag to indicate that this is a new record.
      * @var boolean */
-    var $isNew;
+    public $isNew;
 
     /** Membership plan related to this membership.
      * @var object */
-    var $Plan;
+    public $Plan;
 
     /**
      * Constructor.
@@ -48,8 +48,6 @@ class Membership
         $this->plan_id = '';
         $this->Plan = NULL;
         $this->status = MEMBERSHIP_STATUS_DROPPED;
-        $this->expires = MEMBERSHIP_today();
-        $this->joined = $this->expires;
         $this->paid = '';
         $this->notified = 0;
         $this->old_status = $this->status;
@@ -58,6 +56,9 @@ class Membership
         $this->guid = '';
         if ($this->uid > 1 && $this->Read($this->uid)) {
             $this->isNew = false;
+        } else {
+            $this->expires = Dates::plusOneYear();
+            $this->joined = Dates::Today();
         }
     }
 
@@ -130,7 +131,7 @@ class Membership
         $uid = (int)$uid;
         if ($uid > 1) {
             $cache_key = 'member_' . $uid;
-            $retval = Cache::get($cache_key);
+//            $retval = Cache::get($cache_key);
             if ($retval === NULL) {
                 $retval = new self($uid);
                 Cache::set($cache_key, $retval, 'members');
@@ -393,7 +394,7 @@ class Membership
         // Date has been updated with a later date. If updated to an earlier
         // date then the expiration/arrears will be handled by
         // runScheduledTask
-        if ($this->expires > MEMBERSHIP_today()) {
+        if ($this->expires > Dates::Today()) {
             $this->status = MEMBERSHIP_STATUS_ACTIVE;
         }
 
@@ -512,7 +513,7 @@ class Membership
             if (!empty($_CONF_MEMBERSHIP['member_group'])) {
                 $groups[] = $_CONF_MEMBERSHIP['member_group'];
             }
-            $dt_sql = ", mem_expires = '" . MEMBERSHIP_today() . "'";
+            $dt_sql = ", mem_expires = '" . Dates::Today() . "'";
             break;
         }
         // Set membership status
@@ -636,7 +637,7 @@ class Membership
             $this->expires = $exp;
         }
         if ($joined != '') $this->joined = $joined;
-        $this->paid = MEMBERSHIP_today();
+        $this->paid = Dates::Today();
         if ($this->Save()) {
             return $this->expires;
         } else {
@@ -788,8 +789,8 @@ class Membership
     {
         global $_CONF_MEMBERSHIP;
 
-        $days = COM_dateDiff('d', $exp, MEMBERSHIP_today());
-        if ($exp < MEMBERSHIP_today()) $days *= -1;
+        $days = COM_dateDiff('d', $exp, Dates::Today());
+        if ($exp < Dates::Today()) $days *= -1;
         return $days;
     }
 
@@ -805,9 +806,9 @@ class Membership
     {
         global $_CONF_MEMBERSHIP;
 
-        $days = COM_dateDiff('d', $exp, MEMBERSHIP_today());
+        $days = COM_dateDiff('d', $exp, Dates::Today());
         // Undo absolute value conversion done in COM_dateDiff()
-        if ($exp > MEMBERSHIP_today()) $days *= -1;
+        if ($exp > Dates::Today()) $days *= -1;
         return $days;
     }
 
