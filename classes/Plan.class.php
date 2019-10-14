@@ -12,6 +12,7 @@
  */
 namespace Membership;
 
+
 /**
  * Class for membership plans
  * @package membership
@@ -456,21 +457,25 @@ class Plan
         }
 
         if ($_CONF_MEMBERSHIP['period_start'] > 0) {
-            $T->set_var('period_start_text',
-                    $LANG_MONTH[$_CONF_MEMBERSHIP['period_start']]);
-            for ($i = 1; $i < 12; $i++) {
-                if (isset($this->fees['new'][$i])) {
-                    $T->set_var('new_' . $i, sprintf('%.2f', $this->fees['new'][$i]));
-                }
-                if (isset($this->fees['renew'][$i])) {
-                    $T->set_var('renew_' . $i, sprintf('%.2f', $this->fees['renew'][$i]));
-                }
-            }
+            $fee_rows = 12;
+            $text_1 = $LANG_MONTH[1];
         } else {
+            $fee_rows = 1;
+            $text_1 = $LANG_MEMBERSHIP['any_period'];
+        }
+        $T->set_block('feetable', 'FeeTable', 'FTable');
+        for ($i = 1; $i < $fee_rows+1; $i++) {
             $T->set_var(array(
-                'fee_rolling'   => 'true',
-                'period_start_text' => $LANG_MEMBERSHIP['any_period'],
+                'text'      =>  $i == 1 ? $text_1 : $LANG_MONTH[$i],
+                'counter'   => $i,
             ) );
+            if (isset($this->fees['new'][$i])) {
+                $T->set_var('new_fee', sprintf('%.2f', $this->fees['new'][$i]));
+            }
+            if (isset($this->fees['renew'][$i])) {
+                $T->set_var('renew_fee', sprintf('%.2f', $this->fees['renew'][$i]));
+            }
+            $T->parse('FTable', 'FeeTable', true);
         }
 
         if (self::hasMembers($this->id)) {
