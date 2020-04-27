@@ -24,7 +24,7 @@
       {position_type_select}
     </select>
     &nbsp;&nbsp;Or create:
-    <input type="text" name="position_type" value="" 
+    <input type="text" name="position_type" value=""
         size="32" maxlength="32" />
     </div>
   </div>
@@ -55,7 +55,7 @@
       <span id="order" class="tooltip_cfg tooltipstered"></span>
     </label>
     <div class="uk-form-controls">
-    <input id="orderby" type="text" name="orderby" value="{orderby}" 
+    <input id="orderby" type="text" name="orderby" value="{orderby}"
         size="6" maxlength="6" />
     </div>
   </div>
@@ -64,7 +64,7 @@
     <label class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}?
       <span id="enabled" class="tooltip_cfg tooltipstered"></span>
     </label>
-    <div class="uk-form-controls slider_checkbox">
+    <div class="uk-form-controls">
     <input id="enabled" type="checkbox" name="enabled" value="1" {ena_chk} />
     </div>
   </div>
@@ -73,7 +73,7 @@
     <label class="uk-form-label">{$LANG_MEMBERSHIP['show_vacant']}:
       <span id="show_vacant" class="tooltip_cfg tooltipstered"></span>
     </label>
-    <div class="uk-form-controls slider_checkbox">
+    <div class="uk-form-controls">
     <input type="checkbox" id="show_vacant" name="show_vacant" value="1" {show_vacant_chk} />
     </div>
   </div>
