@@ -13,39 +13,36 @@
 </div>
 {!endif}
 {!if app_msg}
-<span id="pluginMembershipAppMsg" class="info">{app_msg}</span>
+<div id="pluginMembershipAppMsg" class="uk-alert">{app_msg}</div>
 {!endif}
 <hr />
 <!-- BEGIN PlanBlock -->
-<div class="pluginMembershipPlanItem">
-  <div class="floatleft">
-    <div id="pluginMembershipPlanName">
-      <h2>{name}</h2>
-    </div>
+<ul class="uk-grid uk-grid-width-1-1 uk-grid-width-medium-1-3">
+    <li>
+        <div id="pluginMembershipPlanName">
+            <h2>{name}</h2>
+        </div>
 {!if description}
-    <div id="pluginMembershipDescription">
-      {description}
+        <div id="pluginMembershipDescription">
+            {description}
 {!if cur_plan_msg}
-      <br /><i class="uk-icon uk-icon-forward"></i>&nbsp;<span style="font-style:italic;">{cur_plan_msg}</span>
+            <br /><i class="uk-icon uk-icon-forward"></i>&nbsp;<span style="font-style:italic;">{cur_plan_msg}</span>
 {!endif}
-    </div>
+        </div>
 {!endif}
-  </div>
-  <div class="pluginMembershipButtons">
-    {purchase_btn}
-  </div>
-  <div id="pluginMembershipPrice">
-    {$LANG_MEMBERSHIP['price']}: {price} {currency}
-    {!if fee}
-    <br />({price_actual} + {fee} {$LANG_MEMBERSHIP['processing_fee']})
-    {!endif}
-  </div>
-</div>
-<div style="clear:both;">
-  <hr />
-</div>
+    </li>
+    <li>
+        {$LANG_MEMBERSHIP['price']}: {price} {currency}
+{!if fee}
+        <br />({price_actual} + {fee} {$LANG_MEMBERSHIP['processing_fee']})
+{!endif}
+    </li>
+    <li>
+        {purchase_btn}
+    </li>
+</ul>
 <!-- END PlanBlock -->
 {!if footer}
-{footer}
+<div class="uk-alert">{footer}</div>
 {!endif}
 {# end {templatelocation} #}
