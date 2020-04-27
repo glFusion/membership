@@ -86,22 +86,6 @@ if (file_exists(MEMBERSHIP_PI_PATH . '/config.php')) {
     include_once MEMBERSHIP_PI_PATH . '/config.php';
 }
 
-$_CONF_MEMBERSHIP['now'] = new Date('now', $_CONF['timezone']);
-$_CONF_MEMBERSHIP['today'] = $_CONF_MEMBERSHIP['now']->format('Y-m-d', true);
-
-// Save the date that the grace period ends.  If expiration is earlier than this,
-// the membership has expired
-//$_CONF_MEMBERSHIP['dt_end_grace'] = $_CONF_MEMBERSHIP['now']->sub(new DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
-
-// Save the latest expiration date that qualifies for renewal. If expiration is
-// after this date the user cannot renew yet.
-//$_CONF_MEMBERSHIP['dt_begin_renewal'] = $_CONF_MEMBERSHIP['now']->add(new DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
-
-//if (!isset($_CONF_MEMBERSHIP['member_all_group']) ||
-//        empty($_CONF_MEMBERSHIP['member_all_group'])) {
-//    $_CONF_MEMBERSHIP['member_all_group'] = $_CONF_MEMBERSHIP['member_group'];
-//}
-
 spl_autoload_register(function ($class)
 {
     // project-specific namespace prefix
@@ -415,7 +399,7 @@ function plugin_user_changed_membership($uid=0)
     // Only managers can update membership data.
     if (!MEMBERSHIP_isManager()) return;
 
-    $M = \Membership\Membership::getInstance($uid);
+    $M = Membership\Membership::getInstance($uid);
     $M->Save($_POST);
 }
 
@@ -683,9 +667,10 @@ function plugin_runScheduledTask_membership()
     $r = DB_query($sql, 1);
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
-            \Membership\Membership::Expire($row['mem_uid'], true);
-            MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_expired'],
-                $row['mem_uid'], $row['fullname']), true);
+            Membership\Membership::Expire($row['mem_uid'], true);
+            Membership\Logger::audit(sprintf($LANG_MEMBERSHIP['log_expired'],
+                $row['mem_uid'], $row['fullname']), true
+            );
         }
     }
 
@@ -703,9 +688,10 @@ function plugin_runScheduledTask_membership()
     $r = DB_query($sql, 1);
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
-            \Membership\Membership::Arrears($row['mem_uid'], true);
-            MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_arrears'],
-                $row['mem_uid'], $row['fullname']), true);
+            Membership\Membership::Arrears($row['mem_uid'], true);
+            Membership\Logger::audit(sprintf($LANG_MEMBERSHIP['log_arrears'],
+                $row['mem_uid'], $row['fullname']), true
+            );
         }
     }
 
@@ -717,8 +703,9 @@ function plugin_runScheduledTask_membership()
             '" . MEMBERSHIP_today() . "' > (mem_expires + interval $days DAY)";
         $res = DB_query($sql, 1);
         $num = DB_affectedRows($res);
-        MEMBERSHIP_auditLog(sprintf($LANG_MEMBERSHIP['log_purged'],
-                $num, $days), true);
+        Membership\Logger::audit(sprintf($LANG_MEMBERSHIP['log_purged'],
+            $num, $days), true
+        );
     }
 
     // For the memberships that are left, notify the members of
@@ -846,9 +833,9 @@ function MEMBERSHIP_notifyExpiration()
             $args = array(
                 'custom'    => array('uid'   => $row['mem_uid']),
                 'amount' => $P->Price(false),
-                'item_number' => $_CONF_MEMBERSHIP['pi_name'] . ':' . $P->plan_id .
+                'item_number' => $_CONF_MEMBERSHIP['pi_name'] . ':' . $P->getPlanID() .
                         ':renewal',
-                'item_name' => $P->name,
+                'item_name' => $P->getName(),
                 'btn_type' => 'buy_now',
             );
             $status = LGLIB_invokeService(
@@ -966,20 +953,6 @@ function MEMBERSHIP_isAdmin()
 
 
 /**
- * Send debug info to the error log.
- *
- * @param   string  $msg    Text message to display, may be blank.
- */
-function MEMBERSHIP_debug($msg)
-{
-    global $_CONF_MEMBERSHIP;
-    if ($_CONF_MEMBERSHIP['debug']) {
-        COM_errorLog('MEMBERSHIP DEBUG: ' . $msg);
-    }
-}
-
-
-/**
  * Actions to perform when a user account is created.
  * Sets a message to be displayed at first login encouraging a new user
  * to join the organization.
@@ -1012,10 +985,10 @@ function plugin_user_delete_membership($uid)
 {
     global $_TABLES;
 
-    MEMBERSHIP_auditLog('Membership deleted for user ' . $uid . ' (' .
-        COM_getDisplayName($uid) . ') due to account deletion.');
-
-    \Membership\Membership::Delete($uid);
+    Membership\Logger::audit('Membership deleted for user ' . $uid . ' (' .
+        COM_getDisplayName($uid) . ') due to account deletion.'
+    );
+    Membership\Membership::Delete($uid);
 }
 
 
@@ -1173,47 +1146,15 @@ function MEMBERSHIP_memberstatuses()
 
 
 /**
- * Shortcut to get the current date object.
- *
- * @return  object  Date object for current timestamp
- */
-function MEMBERSHIP_now()
-{
-    global $_CONF;
-    static $now = NULL;
-    if ($now === NULL) {
-        $now = new \Date('now', $_CONF['timezone']);
-    }
-    return $now;
-}
-
-
-/**
  * Shortcut function to get the SQL-formatted date for today.
  *
  * @return  string  Today's date as "YYYY-MM-DD"
  */
 function MEMBERSHIP_today()
 {
-    return MEMBERSHIP_now()->format('Y-m-d', true);
-}
+    global $_CONF;
 
-
-/**
- * Get the latest expiration date that allows renewals.
- * This works with the early_renewal configuration to allow renewals
- * within X days of expiration.
- *
- * @return  object  Date object
- */
-function MEMBERSHIP_dtBeginRenew()
-{
-    global $_CONF_MEMBERSHIP;
-    static $dt = NULL;
-    if ($dt === NULL) {
-        $dt = MEMBERSHIP_now()->add(new \DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
-    }
-    return $dt;
+    return $_CONF['_now']->format('Y-m-d', true);
 }
 
 
@@ -1225,10 +1166,10 @@ function MEMBERSHIP_dtBeginRenew()
  */
 function MEMBERSHIP_dtEndGrace()
 {
-    global $_CONF_MEMBERSHIP;
+    global $_CONF_MEMBERSHIP, $_CONF;
     static $dt = NULL;
     if ($dt === NULL) {
-        $dt = MEMBERSHIP_now()->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
+        $dt = $_CONF['_now']->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
     }
     return $dt;
 }
@@ -1263,54 +1204,6 @@ function MEMB_getVar($A, $varname, $type = 'string')
         return (string)$val;
         break;
     }
-}
-
-
-/**
- * Log activity to a plugin-specific log file.
- * Message includes the user who initiated the action, unless it's a
- * system-generated event such as a scheduled task.
- *
- * @param   string  $logentry   Text to log
- * @param   boolean $system     True if this is a system-generated entry
- */
-function MEMBERSHIP_auditLog($logentry = '', $system=false)
-{
-    global $_CONF, $_CONF_MEMBERSHIP, $_USER, $LANG01, $LANG_MEMBERSHIP;
-
-    if ($logentry == '')
-        return '';
-
-    // A little sanitizing
-    $logentry = str_replace(
-            array('<?', '?>'),
-            array('(@', '@)'),
-            $logentry);
-
-    $timestamp = strftime('%c');
-    $logfile = $_CONF['path_log'] . $_CONF_MEMBERSHIP['pi_name'] . '.log';
-
-    // Can't open the log file?  Return an error
-    if (!$file = fopen($logfile, 'a+')) {
-        return $LANG01[33] . $logfile . ' (' . $timestamp . ')<br />' . LB;
-    }
-
-    if ($system == false) {
-        // Get the user name if it's not anonymous
-        if (isset($_USER['uid'])) {
-            $byuser = $_USER['uid'] . '-'.
-                    COM_getDisplayName($_USER['uid'],
-                        $_USER['username'], $_USER['fullname']);
-        } else {
-            $byuser = 'anon';
-        }
-        $byuser .= '@' . $_SERVER['REMOTE_ADDR'];
-    } else {
-        $byuser = $LANG_MEMBERSHIP['system_task'];
-    }
-
-    // Write the log entry to the file
-    fputs($file, "$timestamp ($byuser) - $logentry\n");
 }
 
 ?>
