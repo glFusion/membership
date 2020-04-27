@@ -205,7 +205,7 @@ function togglePmtDiv()
     </div>
   </fieldset>
 
-  <fieldset>
+  <fieldset id="family_fields" style="display:{family_display};">
     <legend>{$LANG_MEMBERSHIP['linked_accounts']}</legend>
 
     <div class="uk-form-row">
@@ -270,17 +270,24 @@ function memUpdateLinkText(selid)
     var plan_id = selid.options[selid.selectedIndex].value;
     // default if no family plans
     var text = "{$LANG_MEMBERSHIP['no_upd_links']}";
-    
+    var show_family = false;
+
     if (plan_id == '') {
         text = '';
     } else {
         for (var i=0; i<family_ids.length; i++) {
             if (family_ids[i] == plan_id) {
                 text = "{$LANG_MEMBERSHIP['does_upd_links']}";
+                show_family = true;
             }
         }
     }
     document.getElementById("upd_link_txt").innerHTML = text;
+    if (show_family) {
+        document.getElementById("family_fields").style.display = 'block';
+    } else {
+        document.getElementById("family_fields").style.display = 'none';
+    }
 }
 </script>
 {tooltipster_js}

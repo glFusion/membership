@@ -336,6 +336,11 @@ class Membership
             'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
             'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
         ) );
+        if ($this->Plan) {
+            $T->set_var('family_display', $this->Plan->isFamily() ? 'block' : 'none');
+        } else {
+            $T->set_var('family_display', 'none');
+        }
         if ($action_url != '') {
             $T->set_var(array(
                 'standalone' => 'true',
