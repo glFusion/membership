@@ -3,9 +3,9 @@
  * Class to manage membership plans.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2011-2015 Lee Garner
+ * @copyright   Copyright (c) 2011-2020 Lee Garner
  * @package     membership
- * @version     0.1.1
+ * @version     0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -19,21 +19,46 @@ namespace Membership;
  */
 class Plan
 {
-    /** Property fields.  Accessed via `__set()` and `__get()`.
-     * @var array */
-    var $properties = array();
-
     /** Flag to indicate that this is a new record.
      * @var boolean */
-    var $isNew;
+    private $isNew = true;
+
+    /** Membership plan ID.
+     * @var string */
+    private $plan_id = '';
+
+    /** Group ID allowed to buy the membership.
+     * Default = logged-in users.
+     * @var integer */
+    private $grp_access = 13;
+
+    /** Plan price.
+     * @var float */
+    private $price = 0;
+
+    /** Name or short description of plan.
+     * @var string */
+    private $name = '';
+
+    /** Full text description of plan.
+     * @var string */
+    private $dscp = '';
+
+    /** Flag to indicate that sales of this plan are allowed.
+     * @var boolean */
+    private $enabled = 1;
+
+    /** Flag to indicate that related memberships are updated with this one.
+     * @var boolean */
+    private $upd_links = 0;
 
     /** Array of error messages.
      * @var array */
-    var $Errors = array();
+    private $Errors = array();
 
     /** Array of new and renewal fees.
      * @var array */
-    var $fees = array();
+    private $fees = array();
 
 
     /**
@@ -56,7 +81,7 @@ class Plan
             }
         } else {
             $this->name = '';
-            $this->description = '';
+            $this->dscp = '';
             $this->fees = array();
             $this->enabled = 1;
             $this->upd_links = 0;
@@ -66,61 +91,180 @@ class Plan
 
 
     /**
-     * Set a property's value.
+     * Set the plan ID.
      *
-     * @param   string  $var    Name of property to set.
-     * @param   mixed   $value  New value for property.
+     * @param   string  $id     Plan ID
+     * @return  object  $this
      */
-    public function __set($var, $value='')
+    private function setPlanID($id)
     {
-        switch ($var) {
-        case 'plan_id':
-        case 'old_plan_id':
-            $this->properties[$var] = COM_sanitizeID($value, false);
-            break;
-
-        case 'grp_access':
-            // Integer values
-            $this->properties[$var] = (int)$value;
-            break;
-
-        case 'price':
-            // Float values
-            $this->properties[$var] = (float)$value;
-            break;
-
-        case 'name':
-        case 'description':
-            // String values
-            $this->properties[$var] = trim($value);
-            break;
-
-        case 'enabled':
-        case 'upd_links':
-            // Boolean values
-            $this->properties[$var] = $value == 1 ? 1 : 0;
-            break;
-
-        default:
-            // Undefined values (do nothing)
-            break;
-        }
+        $this->plan_id = COM_sanitizeID($value, false);
+        return $this;
     }
 
 
     /**
-     * Get the value of a property.
+     * Get the plan ID.
      *
-     * @param   string  $var    Name of property to retrieve.
-     * @return  mixed           Value of property, NULL if undefined.
+     * @return  string  Plan ID
      */
-    public function __get($var)
+    public function getPlanID()
     {
-        if (isset($this->properties[$var])) {
-            return $this->properties[$var];
-        } else {
-            return NULL;
-        }
+        return $this->plan_id;
+    }
+
+
+    /**
+     * Set the group allowed to purchase this plan.
+     *
+     * @param   integer $grp_id Gropu ID
+     * @return  object  $this
+     */
+    private function setGrpAccess($grp_id)
+    {
+        $this->grp_access = (int)$grp_id;
+        return $this;
+    }
+
+
+    /**
+     * Get the ID of the group allowed to purchase this plan.
+     *
+     * @return  integer     Group ID
+     */
+    public function getGrpAccess()
+    {
+        return (int)$this->grp_access;
+    }
+
+
+    /**
+     * Set the plan price.
+     *
+     * @param   float   $price  Plan price
+     * @return  object  $this
+     */
+    private function setPrice($price)
+    {
+        $this->price = (float)$price;
+    }
+
+
+    /**
+     * Get the plan price.
+     *
+     * @return  float       Plan price
+     */
+    public function getPrice()
+    {
+        return (float)$this->price;
+    }
+
+
+    /**
+     * Set the short description of the plan.
+     *
+     * @param   string  $dscp   Short description
+     * @return  object  $this
+     */
+    private function setName($dscp)
+    {
+        $this->name = $dscp;
+    }
+
+
+    /**
+     * Get the short description of the plan.
+     *
+     * @return  string      Sort description (name)
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+
+    /**
+     * Set the full text description of the plan.
+     *
+     * @param   string  $dscp   Full description
+     * @return  object  $this
+     */
+    private function setDscp($dscp)
+    {
+        $this->dscp = $dscp;
+        return $this;
+    }
+
+
+    /**
+     * Get the full text description of the plan.
+     *
+     * @return  string      Full text description
+     */
+    public function getDscp()
+    {
+        return $this->dscp;
+    }
+
+
+    /**
+     * Set the `enabled` flag for the plan.
+     *
+     * @param   boolean $flag   1 if enabled, 0 if not
+     * @return  object  $this
+     */
+    private function setEnabled($flag)
+    {
+        $this->enabled = $flag ? 1 : 0;
+        return $this;
+    }
+
+
+    /**
+     * Get the enabled status for the plan.
+     *
+     * @return  integer     1 if enabled, 0 if not
+     */
+    public function isEnabled()
+    {
+        return $this->enabled ? 1 : 0;
+    }
+
+
+    /**
+     * Set the flag to update related membership links.
+     *
+     * @param   boolean $flag   1 if enabled, 0 if not
+     * @return  object  $this
+     */
+    private function setUpdateLinks($flag)
+    {
+        $this->upd_links = $flag ? 1 : 0;
+        return $this;
+    }
+
+
+    /**
+     * Check if this is a new record. Also indicates whether a record was read.
+     *
+     * @return  integer     1 if new, 0 if existing
+     */
+    public function isNew()
+    {
+        return $this->isNew ? 1 : 0;
+    }
+
+
+    /**
+     * Get the flag to update related membership links.
+     * Referred to as a "family plan".
+     *
+     * @return  integer     1 if enabled, 0 if not
+     */
+    public function isFamily()
+    {
+        return $this->upd_links ? 1 : 0;
     }
 
 
@@ -138,14 +282,13 @@ class Plan
 
         $this->plan_id = $row['plan_id'];
         $this->name = $row['name'];
-        $this->description = $row['description'];
-        $this->grp_access = $row['grp_access'];
-        $this->enabled = isset($row['enabled']) ? $row['enabled'] : 0;
-        $this->upd_links = isset($row['upd_links']) ? $row['upd_links'] : 0;
+        $this->dscp = $row['description'];
+        $this->grp_access = (int)$row['grp_access'];
+        $this->enabled = isset($row['enabled']) ? (int)$row['enabled'] : 0;
+        $this->upd_links = isset($row['upd_links']) ? (int)$row['upd_links'] : 0;
 
         if ($fromDB) {
             $this->fees = @unserialize($row['fees']);
-            $this->old_plan_id = $row['plan_id'];
         } elseif (is_array($row['fee'])) {  // should always be an array from the form
             if ($_CONF_MEMBERSHIP['period_start'] > 0) {
                 // Each month has a specified new and renewal fee
@@ -227,6 +370,7 @@ class Plan
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
+        $old_plan_id = $this->plan_id;
         if (is_array($A)) {
             $this->setVars($A);
         }
@@ -242,32 +386,34 @@ class Plan
 
         // Insert or update the record, as appropriate
         if ($this->isNew) {
-            MEMBERSHIP_debug('Preparing to save a new product.');
+            Logger::debug('Preparing to save a new product.');
             $sql1 = "INSERT INTO {$_TABLES['membership_plans']} SET ";
             $sql3 = '';
         } else {
             // Updating a plan.  Make sure that if the plan_id is changed it
             // isn't changed to an existing value
-            if ($this->plan_id != $this->old_plan_id &&
-                DB_count($_TABLES['membership_plans'], 'plan_id', $this->plan_id) > 0) {
+            if (
+                $this->plan_id != $old_plan_id &&
+                DB_count($_TABLES['membership_plans'], 'plan_id', $this->plan_id) > 0
+            ) {
                return false;
             }
             $sql1 = "UPDATE {$_TABLES['membership_plans']} SET ";
             $sql3 = " WHERE plan_id = '" . DB_escapeString($this->old_plan_id) .
                      "'";
-            MEMBERSHIP_debug('Preparing to update product id ' . $this->plan_id);
+            Logger:debug('Preparing to update product id ' . $this->plan_id);
         }
 
         $price = number_format($this->price, 2, '.', '');
         $sql2 = "plan_id = '" . DB_escapeString($this->plan_id) . "',
                 name = '" . DB_escapeString($this->name) . "',
-                description = '" . DB_escapeString($this->description) . "',
+                description = '" . DB_escapeString($this->dscp) . "',
                 fees = '" . DB_escapeString(@serialize($this->fees)) . "',
                 enabled = '{$this->enabled}',
                 upd_links = '{$this->upd_links}',
                 grp_access = '{$this->grp_access}'";
         $sql = $sql1 . $sql2 . $sql3;
-        //MEMBERSHIP_debug($sql);
+        //Logger::debug($sql);
         //echo $sql;die;
         DB_query($sql);
 
@@ -284,7 +430,7 @@ class Plan
             $status = 'Error Saving';
         }
 
-        MEMBERSHIP_debug('Status of last update: ' . print_r($status,true));
+        Logger::debug('Status of last update: ' . print_r($status,true));
         $msg = $LANG_MEMBERSHIP['update_of_plan'] . ' ' . $this->plan_id . ' ';
         if (!$this->hasErrors()) {
             $retval = true;
@@ -362,10 +508,10 @@ class Plan
         }
 
         if ($this->hasErrors()) {
-            MEMBERSHIP_debug('Errors encountered: ' . print_r($this->Errors,true));
+            Logger::debug('Errors encountered: ' . print_r($this->Errors,true));
             return false;
         } else {
-            MEMBERSHIP_debug('isValidRecord(): No errors');
+            Logger::debug('isValidRecord(): No errors');
             return true;
         }
     }
@@ -432,7 +578,7 @@ class Plan
             'plan_id'       => $this->plan_id,
             'old_plan_id'   => $this->plan_id,
             'name'          => $this->name,
-            'description'   => $this->description,
+            'description'   => $this->dscp,
             'pi_admin_url'  => MEMBERSHIP_ADMIN_URL,
             'pi_url'        => MEMBERSHIP_PI_URL,
             'doc_url'       => MEMBERSHIP_getDocURL('plan_form.html',
@@ -549,7 +695,7 @@ class Plan
 
         $M = Membership::getInstance($_USER['uid']);
         if ($M->CanPurchase()) {
-            $price = $this->Price($M->isNew);
+            $price = $this->Price($M->isNew());
             $price_txt = COM_numberFormat($price, 2);
             $buttons = implode('&nbsp;&nbsp;', $this->MakeButton($price, $M->isNew()));
         } else {
@@ -558,31 +704,31 @@ class Plan
         }
 
         $T->set_var(array(
-                'pi_url'        => MEMBERSHIP_URL,
-                'user_id'       => $_USER['uid'],
-                'plan_id'       => $this->plan_id,
-                'name'          => $this->name,
-                'description'   => PLG_replacetags($this->description),
-                'encrypted'     => '',
-                'price'         => $price_txt,
-                'currency'      => $currency,
-                'purchase_btn'  => $buttons,
+            'pi_url'        => MEMBERSHIP_PI_URL,
+            'user_id'       => $_USER['uid'],
+            'plan_id'       => $this->plan_id,
+            'name'          => $this->name,
+            'description'   => PLG_replacetags($this->dscp),
+            'encrypted'     => '',
+            'price'         => $price_txt,
+            'currency'      => $currency,
+            'purchase_btn'  => $buttons,
         ) );
         if (COM_isAnonUser()) {
             // Anonymous must log in to purchase
             $T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
             $T->set_var('exp_msg_class', 'alert');
-        } elseif ($M->plan_id == $this->plan_id) {
-            if ($M->expires >= MEMBERSHIP_today()) {
+        } elseif ($M->getPlanID() == $this->plan_id) {
+            if ($M->getExpires() >= MEMBERSHIP_today()) {
                 $T->set_var(
                     'you_expire',
-                    sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires)
+                    sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlanID(), $M->getExpires())
                 );
                 $T->set_var('exp_msg_class', 'info');
             } else {
                 $T->set_var(
                     'you_expire',
-                    sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->expires)
+                    sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->getExpires())
                 );
             }
         }
@@ -684,7 +830,7 @@ class Plan
                 'no_shipping'   => 1,
                 'quantity'      => 1,
                 'tax'           => 0,
-                'btn_type'      => 'pay_now',
+                //'btn_type'      => 'pay_now',
                 'add_cart'      => true,
                 //'_ret_url'      => $return,
                 'unique'        => true,
@@ -827,15 +973,23 @@ class Plan
      */
     public static function getPlans($plan_id='')
     {
-        global $_TABLES;
+        global $_TABLES, $_GROUPS;
+
+        $groups = $_GROUPS;
+        if (!in_array(13, $groups)) {
+            $groups[] = 13;
+        }
+        $groups = implode(',', $groups);
 
         $plans = array();
         $sql = "SELECT plan_id
                 FROM {$_TABLES['membership_plans']}
-                WHERE enabled = 1 " . SEC_buildAccessSql();
+                WHERE enabled = 1
+                AND grp_access IN ($groups)";
         if (!empty($plan_id)) {
             $sql .= " AND plan_id = '" . DB_escapeString($plan_id) . "'";
         }
+        //echo $sql;die;
         $cache_key = md5($sql);
         $plans = Cache::get($cache_key);
         if ($plans === NULL) {
@@ -862,8 +1016,12 @@ class Plan
                 $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
 
         $have_app = App::getInstance($_USER['uid'])->Validate();
+        /*if (!$have_app) {
+            COM_refresh(MEMBERSHIP_PI_URL . '/index.php?editapp');
+        }*/
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('planlist', 'plan_list.thtml');
+        if (0) {
         if (COM_isAnonUser()) {
             // Anonymous must log in to purchase
             //$T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
@@ -879,6 +1037,7 @@ class Plan
             $T->parse('output', 'planlist');
             return $T->finish($T->get_var('output', 'planlist'));
         }
+        }
 
         $Plans = self::getPlans($show_plan);
         if (empty($Plans)) {
@@ -889,29 +1048,45 @@ class Plan
         }
 
         $M = Membership::getInstance();
-        if ($M->isNew) {
+        if ($M->isNew()) {
             // New member, no expiration message
             $T->set_var('you_expire', '');
-        } elseif ($M->expires >= MEMBERSHIP_today()) {
+        } elseif ($M->getExpires() >= MEMBERSHIP_today()) {
             // Let current members know when they expire
-            $T->set_var('you_expire', sprintf($LANG_MEMBERSHIP['you_expire'],
-                $M->planDescription(), $M->expires));
+            $T->set_var(
+                'you_expire', sprintf(
+                    $LANG_MEMBERSHIP['you_expire'],
+                    $M->planDescription(),
+                    $M->getExpires()
+                )
+            );
             if ($_CONF_MEMBERSHIP['early_renewal'] > 0) {
-                $T->set_var('early_renewal', sprintf($LANG_MEMBERSHIP['renew_within'],
-                    $_CONF_MEMBERSHIP['early_renewal']));
+                $T->set_var(
+                    'early_renewal', sprintf(
+                        $LANG_MEMBERSHIP['renew_within'],
+                        $_CONF_MEMBERSHIP['early_renewal']
+                    )
+                );
             }
             $T->set_var('exp_msg_class', 'info');
         }
-        if (App::isRequired() > MEMBERSHIP_APP_DISABLED) {
+        if (COM_isAnonUser()) {
+            $T->set_var('app_msg', $LANG_MEMBERSHIP['must_login']);
+        } elseif (App::isRequired() > MEMBERSHIP_APP_DISABLED) {
             if ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_OPTIONAL) {
                 $T->set_var('app_msg',
                     sprintf($LANG_MEMBERSHIP['please_complete_app'],
                             MEMBERSHIP_PI_URL . '/index.php?editapp'));
-            } elseif ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED
-                && !$have_app) {
+            } elseif (
+                $_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED &&
+                !$have_app
+            ) {
                 $T->set_var('app_msg',
-                    sprintf($LANG_MEMBERSHIP['plan_list_app_footer'],
-                            MEMBERSHIP_PI_URL . '/index.php?editapp'));
+                    sprintf(
+                        $LANG_MEMBERSHIP['plan_list_app_footer'],
+                        MEMBERSHIP_PI_URL . '/index.php?editapp'
+                    )
+                );
             }
             // Offer a link to return to update the application
             $T->set_var('footer', $LANG_MEMBERSHIP['return_to_edit']);
@@ -921,12 +1096,12 @@ class Plan
 
         $T->set_block('planlist', 'PlanBlock', 'PBlock');
         foreach ($Plans as $P) {
-            $description = $P->description;
-            if ($M->plan_id == $P->plan_id) {
-                if ($M->expires < MEMBERSHIP_today) {
+            $description = $P->getDscp();
+            if ($M->getPlanID() == $P->getPlanID()) {
+                if ($M->getExpires()< MEMBERSHIP_today) {
                     $T->set_var(
                         'cur_plan_msg',
-                        sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->expires)
+                        sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->getExpires())
                     );
                 }
             } else {
@@ -943,7 +1118,7 @@ class Plan
             $buttons = '';
             switch($M->CanPurchase()) {
             case MEMBERSHIP_CANPURCHASE:
-                $exp_ts = strtotime($M->expires);
+                $exp_ts = strtotime($M->getExpires());
                 $exp_format = strftime($_CONF['shortdate'], $exp_ts);
                 if ($have_app) {
                     $output = $P->MakeButton($price_total, $M->isNew(),
@@ -1028,6 +1203,136 @@ class Plan
             }
         }
         return $enabled;
+    }
+
+
+    /**
+     * Uses lib-admin to list the membership definitions and allow updating.
+     *
+     * @return  string  HTML for the list
+     */
+    public static function adminList()
+    {
+        global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP;
+
+        $retval = '';
+
+        $header_arr = array(
+            array(
+                'text' => $LANG_ADMIN['edit'],
+                'field' => 'edit',
+                'sort' => false,
+                'align'=>'center',
+            ),
+            array(
+                'text' => 'ID',
+                'field' => 'plan_id',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['short_name'],
+                'field' => 'name',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['enabled'],
+                'field' => 'enabled',
+                'sort' => false,
+                'align' => 'center',
+            ),
+        );
+
+        $defsort_arr = array('field' => 'plan_id', 'direction' => 'asc');
+        $query_arr = array(
+            'table' => 'membership_plans',
+            'sql' => "SELECT * FROM {$_TABLES['membership_plans']} ",
+            'query_fields' => array('name', 'description'),
+            'default_filter' => '',
+        );
+        $text_arr = array(
+            //'has_extras' => true,
+            //'form_url'   => MEMBERSHIP_ADMIN_URL . '/index.php',
+            'help_url'   => ''
+        );
+        $form_arr = array();
+        $retval .= COM_createLink(
+            $LANG_MEMBERSHIP['new_plan'],
+            MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
+            array(
+                'class' => 'uk-button uk-button-success',
+                'style' => 'float:left',
+            )
+        );
+        $retval .= ADMIN_list(
+            'membership_planlist',
+            array(__CLASS__, 'getAdminField'),
+            $header_arr, $text_arr, $query_arr, $defsort_arr, '', '',
+            '', $form_arr
+        );
+        return $retval;
+    }
+
+
+    /**
+     * Determine what to display in the admin list for each membership plan.
+     *
+     * @param   string  $fieldname  Name of the field, from database
+     * @param   mixed   $fieldvalue Value of the current field
+     * @param   array   $A          Array of all name/field pairs
+     * @param   array   $icon_arr   Array of system icons
+     * @return  string              HTML for the field cell
+     */
+    public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
+    {
+        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+
+        $retval = '';
+
+        $pi_admin_url = MEMBERSHIP_ADMIN_URL;
+        switch($fieldname) {
+        case 'edit':
+            $retval = COM_createLink(
+                $_CONF_MEMBERSHIP['icons']['edit'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
+            );
+            break;
+
+        case 'delete':
+            // Deprecated
+            if (!Plan::hasMembers($A['plan_id'])) {
+                $retval = COM_createLink(
+                    "<img src=\"{$_CONF['layout_url']}/images/admin/delete.png\"
+                    height=\"16\" width=\"16\" border=\"0\"
+                    onclick=\"return confirm('{$LANG_MEMBERSHIP['q_del_member']}');\"
+                    >",
+                    MEMBERSHIP_ADMIN_URL . '/index.php?deleteplan=x&plan_id=' .
+                    $A['plan_id']
+                );
+            } else {
+                $retval = '';
+            }
+           break;
+
+        case 'enabled':
+            if ($fieldvalue == 1) {
+                $chk = ' checked="checked" ';
+                $enabled = 1;
+            } else {
+                $chk = '';
+                $enabled = 0;
+            }
+            $retval = "<input name=\"{$fieldname}_{$A['plan_id']}\" " .
+                "id=\"{$fieldname}_{$A['plan_id']}\" ".
+                "type=\"checkbox\" $chk " .
+                "onclick='MEMB_toggle(this, \"{$A['plan_id']}\", \"plan\", \"{$fieldname}\", \"{$pi_admin_url}\");' />\n";
+            break;
+
+        default:
+            $retval = $fieldvalue;
+            break;
+        }
+
+        return $retval;
     }
 
 }

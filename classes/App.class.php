@@ -101,9 +101,9 @@ class App
             ) );
             $T->parse('row', 'DataRow', true);
         }
-        $M = \Membership\Membership::getInstance($uid);
+        $M = Membership::getInstance($uid);
         $rel_urls = '';
-        if (!$M->isNew) {
+        if (!$M->isNew()) {
             $relatives = $M->getLinks();
             foreach ($relatives as $key=>$name) {
                 $rel_urls .= '&nbsp;&nbsp;<a href="' . $_CONF['site_url'] .
@@ -153,7 +153,7 @@ class App
             }
             $M = Membership::getInstance($uid);
             $rel_urls = '';
-            if (!$M->isNew) {
+            if (!$M->isNew()) {
                 $relatives = $M->getLinks();
                 foreach ($relatives as $key=>$name) {
                     $rel_urls .= '&nbsp;&nbsp;<a href="' . $_CONF['site_url'] .
@@ -180,13 +180,13 @@ class App
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
-        $M = \Membership\Membership::getInstance($this->uid);
+        $M = Membership::getInstance($this->uid);
         if (isset($_POST[$typeselect_var])) {
             $sel = $_POST[$typeselect_var];
-        } elseif ($M->isNew) {
+        } elseif ($M->isNew()) {
             $sel = '';
         } else {
-            $sel = $M->plan_id;
+            $sel = $M->getPlanID();
         }
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('app', 'app_form.thtml');
@@ -195,8 +195,8 @@ class App
             'mem_uid'       => $this->uid,
             'purch_url'     => MEMBERSHIP_PI_URL . '/index.php?list1',
             'profile_fields' => $this->getEditForm(),
-            'exp_msg'       => $M->isNew ? '' :
-                sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires),
+            'exp_msg'       => $M->isNew() ? '' :
+                sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlanID(), $M->getExpires()),
         ) );
         if ($_CONF_MEMBERSHIP['update_maillist']) {
             $status = PLG_invokeService('mailchimp', 'issubscribed',
@@ -272,10 +272,10 @@ class App
             $M = Membership::getInstance($uid);
             if (isset($_POST[$typeselect_var])) {
                 $sel = $_POST[$typeselect_var];
-            } elseif ($M->isNew) {
+            } elseif ($M->isNew()) {
                 $sel = '';
             } else {
-                $sel = $M->plan_id;
+                $sel = $M->getPlanID();
             }
 
             $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
@@ -285,8 +285,8 @@ class App
                 'mem_uid'       => $this->uid,
                 'purch_url'     => MEMBERSHIP_PI_URL . '/index.php?list1',
                 'profile_fields' => $output,
-                'exp_msg'       => $M->isNew ? '' :
-                    sprintf($LANG_MEMBERSHIP['you_expire'], $M->plan_id, $M->expires),
+                'exp_msg'       => $M->isNew() ? '' :
+                    sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlanID(), $M->getExpires()),
             ) );
             if ($_CONF_MEMBERSHIP['update_maillist']) {
                 $status = PLG_invokeService('mailchimp', 'issubscribed',
@@ -359,10 +359,10 @@ class App
         $isNew = $sel == '' ? true : false;
         while ($A = DB_fetchArray($res, false)) {
             $P->setVars($A, true);
-            $retval[$P->plan_id] = array(
-                'plan_id' => $P->plan_id,
-                'sel' => $P->plan_id == $sel ? ' checked="checked"' : '',
-                'description' => $P->description,
+            $retval[$P->getPlanID()] = array(
+                'plan_id' => $P->getPlanID(),
+                'sel' => $P->getPlanID() == $sel ? ' checked="checked"' : '',
+                'description' => $P->getDscp(),
                 'total' => $P->Price($isNew),
                 'price' => $P->Price($isNew, 'priceonly'),
                 'fee' => $P->Price($isNew, 'fee'),
@@ -384,27 +384,32 @@ class App
         global $_TABLES, $_CONF_MEMBERSHIP, $_CONF, $_USER;
 
         $uid = (int)$_POST['mem_uid'];
+
+        if (MEMB_getVar($_POST, 'terms_accept', 'integer') > 0) {
+            // Update the terms-accepted checkbox first since it will
+            // be checked in Validate()
+            $dt = new \Date('now', $_CONF['timezone']);
+            $type = 'Terms Accepted';
+            $data = 'Initial by ' . DB_escapeString(MEMB_getVar($_POST, 'terms_initial'));
+            $sql = "INSERT INTO {$_TABLES['membership_users']} SET
+                uid = $this->uid,
+                terms_accept = UNIX_TIMESTAMP()
+                ON DUPLICATE KEY UPDATE
+                terms_accept = UNIX_TIMESTAMP()";
+            //echo $sql;die;
+            DB_query($sql);
+            DB_query("INSERT INTO {$_TABLES['membership_log']}
+                    (uid, dt, type, data)
+                VALUES
+                    ($this->uid, '$dt', '$type', '$data')"
+            );
+        }
+
         if ($this->Validate($_POST)) {
             $status = $this->_Save();   // call plugin-specific save function
 
             if ($status == PLG_RET_OK) {
                 // Save and log the terms and conditions acceptance.
-                if (MEMB_getVar($_POST, 'terms_accept', 'integer') > 0) {
-                    $dt = new \Date('now', $_CONF['timezone']);
-                    $type = 'Terms Accepted';
-                    $data = 'Initial by ' . DB_escapeString(MEMB_getVar($_POST, 'terms_initial'));
-                    $sql = "INSERT INTO {$_TABLES['membership_users']} SET
-                        uid = $this->uid,
-                        terms_accept = UNIX_TIMESTAMP()
-                        ON DUPLICATE KEY UPDATE
-                        terms_accept = UNIX_TIMESTAMP()";
-                    DB_query($sql);
-                    DB_query("INSERT INTO {$_TABLES['membership_log']}
-                            (uid, dt, type, data)
-                        VALUES
-                            ($this->uid, '$dt', '$type', '$data')");
-                }
-
                 // Subscribe the user to the default mailing list
                 // if selected
                 if (isset($_POST['mailchimp_subscribe']) &&
@@ -445,7 +450,7 @@ class App
         // used.
         if ($_CONF_MEMBERSHIP['terms_accept']) {
             $U = User::getInstance($this->uid);
-            $terms_accept = $U->terms_accept;
+            $terms_accept = $U->getTermsAccepted();
             if (is_array($A)) {
                 $terms_chk = MEMB_getVar($A, 'terms_accept', 'integer');
                 $initial = MEMB_getVar($A, 'terms_initial');
@@ -465,7 +470,10 @@ class App
         }
 
         // Now validate according to the plugin supplying the application
-        $status = $this->_Validate($A);
+        if ($status) {
+            $status = $this->_Validate($A);
+        }
+            COM_errorLog("returning status " . (int)$status);
         return $status;
     }
 

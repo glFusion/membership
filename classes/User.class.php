@@ -18,9 +18,13 @@ namespace Membership;
  */
 class User
 {
-    /** Internal properties accessed via `__set()` and `__get()`.
-    * @var array */
-    private $properties;
+    /** User ID.
+     * @var integer */
+    private $uid = 0;
+
+    /** Timestamp when the terms & conditions were accepted.
+     * @var integer */
+    private $terms_accept = 0;
 
 
     /**
@@ -42,45 +46,6 @@ class User
 
 
     /**
-     * Set a local property to the supplied value.
-     * Only properties available as options in the switch block are set.
-     *
-     * @param   string  $key    Name of property to set.
-     * @param   mixed   $value  Value to set in property.
-     */
-    public function __set($key, $value)
-    {
-        switch ($key) {
-        case 'uid':
-        case 'level':
-        case 'terms_accept':
-            $this->properties[$key] = (int)$value;
-            break;
-        default:
-            $this->properties[$key] = trim($value);
-            break;
-        }
-    }
-
-
-    /**
-     * Return the data contained in the specified property.
-     * Checks to ensure that the property exists, returns NULL if not.
-     *
-     * @param   string  $key    Name of property to retrieve.
-     * @return  mixed           Content of requested property.
-     */
-    public function __get($key)
-    {
-        if (array_key_exists($key, $this->properties)) {
-            return $this->properties[$key];
-        } else {
-            return NULL;
-        }
-    }
-
-
-    /**
      * Get an instance of a user record.
      *
      * @since   v1.4.1
@@ -94,9 +59,9 @@ class User
 
         if ($uid == 0) $uid = $_USERS['uid'];
         $uid = (int)$uid;
-        if (!array_key_exists($uid, $users)) {
+        //if (!array_key_exists($uid, $users)) {
             $users[$uid] = new self($uid);
-        }
+        //}
         return $users[$uid];
     }
 
@@ -142,6 +107,29 @@ class User
             $this->setVars($A);
         }
     }
+
+
+    /**
+     * Check if the terms acceptance is current.
+     *
+     * @return  integer     1 if accepted, 0 if not
+     */
+    public function currentTermsAccepted()
+    {
+        return $this->terms_accept >= (time() - 31536000) ? 1 : 0;
+    }
+
+
+    /**
+     * Get the setting for whether the terms have been accepted.
+     *
+     * @return  integer     1 if accepted, 0 if not
+     */
+    public function getTermsAccepted()
+    {
+        return (int)$this->terms_accept;
+    }
+
 
 }   // class User
 

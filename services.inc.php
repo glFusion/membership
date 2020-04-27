@@ -58,14 +58,14 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     $retval = PLG_RET_OK;       // assume response will be OK
 
     $P = new \Membership\Plan($plan_id);
-    if ($P->plan_id != '') {
+    if ($P->getPlanID() != '') {
         $isnew = $plan_mod == 'renewal' ? false : true;
-        $output['short_description'] = $P->name;
-        $output['short_dscp'] = $P->name;
-        $output['name'] = 'Membership, ' . $P->plan_id;
-        $output['description'] = $P->description;
-        $output['dscp'] = $P->description;
-        $output['price'] = $P->price($isnew);
+        $output['short_description'] = $P->getName();
+        $output['short_dscp'] = $P->getName();
+        $output['name'] = 'Membership, ' . $P->getPlanID();
+        $output['description'] = $P->getDscp();
+        $output['dscp'] = $P->getDscp();
+        $output['price'] = $P->Price($isnew);
     } else {
         $retval = PLG_RET_ERROR;
     }
@@ -121,41 +121,43 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     // Retrieve or create a membership record.
     $M = new \Membership\Membership($uid);
 
-    if ($M->Plan === NULL && MEMB_getVar($_CONF_MEMBERSHIP, 'use_mem_number', 'integer') == 2) {
-        // New member, apply membership number if configured
-        $M->mem_number = \Membership\Membership::createMemberNumber($uid);
-    }
-
-    if ($M->plan_id != $id[1]) {
+    if ($M->getPlanID() != $id[1]) {
         // Changed membership plans
-        $M->Plan = new \Membership\Plan($id[1]);
+        $M->setPlan($id[1]);
     }
 
-    if (!SEC_inGroup($M->Plan->grp_access, $uid)) {
+    if ($M->getPlan() === NULL && MEMB_getVar($_CONF_MEMBERSHIP, 'use_mem_number', 'integer') == 2) {
+        // New member, apply membership number if configured
+        $M->setMemNumber(\Membership\Membership::createMemberNumber($uid));
+    }
+
+    if (!SEC_inGroup($M->getPlan()->getGrpAccess(), $uid)) {
         // Can't purchase a restricted membership
         return PLG_RET_NOACCESS;
     }
 
     $amount = (float)$ipn_data['pmt_gross'];
     if ($amount < $M->Price()) {    // insufficient funds
-        MEMBERSHIP_auditLog('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
+        Membership\Logger::audit('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
         return PLG_RET_ERROR;
     }
 
     // Initialize the return array
     $output = array('product_id' => implode(':', $id),
             'name' => $M->Plan->name,
-            'short_description' => $M->Plan->name,
-            'description' => $M->Plan->name,
+            'short_description' => $M->getPlan()->getName(),
+            'description' => $M->getPlan()->getName(),
             'price' =>  $amount,
             'expiration' => NULL,
             'download' => 0,
             'file' => '',
     );
 
-    MEMBERSHIP_auditLog('Processing membership for ' . COM_getDisplayName($uid) . "($uid), plan {$id[1]}", true);
+    Membership\audit(
+        'Processing membership for ' . COM_getDisplayName($uid) . "($uid), plan {$id[1]}", true
+    );
     if ($uid > 1) {
-        $status = $M->Add($uid, $M->Plan->plan_id);
+        $status = $M->Add($uid, $M->getPlanID());
     } else {
         $status = false;
     }
@@ -409,17 +411,17 @@ function service_status_membership($args, &$output, &$svc_msg)
             'plan' => '',
         );
         $Mem = \Membership\Membership::getInstance($uid);
-        if (!$Mem->isNew) {
-            if ($Mem->expires > MEMBERSHIP_today()) {
+        if (!$Mem->isNew()) {
+            if ($Mem->getExpires() > MEMBERSHIP_today()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ACTIVE;
             } elseif ($Mem->expires < MEMBERSHIP_dtEndGrace()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_EXPIRED;
             } else {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ARREARS;
             }
-            $info[$uid]['joined'] = $Mem->joined;
-            $info[$uid]['expires'] = $Mem->expires;
-            $info[$uid]['plan'] = $Mem->Plan->name;
+            $info[$uid]['joined'] = $Mem->getJoined();
+            $info[$uid]['expires'] = $Mem->getExpires();
+            $info[$uid]['plan'] = $Mem->getPlan()->getName();
         }
     }
 

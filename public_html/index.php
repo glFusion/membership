@@ -38,11 +38,11 @@ foreach($expected as $provided) {
 }
 
 if (empty($action)) {
-    if (!\Membership\App::getInstance($_USER['uid'])->Validate()) {
+/*    if (!\Membership\App::getInstance($_USER['uid'])->Validate()) {
         $action = 'editapp';
-    } else {
+} else {*/
         $action = 'list';
-    }
+//    }
 }
 
 if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
@@ -78,10 +78,10 @@ case 'saveapp':
                 echo COM_refresh($_POST['purch_url'] . $url_extra);
                 exit;
             }
-            if ($M->expires > MEMBERSHIP_today()) {
+            if ($M->getExpires() > MEMBERSHIP_today()) {
                 LGLIB_storeMessage(array(
                     'message' => sprintf($LANG_MEMBERSHIP['you_expire'],
-                            $M->Plan->plan_id, $M->expires),
+                            $M->getPlan()->getPlanID, $M->getExpires()),
                     'persist' =>  true
                 ) );
             }
@@ -102,7 +102,7 @@ switch ($view) {
 case 'detail':
     if (!empty($_GET['plan_id'])) {
         $P = new \Membership\Plan($_GET['plan_id']);
-        if ($P->plan_id == '') {
+        if ($P->getPlanID() == '') {
             $content .= COM_showMessageText($LANG_MEMBERSHIP['err_plan_id']);
             $content .= \Membership\Plan::listPlans();
         } elseif ($P->hasErrors()) {
@@ -151,10 +151,10 @@ case 'prt':
 case 'pmtform':
     $M = \Membership\Membership::getInstance();
     $P = \Membership\Plan::getInstance($_GET['plan_id']);
-    if (!$P->isNew) {
+    if (!$P->isNew()) {
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('pmt', 'pmt_form.thtml');
-        $price_actual = $P->Price($M->isNew, 'actual');
+        $price_actual = $P->Price($M->isNew(), 'actual');
         if ($_CONF_MEMBERSHIP['ena_checkpay'] == 2) {
             $fee = $P->Fee();
             $price_total = $price_actual + $fee;
@@ -166,8 +166,8 @@ case 'pmtform':
         $T->set_var(array(
             'member_name'   => COM_getDisplayName($uid),
             'member_username' => $_USER['username'],
-            'mem_number'    => $M->mem_number,
-            'plan_name'     => $P->name,
+            'mem_number'    => $M->getMemNumber(),
+            'plan_name'     => $P->getName(),
             'price_total'   => sprintf('%4.2f', $price_total),
             'price_actual'  => sprintf('%4.2f', $price_actual),
             'pmt_fee'       => $fee > 0 ? sprintf('%4.2f', $fee) : '',

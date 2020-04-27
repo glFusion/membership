@@ -3,7 +3,7 @@
  * Class to handle membership records.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
  * @version     v0.2.2
  * @license     http://opensource.org/licenses/gpl-2.0.php
@@ -18,17 +18,56 @@ namespace Membership;
  */
 class Membership
 {
-    /** Local properties accessed via `__set()` and `__get()`.
-     * @var array */
-    private $properties = array();
+    const STATUS_ACTIVE = 0;
+    const STATUS_ENABLED = 1;
+    const STATUS_ARREARS = 2;
+    const STATUS_EXPIRED = 4;
+    const STATUS_DROPPED = 128;
+
+    /** Plan ID.
+     * @var string */
+    private $plan_id = '';
+
+    /** Flag indicating the member has been notified of impending renewal.
+     * @var boolean */
+    private $notified = 0;
+
+    /** Flag indicating that this is a trial membership.
+     * @var boolean */
+    private $istrial = 0;
+
+    /** Member user ID.
+     * @var integer */
+    private $uid = 0;
+
+    /** Membership status.
+     * @var integer */
+    private $status = self::STATUS_ACTIVE;
+
+    /** Date joined.
+     * @var string */
+    private $joined = '';
+
+    /** Expiration date.
+     * @var string */
+    private $expires = '';
+
+    /** Membership number.
+     * @var string */
+    private $mem_number = '';
+
+    /** Membership GUID, for tracking families.
+     * @var string */
+    private $guid = '';
 
     /** Flag to indicate that this is a new record.
      * @var boolean */
-    public $isNew;
+    private $isNew = 1;
 
     /** Membership plan related to this membership.
      * @var object */
-    public $Plan;
+    private $Plan = NULL;
+
 
     /**
      * Constructor.
@@ -40,79 +79,17 @@ class Membership
      */
     public function __construct($uid=0)
     {
-        global $_USER, $_CONF_MEMBERSHIP;
+        global $_USER;
 
-        if ($uid == 0) $uid = (int)$_USER['uid'];
+        if ($uid == 0) {
+            $uid = (int)$_USER['uid'];
+        }
         $this->uid = $uid;
-        $this->isNew = true;
-        $this->plan_id = '';
-        $this->Plan = NULL;
-        $this->status = MEMBERSHIP_STATUS_DROPPED;
-        $this->paid = '';
-        $this->notified = 0;
-        $this->old_status = $this->status;
-        $this->mem_number = '';
-        $this->istrial = 0;
-        $this->guid = '';
         if ($this->uid > 1 && $this->Read($this->uid)) {
             $this->isNew = false;
         } else {
             $this->expires = Dates::plusOneYear();
             $this->joined = Dates::Today();
-        }
-    }
-
-
-    /**
-     * Set a local property.
-     *
-     * @param   string  $key    Name of property to set
-     * @param   mixed   $value  Value to set
-     */
-    public function __set($key, $value)
-    {
-        global $LANG_MEMBERSHIP;
-
-        switch ($key) {
-        case 'plan_id':
-            $this->properties[$key] = COM_sanitizeId($value, false);
-            break;
-
-        case 'notified':
-        case 'istrial':
-            $this->properties[$key] = $value == 1 ? 1 : 0;
-            break;
-
-        case 'uid':
-        case 'status':
-        case 'old_status':
-            $this->properties[$key] = (int)$value;
-            break;
-
-        case 'joined':
-        case 'expires':
-        case 'paid':
-        case 'mem_number':
-        case 'guid':
-            $this->properties[$key] = trim($value);
-            break;
-        }
-
-    }
-
-
-    /**
-     * Return a property's value, or NULL if not set.
-     *
-     * @param   string  $name   Name of property to get
-     * @return  mixed   Value of property identified as $name
-     */
-    public function __get($name)
-    {
-        if (isset($this->properties[$name])) {
-            return $this->properties[$name];
-        } else {
-            return NULL;
         }
     }
 
@@ -181,45 +158,145 @@ class Membership
      * Set all the object variables from an array, either $_POST or DB record.
      *
      * @param   array   $A      Array of values
+     * @return  object  $this
      */
     public function setVars($A)
     {
-        if (!is_array($A))
-            return false;
+        if (!is_array($A)) {
+            return $this;
+        }
 
         if (isset($A['mem_uid'])) {
             // Will be set via DB read, probably not via form
-            $this->uid      = $A['mem_uid'];
+            $this->uid = (int)$A['mem_uid'];
         }
-        if (isset($A['mem_paid'])) $this->paid = $A['mem_paid'];
+//        if (isset($A['mem_paid'])) $this->paid = $A['mem_paid'];
         if (isset($A['mem_joined'])) $this->joined = $A['mem_joined'];
         if (isset($A['mem_expires'])) $this->expires = $A['mem_expires'];
         if (isset($A['mem_plan_id'])) $this->plan_id = $A['mem_plan_id'];
-        if (isset($A['mem_status'])) $this->status = $A['mem_status'];
-        if (isset($A['mem_notified'])) $this->notified = $A['mem_notified'];
+        if (isset($A['mem_status'])) $this->status = $A['mem_status'] ? 1 : 0;
+        $this->notified = MEMB_getVar($A, 'mem_notified', 'integer', 0);
         if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
-        if (isset($A['mem_istrial'])) $this->istrial = $A['mem_istrial'];
+        $this->istrial = MEMB_getVar($A, 'mem_istrial', 'integer', 0);
         // This will never come from a form:
         if (isset($A['mem_guid'])) $this->guid = $A['mem_guid'];
+        return $this;
     }
 
 
     /**
-     * Retrieve a membership plan and associate it with this membership.
+     * Get the Plan ID.
      *
-     * @param   string  $plan_id    ID of plan to associate
-     * @return  boolean     True if a plan was read, false if not (invalid plan)
+     * @return  string      Plan ID
      */
-    public function SetPlan($plan_id)
+    public function getPlanID()
     {
-        $P = new Plan($plan_id);
-        if ($P->plan_id == '') {
-            return false;
-        } else {
-            $this->Plan = $P;
-            $this->plan_id = $P->plan_id;
-            return true;
+        return $this->plan_id;
+    }
+
+
+    /**
+     * Get the Plan object.
+     *
+     * @return  object      Plan object.
+     */
+    public function getPlan()
+    {
+        if ($this->Plan === NULL) {
+            $this->Plan = new Plan($this->plan_id);
         }
+        return $this->Plan;
+    }
+
+
+    /**
+     * Set a new Plan.
+     *
+     * @param   string  $id     Plan ID
+     * @return  object  $this
+     */
+    public function setPlan($id)
+    {
+        $this->plan_id = $id;
+        $this->Plan = new Plan($this->plan_id);
+        return $this;
+    }
+
+
+    /**
+     * Get the expiration date for the membership.
+     *
+     * @return  string      Expiration date YYYY-MM-DD
+     */
+    public function getExpires()
+    {
+        return $this->expires;
+    }
+
+
+    /**
+     * Get the join date for the membership.
+     *
+     * @return  string      Date joined as YYYY-MM-DD
+     */
+    public function getJoined()
+    {
+        return $this->joined;
+    }
+
+
+    /**
+     * Get the membership number.
+     *
+     * @return  string      Membership number
+     */
+    public function getMemNumber()
+    {
+        return $this->mem_number;
+    }
+
+
+    /**
+     * Get the unique ID for the membership. Used to link accounts.
+     *
+     * @return  string      Globally unique ID
+     */
+    public function getGuid()
+    {
+        return $this->guid;
+    }
+
+
+    /**
+     * Check if this is a trial membership.
+     *
+     * @return  integer     1 if trial, 0 if regular
+     */
+    public function isTrial()
+    {
+        return $this->istrial ? 1 : 0;
+    }
+
+
+    /**
+     * Check if the member has already been notified of impending expiration.
+     *
+     * @return  integer     1 if notified, 0 if not
+     */
+    public function isNotified()
+    {
+        return $this->notified ? 1 : 0;
+    }
+
+
+    /**
+     * Get the member status (active, expired, etc.)
+     *
+     * @return  integer     Value to indicate status
+     */
+    public function getStatus()
+    {
+        return (int)$this->status;
     }
 
 
@@ -247,16 +324,17 @@ class Membership
             'hlp_member_edit' => $LANG_MEMBERSHIP['hlp_member_edit'],
             'doc_url'       => MEMBERSHIP_getDocURL('edit_member.html',
                                             $_CONF['language']),
-            'viewApp'   => \Membership\App::getInstance($this->uid)->Exists(),
+            'viewApp'   => App::getInstance($this->uid)->Exists(),
             'notified_chk' => $this->notified == 1 ? 'checked="checked"' : '',
             'notified_orig' => $this->notified == 1 ? 1 : 0,
             'plan_id_orig' => $this->plan_id,
             'is_member' => $this->isNew ? '' : 'true',
-            'pmt_date'  => $_CONF_MEMBERSHIP['now']->Format('Y-m-d', true),
+            'pmt_date'  => $_CONF['_now']->format('Y-m-d', true),
             'mem_number' => $this->mem_number,
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
             'mem_istrial' => $this->istrial,
             'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
+            'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
         ) );
         if ($action_url != '') {
             $T->set_var(array(
@@ -270,9 +348,9 @@ class Membership
         $T->set_block('editmember', 'PlanBlock', 'planrow');
         $Plans = Plan::getPlans();
         foreach ($Plans as $P) {
-            if ($this->plan_id == $P->plan_id) {
+            if ($this->plan_id == $P->getPlanID()) {
                 $sel = 'selected="selected"';
-                if ($P->upd_links) {
+                if ($P->isFamily()) {
                     $T->set_var('upd_link_text', $LANG_MEMBERSHIP['does_upd_links']);
                 } else {
                     $T->set_var('upd_link_text', $LANG_MEMBERSHIP['no_upd_links']);
@@ -282,11 +360,13 @@ class Membership
             }
             $T->set_var(array(
                 'plan_sel'  => $sel,
-                'plan_id'   => $P->plan_id,
-                'plan_name' => $P->name,
+                'plan_id'   => $P->getPlanID(),
+                'plan_name' => $P->getName(),
             ) );
             $T->parse('planrow', 'PlanBlock', true);
-            if ($P->upd_links == 1) $family_ids[] = '"'. $P->plan_id . '"';
+            if ($P->isFamily()== 1) {
+                $family_ids[] = '"'. $P->getPlanID() . '"';
+            }
         }
         $family_plans = empty($family_ids) ? '' : implode(',', $family_ids);
         $T->set_var('family_plans', $family_plans);
@@ -362,24 +442,35 @@ class Membership
 
         // Check for a valid membership plan
         $this->Plan = Plan::getInstance($this->plan_id);
-        if ($this->Plan->plan_id == '') {
+        if ($this->Plan->getPlanID() == '') {
             return false;
+        }
+
+        // Get the payment and renewal values, if any.
+        $pmt_type = MEMB_getVar($A, 'mem_pmttype');
+        $pmt_amt = MEMB_getVar($A, 'mem_pmtamt', 'float', 0);
+        $quickrenew = MEMB_getVar($A, 'mem_quickrenew', 'integer', 0);
+        if ($quickrenew) {
+            $this->istrial = 0;
+            $this->expires = $this->Plan->calcExpiration($this->expires);
         }
 
         // The first thing is to check to see if we're removing this account
         // from the family so we don't update other members incorrectly
-        if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
-            self::remLink($this->uid);
-        } else {
-            $orig_links = MEMB_getVar($A, 'mem_orig_links', 'array');
-            $new_links = MEMB_getVar($A, 'mem_links', 'array');
-            $arr = array_diff($orig_links, $new_links);
-            foreach ($arr as $link_id) {
-                self::remLink($link_id);
-            }
-            $arr = array_diff($new_links, $orig_links);
-            foreach ($arr as $link_id) {
-                self::addLink($this->uid, $link_id);
+        if ($this->Plan->isFamily()) {
+            if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
+                self::remLink($this->uid);
+            } else {
+                $orig_links = MEMB_getVar($A, 'mem_orig_links', 'array');
+                $new_links = MEMB_getVar($A, 'mem_links', 'array');
+                $arr = array_diff($orig_links, $new_links);
+                foreach ($arr as $link_id) {
+                    self::remLink($link_id);
+                }
+                $arr = array_diff($new_links, $orig_links);
+                foreach ($arr as $link_id) {
+                    self::addLink($this->uid, $link_id);
+                }
             }
         }
 
@@ -400,7 +491,7 @@ class Membership
 
         // If this plan updates linked accounts, get all the accounts.
         // Already updated any link changes above.
-        if ($this->Plan->upd_links) {
+        if ($this->Plan->isFamily()) {
             $accounts = $this->getLinks();
             $accounts[$this->uid] = '';
             Cache::clear('members');
@@ -416,13 +507,12 @@ class Membership
             $this->guid = self::_makeGuid($this->uid);
         }
         USES_lib_user();
-
         foreach ($accounts as $key => $name) {
             $this->joined = DB_escapeString($this->joined);
             $this->expires = DB_escapeString($this->expires);
 
             // Add this user to the membership group
-            MEMBERSHIP_debug("Adding user $key to group {$_CONF_MEMBERSHIP['member_group']}");
+            Logger::debug("Adding user $key to group {$_CONF_MEMBERSHIP['member_group']}");
             // Create membership number if not already defined for the account
             // Include trailing comma, be sure to place it appropriately in
             // the sql statement that follows
@@ -443,6 +533,7 @@ class Membership
                         mem_istrial = {$this->istrial}
                     ON DUPLICATE KEY UPDATE
                         mem_plan_id = '" . DB_escapeString($this->plan_id) . "',
+                        mem_joined = '" . DB_escapeString($this->joined) ."',
                         mem_expires = '" . DB_escapeString($this->expires) . "',
                         mem_status = {$this->status},
                         mem_guid = '{$this->guid}',
@@ -470,18 +561,17 @@ class Membership
         // log the transaction info.
         // This only logs transactions for profile updates; Shop
         // transactions are logged by the handlePurchase service function.
-        $pmt_type = MEMB_getVar($A, 'mem_pmttype');
-        $pmt_amt = MEMB_getVar($A, 'mem_pmtamt', 'float', 0);
-        $quickrenew = MEMB_getVar($A, 'mem_quickrenew', 'integer', 0);
         if (!empty($pmt_type) || $pmt_amt > 0 || $quickrenew == 1) {
-            $this->AddTrans($A['mem_pmttype'], $A['mem_pmtamt'],
-                        $A['mem_pmtdesc']);
+            $this->AddTrans(
+                $A['mem_pmttype'],
+                $A['mem_pmtamt'],
+                $A['mem_pmtdesc']
+            );
         }
 
         // Remove the renewal popup message
         LGLIB_deleteMessage($this->uid, MEMBERSHIP_MSG_EXPIRING);
         Cache::clear('members');
-
         return true;
     }   // function Save
 
@@ -575,8 +665,7 @@ class Membership
         // Remove this member from any club positions held
         $positions = Position::getMemberPositions($uid);
         if (!empty($positions)) {
-            foreach ($positions as $pos_id) {
-                $P = new Position($pos_id);
+            foreach ($positions as $P) {
                 $P->setMember(0);
             }
         }
@@ -625,7 +714,7 @@ class Membership
             $this->plan_id = $plan_id;
             $this->Plan = new Plan($plan_id);
         }
-        if ($this->Plan->plan_id == '') {
+        if ($this->Plan->getPlanID() == '') {
             return false;       // invalid plan requested
         }
         $this->notified = 0;
@@ -690,9 +779,9 @@ class Membership
             // to get the highlighting based on status.
             $expires = membership_profilefield_expires('', $this->expires,
                     array(), '', '');
-            $plan_name = $this->Plan->name;
-            $plan_dscp = $this->Plan->description;
-            $plan_id = $this->Plan->plan_id;
+            $plan_name = $this->Plan->getName();
+            $plan_dscp = $this->Plan->getDscp();
+            $plan_id = $this->Plan->getPlanID();
             $relatives = $this->getLinks();
             //$relatives = Link::getRelatives($this->uid);
             $mem_number = $this->mem_number;
@@ -826,7 +915,9 @@ class Membership
         if (COM_isAnonUser()) {
             $canPurchase = MEMBERSHIP_NOPURCHASE;
         } else {
-            if ($this->expires > self::dtBeginRenew()) {
+            if ($this->isNew()) {
+                $canPurchase = MEMBERSHIP_CANPURCHASE;
+            } elseif ($this->expires > self::dtBeginRenew()) {
                 $canPurchase = MEMBERSHIP_NO_RENEWAL;
             } else {
                 $canPurchase = MEMBERSHIP_CANPURCHASE;
@@ -858,8 +949,9 @@ class Membership
             $this->expires = isset($args['exp']) ? $args['exp'] :
                     $this->Plan->calcExpiration($this->expires);
             // Set the plan ID so this isn't seen as a cancellation by Save()
-            if (!isset($args['mem_plan_id']))
+            if (!isset($args['mem_plan_id'])) {
                 $args['mem_plan_id'] = $this->plan_id;
+            }
             $args['mem_expires'] = $this->expires;
             $this->Save($args);
             return true;
@@ -905,18 +997,18 @@ class Membership
      */
     public function AddTrans($gateway, $amt, $txn_id='', $dt = '', $by = -1)
     {
-        global $_TABLES, $_USER, $_CONF_MEMBERSHIP;
+        global $_TABLES, $_USER, $_CONF;
 
         $gateway = DB_escapeString($gateway);
         $amt = (float)$amt;
         $txn_id = DB_escapeString($txn_id);
-        $now = empty($dt) ? $_CONF_MEMBERSHIP['now']->toMySQL(true) : DB_escapeString($dt);
+        $now = empty($dt) ? $_CONF['_now']->toMySQL(true) : DB_escapeString($dt);
         $by = $by == -1 ? (int)$_USER['uid'] : (int)$by;
         $sql = "INSERT INTO {$_TABLES['membership_trans']} SET
             tx_date = '{$now}',
             tx_by = '{$by}',
             tx_uid = '{$this->uid}',
-            tx_planid = '{$this->Plan->plan_id}',
+            tx_planid = '{$this->Plan->getPlanID()}',
             tx_gw = '{$gateway}',
             tx_amt = '{$amt}',
             tx_exp = '{$this->expires}',
@@ -1219,7 +1311,7 @@ class Membership
      * Link a membership to another membership.
      * If the membership being linked ($uid2) already exists, then it is updated
      * with information from the target account.
-     * If updating, The date joined and member number are not changed.
+     * If updating, the date joined and member number are not changed.
      *
      * @todo    Decide if link should succeed even if plan is not a family plan
      * @param   integer $uid1   Target (master) account
@@ -1231,20 +1323,24 @@ class Membership
         global $_TABLES, $_CONF_MEMBERSHIP;
 
         $Mem1 = self::getInstance($uid1);
-        if ($Mem1->isNew) {
+        if ($Mem1->isNew()) {
             COM_errorLog("Cannot link user $uid2 to nonexistant membership for $uid1");
             return false;
+        } elseif (!$Mem1->Plan->isFamily()) {
+            COM_errorLog("Cannot link $uid2 to a non-family plan");
+            return false;
         }
+
         // TODO: Check here for $Mem1->Plan to see if it uses linked accounts?
         $Mem2 = self::getInstance($uid2);
-        if ($Mem2->isNew) {
+        if ($Mem2->isNew()) {
             if ($_CONF_MEMBERSHIP['use_mem_number']) {
                 $mem_number = self::createMemberNumber($uid2);
             } else {
                 $mem_number = '';
             }
         } else {
-            $mem_number = $Mem2->mem_number;
+            $mem_number = $Mem2->getMemNumber();
         }
         $mem_number = DB_escapeString($mem_number);
 
@@ -1257,12 +1353,12 @@ class Membership
                 FROM {$_TABLES['membership_members']}
                 WHERE mem_uid = $uid1
             ON DUPLICATE KEY UPDATE
-                mem_plan_id = '" . DB_escapeString($Mem1->plan_id) . "',
-                mem_expires = '" . DB_escapeString($Mem1->expires) . "',
-                mem_status = '{$Mem1->status}',
-                mem_guid = '{$Mem1->guid}',
-                mem_notified = '{$Mem1->notified}',
-                mem_istrial = '{$Mem1->istrial}'";
+                mem_plan_id = '" . DB_escapeString($Mem1->getPlanID()) . "',
+                mem_expires = '" . DB_escapeString($Mem1->getExpires()) . "',
+                mem_status = '{$Mem1->getStatus()}',
+                mem_guid = '{$Mem1->getGuid()}',
+                mem_notified = '{$Mem1->isNotified()}',
+                mem_istrial = '{$Mem1->isTrial()}'";
         //echo $sql;die;
         DB_query($sql);
         if (DB_error()) {
@@ -1336,6 +1432,412 @@ class Membership
             Cache::set($cache_key, $relatives, 'members');
         }
         return $relatives;
+    }
+
+
+    /**
+     * Display a summary of memberships by plan.
+     *
+     * @return  string  HTML output for the page
+     */
+    public static function summaryStats()
+    {
+        global $_CONF_MEMBERSHIP, $_TABLES;
+
+        // The brute-force way to get summary stats.  There must be a better way.
+        $sql = "SELECT DISTINCT(mem_guid), mem_plan_id, mem_expires
+            FROM {$_TABLES['membership_members']}
+            WHERE mem_expires > '" . Dates::endGrace() . "'";
+        $rAll = DB_query($sql);
+        $stats = array();
+        $template = array('current' => 0, 'arrears' => 0);
+        while ($A = DB_fetchArray($rAll, false)) {
+            if (!isset($stats[$A['mem_plan_id']])) {
+                $stats[$A['mem_plan_id']] = $template;
+            }
+            if ($A['mem_expires'] >= Dates::Today()) {
+                $stats[$A['mem_plan_id']]['current']++;
+            } else {
+                $stats[$A['mem_plan_id']]['arrears']++;
+            }
+        }
+
+        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T->set_file('stats', 'admin_stats.thtml');
+        $T->set_block('stats', 'statrow', 'srow');
+        $linetotal = 0;
+        $tot_current = 0;
+        $tot_arrears = 0;
+        $gtotal = 0;
+        foreach ($stats as $plan_id=>$data) {
+            $linetotal = $data['current'] + $data['arrears'];
+            $tot_current += $data['current'];
+            $tot_arrears += $data['arrears'];
+            $gtotal += $linetotal;
+            $T->set_var(array(
+                'plan'          => $plan_id,
+                'num_current'   => $data['current'],
+                'num_arrears'   => $data['arrears'],
+                'line_total'    => $linetotal,
+            ) );
+            $T->parse('srow', 'statrow', true);
+        }
+        $T->set_var(array(
+            'tot_current'   => $tot_current,
+            'tot_arrears'   => $tot_arrears,
+            'grand_total'   => $gtotal,
+        ) );
+        $T->parse('output', 'stats');
+        return $T->get_var('output');
+    }
+
+
+    /**
+     * Uses lib-admin to list the members.
+     *
+     * @return  string  HTML for the list
+     */
+    public static function adminList()
+    {
+        global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP,
+            $_CONF_MEMBERSHIP;
+
+        $retval = '';
+
+        $header_arr = array(
+            array(
+                'text' => $LANG_ADMIN['edit'],
+                'field' => 'edit',
+                'sort' => false,
+                'align'=>'center',
+            ),
+        );
+        if ($_CONF_MEMBERSHIP['use_mem_number'] > 0) {
+            $header_arr[] = array(
+                'text' => $LANG_MEMBERSHIP['mem_number'],
+                'field' => 'mem_number',
+                'sort' => true,
+            );
+        }
+        $header_arr[] = array(
+            'text' => $LANG_MEMBERSHIP['member_name'],
+            'field' => 'fullname',
+            'sort' => true,
+        );
+        $header_arr[] = array(
+            'text' => $LANG_MEMBERSHIP['linked_accounts'],
+            'field' => 'links',
+            'sort' => false,
+        );
+        $header_arr[] = array(
+            'text' => $LANG_MEMBERSHIP['plan'],
+            'field' => 'plan',
+            'sort' => false,
+        );
+        $header_arr[] = array(
+            'text' => $LANG_MEMBERSHIP['expires'],
+            'field' => 'mem_expires',
+            'sort' => true,
+        );
+
+        $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'asc');
+        if (isset($_REQUEST['showexp'])) {
+            $frmchk = 'checked="checked"';
+            $exp_query = '';
+        } else {
+            $frmchk = '';
+            $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
+                " AND m.mem_expires >= '" . Dates::endGrace() . "'";
+        }
+        $query_arr = array(
+            'table' => 'membership_members',
+            'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
+                FROM {$_TABLES['membership_members']} m
+                LEFT JOIN {$_TABLES['users']} u
+                    ON u.uid = m.mem_uid
+                LEFT JOIN {$_TABLES['membership_plans']} p
+                    ON p.plan_id = m.mem_plan_id
+                WHERE 1=1 $exp_query",
+            'query_fields' => array('u.fullname', 'u.email'),
+            'default_filter' => '',
+        );
+        $text_arr = array(
+            'has_extras' => true,
+            'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
+        );
+        $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>&nbsp;' .
+            $LANG_MEMBERSHIP['show_expired'] . '&nbsp;&nbsp;';
+
+        $del_action = '<button class="uk-button uk-button-mini uk-button-danger" name="deletebutton" ' .
+            'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen'] . '\');">' .
+            '<i class="uk-icon uk-icon-remove"></i> ' . $LANG_ADMIN['delete']. '</button>';
+        $renew_action = '<button class="uk-button uk-button-mini" name="renewbutton" ' .
+            'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew'] . '\');">' .
+            '<i class="uk-icon uk-icon-refresh"></i> ' . $LANG_MEMBERSHIP['renew'] . '</button>';
+        $options = array(
+            'chkdelete' => 'true',
+            'chkfield' => 'mem_uid',
+            'chkactions' => $del_action . '&nbsp;&nbsp;' . $renew_action . '&nbsp;&nbsp;',
+        );
+
+        if ($_CONF_MEMBERSHIP['use_mem_number'] == 2) {
+            $options['chkactions'] .= '<button class="uk-button uk-button-mini" name="regenbutton" ' .
+                'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen'] . '\');">' .
+                '<i class="uk-icon uk-icon-cogs"></i> ' . $LANG_MEMBERSHIP['regen_mem_numbers'] . '</button>';
+        }
+        $form_arr = array();
+        $retval .= ADMIN_list(
+            'membership_memberlist',
+            array(__CLASS__, 'getAdminField'),
+            $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
+            $options, $form_arr
+        );
+        return $retval;
+    }
+
+
+    /**
+     * Determine what to display in the admin list for each form.
+     *
+     * @param  string  $fieldname  Name of the field, from database
+     * @param  mixed   $fieldvalue Value of the current field
+     * @param  array   $A          Array of all name/field pairs
+     * @param  array   $icon_arr   Array of system icons
+     * @return string              HTML for the field cell
+     */
+    public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
+    {
+        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES,
+            $LANG_ADMIN;
+
+        $retval = '';
+        $pi_admin_url = MEMBERSHIP_ADMIN_URL;
+
+        switch($fieldname) {
+        case 'edit':
+            $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
+            $retval = COM_createLink(
+                $_CONF_MEMBERSHIP['icons']['edit'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp
+            );
+            break;
+
+        case 'tx_fullname':
+            $retval = COM_createLink($fieldvalue,
+                MEMBERSHIP_ADMIN_URL . '/index.php?listtrans&amp;uid=' . $A['tx_uid']);
+            break;
+
+        case 'fullname':
+            $retval = self::createNameLink($A['mem_uid'], $A['fullname']);
+            break;
+
+        case 'links':
+            $links = self::getInstance($A['mem_uid'])->getLinks();
+            $L = array();
+            foreach ($links as $uid=>$fullname) {
+                $L[] = self::createNameLink($uid);
+            }
+            if (!empty($L)) {
+                $retval = implode('; ', $L);
+            }
+            break;
+
+        case 'id':
+            return $A['id'];
+            break;
+
+        case 'mem_expires':
+            if ($fieldvalue >= Dates::Today()) {
+                $status = 'current';
+            } elseif ($fieldvalue >= Dates::endGrace()) {
+                $status = 'arrears';
+            } else {
+                $status = 'expired';
+            }
+            $retval = "<span class=\"member_$status\">{$fieldvalue}</span>";
+            break;
+
+        case 'email':
+            $retval = empty($fieldvalue) ? '' :
+                "<a href=\"mailto:$fieldvalue\">$fieldvalue</a>";
+            break;
+
+        case 'tx_by':
+            if ($fieldvalue == 0) {
+                $retval = $LANG_MEMBERSHIP['system_task'];
+            } else {
+                $retval = COM_getDisplayName($fieldvalue);
+            }
+            break;
+
+        case 'tx_txn_id':
+            $non_gw = array('', 'cc', 'check', 'cash');
+            $retval = $fieldvalue;
+            if (!empty($fieldvalue) && !in_array($A['tx_gw'], $non_gw)) {
+                $status = LGLIB_invokeService(
+                    'shop', 'getUrl',
+                    array(
+                        'id'    => $fieldvalue,
+                        'type'  => 'ipn',
+                    ),
+                    $output, $svc_msg
+                );
+                if ($status == PLG_RET_OK) {
+                    $retval = COM_createLink($fieldvalue, $url);
+                }
+            }
+            break;
+
+        default:
+            $retval = $fieldvalue;
+
+        }
+
+        return $retval;
+    }
+
+
+    /**
+     * Display the member's full name in the "Last, First" format with a link.
+     * Also sets class and javascript to highlight the same user's name elsewhere
+     * on the page.
+     * Uses a static variable to hold links by user ID for repeated lookups.
+     *
+     * @param   integer $uid    User ID, used to get the full name if not supplied.
+     * @param   string  $fullname   Optional Full override
+     * @return  string      HTML for the styled user name.
+     */
+    public static function createNameLink($uid, $fullname='')
+    {
+        global $_CONF;
+
+        static $retval = array();
+
+        if (!isset($retval[$uid])) {
+            if ($fullname == '') {
+                $fullname = COM_getDisplayName($uid);
+            }
+            $parsed = PLG_callFunctionForOnePlugin(
+                'plugin_parseName_lglib',
+                array(
+                    1 => $fullname,
+                    2 => 'LCF',
+                )
+            );
+            if ($parsed === false ) {
+                $parsed = $fullname;
+            }
+            $retval[$uid] = '<span class="member_normal" rel="rel_' . $uid .
+                '" onmouseover="MEM_highlight(' . $uid .
+                ',1);" onmouseout="MEM_highlight(' . $uid . ',0);">' .
+                COM_createLink(
+                    $parsed,
+                    $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $uid
+                )
+                . '</span>';
+        }
+        return $retval[$uid];
+    }
+
+
+    /**
+     * List transactions.
+     *
+     * @return  string  HTML output for the page
+     */
+    public static function listTrans()
+    {
+        global $_TABLES, $LANG_MEMBERSHIP, $_CONF;
+
+        $tx_from = MEMB_getVar($_POST, 'tx_from');
+        if (!empty($tx_from)) {
+            $from_sql = "AND tx_date >= '" . DB_escapeString($tx_from . ' 00:00:00') . "'";
+        } else {
+            $tx_from = '';
+            $from_sql = '';
+        }
+        $tx_to = MEMB_getVar($_POST, 'tx_to');
+        if (!empty($tx_to)) {
+            $to_sql = "AND tx_date <= '" . DB_escapeString($tx_to . ' 23:59:59') . "'";
+        } else {
+            $tx_to = '';
+            $to_sql = '';
+        }
+        $uid = MEMB_getVar($_GET, 'uid', 'integer');
+        if ($uid > 0) {
+            $user_sql = 'AND tx_uid = ' . (int)$_GET['uid'];
+        } else {
+            $user_sql = '';
+        }
+
+        $query_arr = array(
+            'table' => 'membership_trans',
+            'sql' => "SELECT tx.*, u.fullname as tx_fullname
+                FROM {$_TABLES['membership_trans']} tx
+                LEFT JOIN {$_TABLES['users']} u
+                    ON u.uid = tx.tx_uid
+                WHERE 1=1 $from_sql $to_sql $user_sql",
+            'query_fields' => array('u.fullname'),
+            'default_filter' => '',
+        );
+        $defsort_arr = array(
+            'field' => 'tx_date',
+            'direction' => 'DESC',
+        );
+        $text_arr = array(
+            'has_extras' => true,
+            'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
+        );
+        $tx_from = MEMB_getVar($_POST, 'tx_from');
+        $tx_to = MEMB_getVar($_POST, 'tx_to');
+        $filter = $LANG_MEMBERSHIP['from'] .
+            ': <input id="f_tx_from" type="text" size="10" name="tx_from" data-uk-datepicker value="' . $tx_from . '" />&nbsp;' .
+            $LANG_MEMBERSHIP['to'] .
+            ': <input id="f_tx_to" type="text" size="10" name="tx_to" data-uk-datepicker value="' . $tx_to . '" />';
+        $header_arr = array(
+            array(
+                'text' => $LANG_MEMBERSHIP['date'],
+                'field' => 'tx_date',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['entered_by'],
+                'field' => 'tx_by',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['member_name'],
+                'field' => 'tx_fullname',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['plan'],
+                'field' => 'tx_planid',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['expires'],
+                'field' => 'tx_exp',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['pmt_method'],
+                'field' => 'tx_gw',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['txn_id'],
+                'field' => 'tx_txn_id',
+                'sort' => true,
+            ),
+        );
+        $form_arr = array();
+        return ADMIN_list(
+            'membership_listtrans',
+            array(__CLASS__, 'getAdminField'),
+            $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
+            '', $form_arr
+        );
     }
 
 }

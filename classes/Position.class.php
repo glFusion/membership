@@ -18,9 +18,42 @@ namespace Membership;
  */
 class Position
 {
-    /** Internal properties accessed via `__set()` and `__get()`.
-     * @var array */
-    private $properties;
+    /** DB record ID of the position.
+     * @var integer */
+    private $id = 0;
+
+    /** ID of user currently occupying the posision.
+     * @var integer */
+    private $uid = 0;
+
+    /** Sequence for ordering in the lists.
+     * @var integer */
+    private $orderby = 9999;
+
+    /** ID of group where the position's occupant is added.
+     * @var integer */
+    private $grp_id = 0;
+
+    /** Flag to indicate that this position is enabled.
+     * @var integer */
+    private $enabled = 1;
+
+    /** Show this position in user-facing lists even if unoccupied?
+     * @var integer */
+    private $show_vacant = 1;
+
+    /** Type of position. Used to name lists.
+     * @var string */
+    private $type = '';
+
+    /** Description of the position.
+     * @var string */
+    private $dscp = '';
+
+    /** Contact info for the position's occupant.
+     * @var string */
+    private $contace = '';
+
 
     /**
      * Set variables and read a record if an ID is provided.
@@ -29,63 +62,25 @@ class Position
      */
     public function __construct($id=0)
     {
-        $this->properties = array();
-        $this->id= (int)$id;
-        $this->orderby = 999;
-        $this->enabled = 1;
-        $this->show_vacant = 1;
-        $this->contact = '';
-        $this->uid = 0;
-        $this->grp_id = 0;
-        $this->old_grp_id = 0;
-        $this->old_uid = 0;
-        if ($id > 0) {
-            if (!$this->Read()) $this->id = 0;
+        if (is_array($id)) {
+            $this->setVars($id);
+        } elseif ($id > 0) {
+            if (!$this->Read($id)) {
+                $this->id = 0;
+            }
         }
     }
 
 
     /**
-     * Set a property's value.
+     * Get the record ID of the position.
+     * Used also to see if the position is new or existing.
      *
-     * @param   string  $key    Property name
-     * @param   mixed   $value  Value to set
+     * @return  integer     Record ID, zero indicates a new object
      */
-    public function __set($key, $value)
+    public function getID()
     {
-        switch ($key) {
-        case 'id':
-        case 'uid':
-        case 'orderby':
-        case 'grp_id':
-        case 'old_uid':
-        case 'old_grp_id':
-            $this->properties[$key] = (int)$value;
-            break;
-        case 'enabled':
-        case 'show_vacant':
-            $this->properties[$key] = $value == 1 ? 1 : 0;
-            break;
-        default:
-            $this->properties[$key] = trim($value);
-            break;
-        }
-
-    }
-
-
-    /**
-     * Get a property's value, or NULL if not set.
-     *
-     * @param   string  $key    Name of property
-     * @return  mixed       Value of property, NULL if not set
-     */
-    public function __get($key)
-    {
-        if (isset($this->properties[$key]))
-            return $this->properties[$key];
-        else
-            return NULL;
+        return (int)$this->id;
     }
 
 
@@ -127,16 +122,16 @@ class Position
     {
         if (!is_array($A)) return false;
 
-        if (isset($A['id'])) $this->id = $A['id'];
-        $this->uid      = $A['uid'];
+        if (isset($A['id'])) $this->id = (int)$A['id'];
+        $this->uid      = (int)$A['uid'];
         $this->descr    = $A['descr'];
-        $this->orderby  = $A['orderby'];
+        $this->orderby  = (int)$A['orderby'];
         $this->contact  = $A['contact'];
-        $this->grp_id   = $A['grp_id'];
+        $this->grp_id   = (int)$A['grp_id'];
         $this->old_uid  = isset($A['old_uid']) ? $A['old_uid'] : $this->uid;
         $this->old_grp_id  = isset($A['old_grp_id']) ? $A['old_grp_id'] : $this->grp_id;
-        $this->enabled  = isset($A['enabled']) ? $A['enabled'] : 0;
-        $this->show_vacant = isset($A['show_vacant']) ? $A['show_vacant'] : 0;
+        $this->enabled  = isset($A['enabled']) ? (int)$A['enabled'] : 0;
+        $this->show_vacant = isset($A['show_vacant']) ? (int)$A['show_vacant'] : 0;
 
         if ($fromDB) {
             $this->type = $A['type'];
@@ -201,9 +196,7 @@ class Position
      */
     public function setMember($uid)
     {
-        global $_TABLES;
-
-        $this->uid = $uid;
+        $this->uid = (int)$uid;
         $this->Save();
     }
 
@@ -220,11 +213,11 @@ class Position
 
         $retval = array();
         $uid = (int)$uid;
-        $sql = "SELECT id FROM {$_TABLES['membership_positions']}
+        $sql = "SELECT * FROM {$_TABLES['membership_positions']}
                 WHERE uid = '$uid'";
         $res = DB_query($sql);
         while ($A = DB_fetchArray($res, false)) {
-            $retval[] = $A['id'];
+            $retval[] = new self($A);
         }
         return $retval;
     }
@@ -415,6 +408,217 @@ class Position
         }
     }
 
-}   // class Position
+
+    /**
+     * Displays the list of committee and board positions.
+     *
+     * @return  string  HTML string containing the contents of the ipnlog
+     */
+    public static function adminList()
+    {
+        global $_CONF, $_TABLES, $LANG_MEMBERSHIP, $_USER, $LANG_ADMIN;
+
+        USES_lib_admin();
+
+        $sql = "SELECT p.*,u.fullname
+            FROM {$_TABLES['membership_positions']} p
+            LEFT JOIN {$_TABLES['users']} u
+            ON u.uid = p.uid";
+//            WHERE 1=1 ";
+
+        $header_arr = array(
+            array(
+                'text' => 'ID',
+                'field' => 'id',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['edit'],
+                'field' => 'editpos',
+                'sort' => false,
+                'align' => 'center',
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['move'],
+                'field' => 'move',
+                'sort' => false,
+                'align' => 'center',
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['enabled'],
+                'field' => 'enabled',
+                'sort' => false,
+                'align' => 'center',
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['position_type'],
+                'field' => 'type',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['description'],
+                'field' => 'descr',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['current_user'],
+                'field' => 'fullname',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['order'],
+                'field' => 'orderby',
+                'sort' => true,
+            ),
+            array(
+                'text' => $LANG_MEMBERSHIP['show_vacant'],
+                'field' => 'show_vacant',
+                'sort' => true,
+                'align' => 'center',
+            ),
+            array(
+                'text' => $LANG_ADMIN['delete'],
+                'field' => 'deletepos',
+                'sort' => 'false',
+                'align' => 'center'
+            ),
+        );
+
+        $query_arr = array(
+            'table' => 'membership_positions',
+            'sql' => $sql,
+            'query_fields' => array('u.fullname', 'p.descr'),
+            'default_filter' => '',
+        );
+        $defsort_arr = array(
+            'field' => 'type,orderby',
+            'direction' => 'ASC'
+        );
+        $filter = '';
+        $text_arr = array(
+            //    'has_extras' => true,
+            //    'form_url' => MEMBERSHIP_ADMIN_URL . '/index.php?attributes=x',
+        );
+
+        $options = array(
+            //'chkdelete' => true, 'chkfield' => 'attr_id',
+        );
+        if (!isset($_REQUEST['query_limit'])) {
+            $_GET['query_limit'] = 20;
+        }
+
+        $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
+        $display .= COM_createLink(
+            $LANG_MEMBERSHIP['new_position'],
+            MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
+            array(
+                'class' => 'uk-button uk-button-success',
+                'style' => 'float:left',
+            )
+        );
+        $display .= ADMIN_list(
+            'membership_positions',
+            array(__CLASS__, 'getAdminField'),
+            $header_arr, $text_arr, $query_arr, $defsort_arr,
+            $filter, '', $options, ''
+        );
+        $display .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
+        return $display;
+    }
+
+
+    /**
+     * Determine what to display in the admin list for each position.
+     *
+     * @param   string  $fieldname  Name of the field, from database
+     * @param   mixed   $fieldvalue Value of the current field
+     * @param   array   $A          Array of all name/field pairs
+     * @param   array   $icon_arr   Array of system icons
+     * @return  string              HTML for the field cell
+     */
+    public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
+    {
+        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+
+        $retval = '';
+
+        $pi_admin_url = MEMBERSHIP_ADMIN_URL;
+        switch($fieldname) {
+        case 'editpos':
+            $retval = COM_createLink(
+                $_CONF_MEMBERSHIP['icons']['edit'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'],
+                array(
+                    'class' => 'tooltip',
+                    'title' => $LANG_MEMBERSHIP['edit'],
+                )
+            );
+            break;
+
+        case 'move':
+            $retval .= COM_createLink(
+                $_CONF_MEMBERSHIP['icons']['arrow-up'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=up&id=' . $A['id']
+            );
+            $retval .= '&nbsp;' . COM_createLink(
+                $_CONF_MEMBERSHIP['icons']['arrow-down'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=down&id=' . $A['id']
+            );
+            break;
+
+        case 'deletepos':
+            $retval = COM_createLink(
+                $_CONF_MEMBERSHIP['icons']['delete'],
+                MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
+                array(
+                    'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');",
+                    'class' => 'tooltip',
+                    'title' => $LANG_MEMBERSHIP['hlp_delete'],
+                )
+            );
+           break;
+
+        case 'type':
+            $retval = COM_createLink(
+                $fieldvalue,
+                MEMBERSHIP_PI_URL . '/group.php?type=' . $fieldvalue
+            );
+            break;
+
+        case 'fullname':
+            if ($A['uid'] == 0) {
+                $retval = '<i>' . $LANG_MEMBERSHIP['vacant'] . '</i>';
+            } else {
+                $retval = $fieldvalue;
+            }
+            break;
+
+        case 'enabled':
+        case 'show_vacant':
+            if ($fieldvalue == 1) {
+                $chk = 'checked="checked"';
+                $enabled = 1;
+            } else {
+                $chk = '';
+                $enabled = 0;
+            }
+            $retval = '<input name="' . $fieldname . '_' . $A['id'] .
+                '" id="' . $fieldname . '_' . $A['id'] .
+                '" type="checkbox" ' . $chk .
+                ' title="' . $LANG_MEMBERSHIP['hlp_' . $fieldname] .
+                '" class="tooltip" ' .
+                'onclick=\'MEMB_toggle(this, "' . $A['id'] . '", "position", "' .
+                $fieldname . '", "' . $pi_admin_url . '");\' />' . LB;
+            break;
+
+            default:
+            $retval = $fieldvalue;
+            break;
+        }
+
+        return $retval;
+    }
+
+}
 
 ?>

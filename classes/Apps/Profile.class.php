@@ -40,7 +40,7 @@ class Profile extends \Membership\App
         if ($status == PLG_RET_OK && !empty($output)) {
             foreach ($output as $key=>$data) {
                 $retval[$key] = array(
-                    'prompt' => $data->prompt,
+                    'prompt' => $data->getPrompt(),
                     'displayvalue' => $data->FormatValue(),
                 );
             }
