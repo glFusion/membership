@@ -20,7 +20,7 @@
 <p class="uk-alert uk-alert-danger">{$LANG_MEMBERSHIP['agree_terms']}
   <input id="terms_accept" type="checkbox" name="terms_accept" value="1" />
   <input id="terms_initial" type="text" name="terms_initial"
-        size="5" maxlength="5" value="" />
+        placeholder="{$LANG_MEMBERSHIP['initials']}" size="5" maxlength="5" value="" />
   <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip" title="{$LANG_MEMBERSHIP['field_required']}"></i>
 {!if terms_link}
   <br />{terms_link}
