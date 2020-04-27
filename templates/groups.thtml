@@ -2,35 +2,31 @@
 {!if title}
 <h1>{title}</h1>
 {!endif}
-<table border="0" width="80%" class="center">
-<tr>
-<th></th>
-<th class="center">{$LANG_MEMBERSHIP['position']}</th>
-<th class="center">{$LANG_MEMBERSHIP['name']}</th>
-<th class="center">{$LANG_MEMBERSHIP['contact_info']}</th>
-</tr>
+<ul class="uk-grid uk-grid-width-medium-1-4 uk-nidden-small" style="font-weight:bold;">
+    <li></li>
+    <li>{$LANG_MEMBERSHIP['position']}</li>
+    <li>{$LANG_MEMBERSHIP['name']}</li>
+    <li>{$LANG_MEMBERSHIP['contact_info']}</li>
+</ul>
 <!-- BEGIN userRow -->
-<tr>
-  <td class="userimage">{user_img}</td>
-  <td class="position">{position}</td>
-  {!if user_name}
-  <td class="username">
-  {user_name}
-    {!if comment}
-    <br />{comment}
-    {!endif}
-  </td>
-  {!elseif show_vacant}
-  <td class="vacant">{$LANG_MEMBERSHIP['vacant']}</td>
-  {!else}
-  <td></td>
-  {!endif}
-  <td>
-    {!if user_name}
-    <a href="{site_url}/profiles.php?uid={uid}">{user_email}</a>
-    {!endif}
-  </td>
-</tr>
+<ul class="uk-grid uk-grid-width-1-2 uk-grid-width-medium-1-4">
+    <li>{user_img}</li>
+    <li>{position}</li>
+    <li>
+{!if user_name}
+        {user_name}
+{!if comment}
+        <br />{comment}
+{!endif}
+{!elseif show_vacant}
+    <span class="vacant">{$LANG_MEMBERSHIP['vacant']}</span>
+{!endif}
+    </li>
+    <li>
+{!if user_name}
+        <a href="{site_url}/profiles.php?uid={uid}">{user_email}</a>
+{!endif}
+    </li>
+</ul>
 <!-- END userRow -->
-</table>
 </div>
