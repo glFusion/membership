@@ -10,7 +10,7 @@
   </div>
 </nav>
 {!endif}
-<table border="0">
+<table class="uk-table uk-table-condensed">
   <tr>
     <td>{$LANG_MEMBERSHIP['plan']}:</td>
     <td>{plan_name}</td>
