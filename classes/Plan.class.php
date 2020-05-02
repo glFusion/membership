@@ -298,8 +298,8 @@ class Plan
                 $this->fees['new'] = array();
                 $this->fees['renew'] = array();
                 for ($i = 0; $i < 12; $i++) {
-                    $this->fees['new'][$i] = (float)$row['fee']['new'];
-                    $this->fees['renew'][$i] = (float)$row['fee']['renew'];
+                    $this->fees['new'][$i] = (float)$row['fee']['new'][1];
+                    $this->fees['renew'][$i] = (float)$row['fee']['renew'][1];
                 }
             }
             $this->fees['fixed'] = (float)$row['fixed_fee'];
@@ -399,9 +399,9 @@ class Plan
                return false;
             }
             $sql1 = "UPDATE {$_TABLES['membership_plans']} SET ";
-            $sql3 = " WHERE plan_id = '" . DB_escapeString($this->old_plan_id) .
+            $sql3 = " WHERE plan_id = '" . DB_escapeString($old_plan_id) .
                      "'";
-            Logger:debug('Preparing to update product id ' . $this->plan_id);
+            Logger::debug('Preparing to update product id ' . $this->plan_id);
         }
 
         $price = number_format($this->price, 2, '.', '');
@@ -422,8 +422,8 @@ class Plan
         if (!DB_error()) {
             if ($this->xfer_plan != '') {
                 Membership::Transfer($this->plan_id, $this->xfer_plan);
-            } elseif ($this->plan_id != $this->old_plan_id) {
-                Membership::Transfer($this->old_plan_id, $this->plan_id);
+            } elseif ($this->plan_id != $old_plan_id) {
+                Membership::Transfer($old_plan_id, $this->plan_id);
             }
             $status = 'OK';
         } else {
@@ -1013,7 +1013,7 @@ class Plan
     public static function listPlans($show_plan = '')
     {
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
-                $_USER, $_PLUGINS, $_IMAGE_TYPE, $_GROUPS, $_SYSTEM;
+                $_USER;
 
         $have_app = App::getInstance($_USER['uid'])->Validate();
         /*if (!$have_app) {
