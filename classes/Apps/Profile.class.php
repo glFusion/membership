@@ -3,7 +3,7 @@
  * Class to handle membership applications provided by the Profile plugin.
  *
  * @author     Lee Garner <lee@leegarner.com>
- * @copyright  Copyright (c) 2018 Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2018-2020 Lee Garner <lee@leegarner.com>
  * @package    membership
  * @version    0.2.0
  * @license    http://opensource.org/licenses/gpl-2.0.php
@@ -80,7 +80,9 @@ class Profile extends \Membership\App
     {
         global $_USER;
 
-        if (!MEMBERSHIP_isManager()) $_POST['mem_uid'] = $_USER['uid'];
+        if (!MEMBERSHIP_isManager()) {
+            $_POST['mem_uid'] = $_USER['uid'];
+        }
         $args = array(
             'uid'   => $_POST['mem_uid'],
             'data'  => $_POST,

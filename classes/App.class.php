@@ -51,26 +51,23 @@ class App
      */
     public static function getInstance($uid = 0)
     {
-        global $_USER, $_CONF_MEMBERSHIP;
+        global $_USER;
 
-        if ($uid == 0) $uid = $_USER['uid'];
+        if ($uid == 0) {
+            $uid = $_USER['uid'];
+        }
         $uid = (int)$uid;
 
-        // If the provider plugin is not available, just return an empty
-        // object so calls to object methods won't fail.
-        if (!self::providerAvailable()) {
-            return new self($uid);
-        }
-
-        switch ($_CONF_MEMBERSHIP['app_provider']) {
+        switch (self::getProvider()) {
         case 'profile':
-            $retval = new \Membership\Apps\Profile($uid);
+            $retval = new Apps\Profile($uid);
             break;
         case 'forms':
-            $retval = new \Membership\Apps\Forms($uid);
+            $retval = new Apps\Forms($uid);
             break;
         default:
-            // Unknown app provider config, return a blank object.
+            // If the provider plugin is not available, just return an empty
+            // object so calls to object methods won't fail.
             $retval = new self($uid);
             break;
         }
@@ -473,7 +470,6 @@ class App
         if ($status) {
             $status = $this->_Validate($A);
         }
-            COM_errorLog("returning status " . (int)$status);
         return $status;
     }
 
@@ -523,14 +519,14 @@ class App
     {
         static $plugins = NULL;
         if ($plugins !== NULL) {
-            return $pluginsl;
+            return $plugins;
         }
 
         // Start with all the supported plugins
         $plugins = array('forms', 'profile');
         // Now verify that the plugin is installed and enabled, and remove
         // from the list if not.
-        foreach ($plugins as $idx=> $pi_name) {
+        foreach ($plugins as $idx=>$pi_name) {
             if (!function_exists('plugin_chkVersion_' . $pi_name)) {
                 unset($plugins[$idx]);
             }
@@ -583,6 +579,23 @@ class App
             );
         }
         return $isAvailable;
+    }
+
+
+    /**
+     * Get the configured provider, also checking that it is available.
+     *
+     * @return  string|boolean  Name of provider, False if not enabled
+     */
+    public static function getProvider()
+    {
+        global $_CONF_MEMBERSHIP;
+
+        if (self::providerAvailable()) {
+            return $_CONF_MEMBERSHIP['app_provider'];
+        } else {
+            return false;
+        }
     }
 
 
