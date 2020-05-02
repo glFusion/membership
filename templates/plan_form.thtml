@@ -82,8 +82,8 @@
 <!-- BEGIN FeeTable -->
         <tr>
           <td>{text}</td>
-          <td><input style="text-align:right" type="text" name="fee[new][counter]" value="{new_fee}" /></td>
-          <td><input style="text-align:right" type="text" name="fee[renew][counter]" value="{renew_fee}" /></td>
+          <td><input style="text-align:right" type="text" name="fee[new][{counter}]" value="{new_fee}" /></td>
+          <td><input style="text-align:right" type="text" name="fee[renew][{counter}]" value="{renew_fee}" /></td>
         </tr>
 <!-- END FeeTable -->
       </table>
