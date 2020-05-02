@@ -113,7 +113,7 @@ class Cache
     public static function get($key)
     {
         if (version_compare(GVERSION, self::MIN_GVERSION, '<')) {
-            return;     // glFusion version doesn't support caching
+            return NULL;     // glFusion version doesn't support caching
         }
 
         $key = self::makeKey($key);
