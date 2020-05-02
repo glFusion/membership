@@ -35,6 +35,9 @@ td.lbl {
     clear: both;
     text-align:center;
 }
+.uk-alert a {
+    font-style: italic;
+}
 
 #pluginMembershipPlanName {
     font-size: 150%;
