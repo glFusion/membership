@@ -112,10 +112,6 @@ class Menu
         $retval = '';
 
         $title = $LANG_MEMBERSHIP['block_title'];
-        if ($subject != '') {
-            $title = $subject . ' : ' . $title;
-        }
-
         switch($_CONF_MEMBERSHIP['displayblocks']) {
         case 2:     // right only
         case 0:     // none

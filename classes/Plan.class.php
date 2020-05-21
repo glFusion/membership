@@ -1098,7 +1098,7 @@ class Plan
         foreach ($Plans as $P) {
             $description = $P->getDscp();
             if ($M->getPlanID() == $P->getPlanID()) {
-                if ($M->getExpires()< MEMBERSHIP_today) {
+                if ($M->getExpires()< MEMBERSHIP_today()) {
                     $T->set_var(
                         'cur_plan_msg',
                         sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->getExpires())
@@ -1146,7 +1146,7 @@ class Plan
                 'encrypted' => '',
                 'currency'  => $currency,
                 'purchase_btn' => $buttons,
-                'lang_price' => $lang_price,
+                'lang_price' => $LANG_MEMBERSHIP['price'],
             ) );
             $T->parse('PBlock', 'PlanBlock', true);
         }

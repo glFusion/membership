@@ -58,7 +58,7 @@ class Profile extends \Membership\App
     {
         //$retval = '';
         $prf_args = array(
-            'uid'       => $uid,
+            'uid'       => $this->uid,
             'form_id'   => 'membership_profile_form',
         );
         //$typeselect_var = 'app_membership_type';

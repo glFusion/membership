@@ -108,7 +108,7 @@ class Membership
         $uid = (int)$uid;
         if ($uid > 1) {
             $cache_key = 'member_' . $uid;
-//            $retval = Cache::get($cache_key);
+            $retval = Cache::get($cache_key);
             if ($retval === NULL) {
                 $retval = new self($uid);
                 Cache::set($cache_key, $retval, 'members');

@@ -175,16 +175,16 @@ class App
      */
     public function Edit()
     {
-        global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
         $M = Membership::getInstance($this->uid);
-        if (isset($_POST[$typeselect_var])) {
+        /*if (isset($_POST[$typeselect_var])) {
             $sel = $_POST[$typeselect_var];
         } elseif ($M->isNew()) {
             $sel = '';
-        } else {
+        } else {*/
             $sel = $M->getPlanID();
-        }
+        //}
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('app', 'app_form.thtml');
         $T->set_var(array(
@@ -233,13 +233,12 @@ class App
                 'totalprice' => $type['total'],
                 'fee'       => $type['fee'],
                 'selected'  => $type['sel'],
-                'varname'   => $typeselect_var,
+                //'varname'   => $typeselect_var,
             ) );
             $T->parse('row', 'TypeSelect', true);
         }
         $T->parse('output', 'app');
-        $retval .= $T->finish($T->get_var('output'));
-        return $retval;
+        return $T->finish($T->get_var('output'));
     }
 
 
