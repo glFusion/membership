@@ -375,7 +375,7 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
     $retval = '';
 
     if (($panel == '' || $panel == 'useredit') && $fieldset == '') {
-        $M = \Membership\Membership::getInstance($uid);
+        $M = Membership\Membership::getInstance($uid);
         if (MEMBERSHIP_isManager()) {
             $retval .= $M->Editform();
         } else {
@@ -439,7 +439,7 @@ function plugin_profilevariablesdisplay_membership($uid, &$T)
     if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager())
         return '';
 
-    $M = \Membership\Membership::getInstance($uid);
+    $M = Membership\Membership::getInstance($uid);
     $existingFields = $T->get_var('plugin_fields');
     $T->set_var('plugin_fields', $existingFields . $M->showInfo(false, $uid));
 }
@@ -615,7 +615,7 @@ function plugin_configmanager_select_app_provider_membership()
     global $LANG_MEMBERSHIP;
 
     $retval = array($LANG_MEMBERSHIP['none'] => '');
-    foreach (\Membership\App::supportedPlugins() as $pi_name) {
+    foreach (Membership\App::supportedPlugins() as $pi_name) {
         $retval[ucfirst($pi_name)] = $pi_name;
     }
     return $retval;
@@ -739,9 +739,9 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
     switch ($type) {
     case 'plan':
         if ($id != '*') {
-            $plans = array(\Membership\Plan::getInstance($id));
+            $plans = array(Membership\Plan::getInstance($id));
         } else {
-            $plans = \Membership\Plan::getPlans();
+            $plans = Membership\Plan::getPlans();
         }
         foreach ($plans as $plan) {
             $props = $plan->getItemInfo($properties, $options);
@@ -766,7 +766,7 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
         break;
     case 'membership':
         if ($id == '*') return $retval; // getAll not supported
-        $M = \Membership\Membership::getInstance($id);
+        $M = Membership\Membership::getInstance($id);
         $props = $M->getItemInfo($properties, $options);
         break;
     }
@@ -826,7 +826,7 @@ function MEMBERSHIP_notifyExpiration()
             // Create a notification email message.
             $username = COM_getDisplayName($row['mem_uid']);
             if (!isset($Plans[$row['plan_id']])) {
-                $Plans[$row['plan_id']] = \Membership\Plan::getInstance($row['plan_id']);
+                $Plans[$row['plan_id']] = Membership\Plan::getInstance($row['plan_id']);
             }
             $P = $Plans[$row['plan_id']];   // shortcut variable
 
@@ -1119,7 +1119,7 @@ function MEMBERSHIP_currentMembership()
     static $current = NULL;
 
     if ($current === NULL) {
-        $current = \Membership\Membership::getInstance();
+        $current = Membership\Membership::getInstance();
     }
     return $current;
 }

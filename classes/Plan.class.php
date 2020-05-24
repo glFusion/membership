@@ -534,40 +534,10 @@ class Plan
                 return MEMBERSHIP_errorMessage($LANG_MEMBERSHIP['err_plan_id'], 'info');
             }
         }
-        $id = $this->plan_id;
-
-        if (isset($_CONF['advanced_editor']) &&
-                $_CONF['advanced_editor'] == 1) {
-            $editor_type = '_advanced';
-            $postmode_adv = 'selected="selected"';
-            $postmode_html = '';
-        } else {
-            $editor_type = '';
-            $postmode_adv = '';
-            $postmode_html = 'selected="selected"';
-        }
 
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('product', 'plan_form.thtml');
-        $action_url = MEMBERSHIP_ADMIN_URL . '/index.php';
-        if ($editor_type == '_advanced') {
-            $T->set_var('show_adveditor','');
-            $T->set_var('show_htmleditor','none');
-        } else {
-            $T->set_var('show_adveditor','none');
-            $T->set_var('show_htmleditor','');
-        }
-        $post_options = "<option value=\"html\" $postmode_html>{$LANG_postmodes['html']}</option>";
-        $post_options .= "<option value=\"adveditor\" $postmode_adv>{$LANG24[86]}</option>";
-        $T->set_var('lang_postmode', $LANG24[4]);
-        $T->set_var('post_options',$post_options);
-        $T->set_var('change_editormode', 'onchange="change_editmode(this);"');
-        $T->set_var('glfusionStyleBasePath', $_CONF['site_url']. '/fckeditor');
-        $T->set_var('gltoken_name', CSRF_TOKEN);
-        $T->set_var('gltoken', SEC_createToken());
-        $T->set_var('site_url', $_CONF['site_url']);
-
-        if ($id != '') {
+        if ($this->plan_id != '') {
             $T->set_var('plan_id', $this->plan_id);
             $retval = COM_startBlock($LANG_MEMBERSHIP['edit'] . ': ' . $this->name);
         } else {
@@ -587,10 +557,12 @@ class Plan
                                     'checked="checked"' : '',
             'upd_links_chk' => $this->upd_links == 1 ?
                                     'checked="checked"' : '',
-           'period_start'  => $_CONF_MEMBERSHIP['period_start'],
-            'group_options' => '<option value="0">-- ' . $LANG_MEMBERSHIP['none'] .
-                                ' --</option>' . COM_optionList($_TABLES['groups'],
-                                'grp_id,grp_name', $this->grp_access),
+            'period_start'  => $_CONF_MEMBERSHIP['period_start'],
+            'group_options' => COM_optionList(
+                $_TABLES['groups'],
+                'grp_id,grp_name',
+                $this->grp_access
+            ),
         ) );
         if (isset($this->fees['new'])) {
             $T->set_var('new_0', sprintf('%.2f', $this->fees['new'][0]));
@@ -624,10 +596,11 @@ class Plan
             $T->parse('FTable', 'FeeTable', true);
         }
 
-        if (self::hasMembers($this->id)) {
+        if ($this->hasMembers()) {
+            $sel = '';
             foreach (self::getPlans() as $P) {
-                if ($P->plan_id != $this->id) {
-                    $sel .= '<option value="' . $P->plan_id . '">' . $P->name .
+                if ($P->getPlanID() != $this->plan_id) {
+                    $sel .= '<option value="' . $P->getPlanID() . '">' . $P->getName() .
                         '</option>' . LB;
                 }
             }
@@ -637,10 +610,13 @@ class Plan
             ) );
         }
 
-        @setcookie($_CONF['cookie_name'].'fckeditor',
-                SEC_createTokenGeneral('advancededitor'),
-                time() + 1200, $_CONF['cookie_path'],
-                $_CONF['cookiedomain'], $_CONF['cookiesecure']);
+        /*@setcookie(
+            $_CONF['cookie_name'].'fckeditor',
+            SEC_createTokenGeneral('advancededitor'),
+            time() + 1200, $_CONF['cookie_path'],
+            $_CONF['cookiedomain'],
+            $_CONF['cookiesecure']
+        );*/
 
         $retval .= $T->parse('output', 'product');
         $retval .= COM_endBlock();
@@ -756,16 +732,19 @@ class Plan
      * Typically used to prevent deletion of product records that have
      * dependencies.
      *
-     * @param   string  $id     Plan ID to check
      * @return  boolean True if used, False if not
      */
-    public static function hasMembers($id)
+    public function hasMembers()
     {
         global $_TABLES;
 
-        if (empty($id)) return false;
+        if (empty($this->plan_id)) return false;
 
-        if (DB_count($_TABLES['membership_members'], 'mem_plan_id', DB_escapeString($id)) > 0) {
+        if (DB_count(
+            $_TABLES['membership_members'],
+            'mem_plan_id',
+            DB_escapeString($this->plan_id)
+        ) > 0) {
             return true;
         } else {
             return false;

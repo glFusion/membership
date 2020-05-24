@@ -61,7 +61,7 @@ case 'cancelapp':
     COM_refresh($_CONF['site_url']);
     exit;
 case 'saveapp':
-    $status = \Membership\App::getInstance()->Save();
+    $status = Membership\App::getInstance()->Save();
     if ($status == PLG_RET_OK) {
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['your_info_updated'],
@@ -81,7 +81,7 @@ case 'saveapp':
             if ($M->getExpires() > MEMBERSHIP_today()) {
                 LGLIB_storeMessage(array(
                     'message' => sprintf($LANG_MEMBERSHIP['you_expire'],
-                            $M->getPlan()->getPlanID, $M->getExpires()),
+                            $M->getPlan()->getPlanID(), $M->getExpires()),
                     'persist' =>  true
                 ) );
             }
@@ -118,14 +118,14 @@ case 'detail':
 case 'app':
 case 'view':
     // Display the application within the normal glFusion site.
-    $content .= \Membership\App::getInstance($uid)->Display();
+    $content .= Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
-        $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/index.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
+        $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/index.php?editapp">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'editapp':
     if (!COM_isAnonUser()) {
-        $F = \Membership\App::getInstance($uid);
+        $F = Membership\App::getInstance($uid);
         if (!$F->isValidForm()) {
             COM_errorLog("Membership: Application form invalid - " . print_r($F,true));
             COM_404();
