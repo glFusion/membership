@@ -1683,12 +1683,12 @@ class Membership
                     'shop', 'getUrl',
                     array(
                         'id'    => $fieldvalue,
-                        'type'  => 'ipn',
+                        'type'  => 'order',
                     ),
                     $output, $svc_msg
                 );
                 if ($status == PLG_RET_OK) {
-                    $retval = COM_createLink($fieldvalue, $url);
+                    $retval = COM_createLink($fieldvalue, $output);
                 }
             }
             break;
@@ -1697,7 +1697,6 @@ class Membership
             $retval = $fieldvalue;
 
         }
-
         return $retval;
     }
 
