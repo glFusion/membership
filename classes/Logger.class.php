@@ -40,7 +40,7 @@ class Logger
      *
      * @param   string  $msg    Message to be logged
      */
-    public static function audit($msg)
+    public static function audit($msg, $system=false)
     {
         global $_CONF, $_CONF_MEMBERSHIP, $_USER, $LANG01, $LANG_MEMBERSHIP;
 

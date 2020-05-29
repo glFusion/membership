@@ -668,8 +668,13 @@ function plugin_runScheduledTask_membership()
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
             Membership\Membership::Expire($row['mem_uid'], true);
-            Membership\Logger::audit(sprintf($LANG_MEMBERSHIP['log_expired'],
-                $row['mem_uid'], $row['fullname']), true
+            Membership\Logger::audit(
+                sprintf(
+                    $LANG_MEMBERSHIP['log_expired'],
+                    $row['mem_uid'],
+                    $row['fullname']
+                ),
+                true
             );
         }
     }
@@ -689,8 +694,13 @@ function plugin_runScheduledTask_membership()
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
             Membership\Membership::Arrears($row['mem_uid'], true);
-            Membership\Logger::audit(sprintf($LANG_MEMBERSHIP['log_arrears'],
-                $row['mem_uid'], $row['fullname']), true
+            Membership\Logger::audit(
+                sprintf(
+                    $LANG_MEMBERSHIP['log_arrears'],
+                    $row['mem_uid'],
+                    $row['fullname']
+                ),
+                true
             );
         }
     }
@@ -703,8 +713,9 @@ function plugin_runScheduledTask_membership()
             '" . MEMBERSHIP_today() . "' > (mem_expires + interval $days DAY)";
         $res = DB_query($sql, 1);
         $num = DB_affectedRows($res);
-        Membership\Logger::audit(sprintf($LANG_MEMBERSHIP['log_purged'],
-            $num, $days), true
+        Membership\Logger::audit(
+            sprintf($LANG_MEMBERSHIP['log_purged'],$num, $days),
+            true
         );
     }
 
@@ -985,7 +996,8 @@ function plugin_user_delete_membership($uid)
 {
     global $_TABLES;
 
-    Membership\Logger::audit('Membership deleted for user ' . $uid . ' (' .
+    Membership\Logger::audit(
+        'Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.'
     );
     Membership\Membership::Delete($uid);
