@@ -1,138 +1,138 @@
 {# begin {templatelocation} #}
 <form action="{site_admin_url}/plugins/membership/index.php" method="post"
     class="uk-form uk-form-horizontal" id="planform">
-  <input type=hidden name="old_plan_id" value="{old_plan_id}" />
+    <input type=hidden name="old_plan_id" value="{old_plan_id}" />
 
-  <fieldset>
-  <legend>{$LANG_MEMBERSHIP['plan_info']}</legend>
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['plan_id']}
-      <span id="plan_id" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <input required size="50"
-        type="text" name="plan_id" value="{plan_id}" id="f_plan_id" />
-      <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip"
-            title="{$LANG_MEMBERSHIP['required']}"></i>
+    <fieldset>
+    <legend>{$LANG_MEMBERSHIP['plan_info']}</legend>
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['plan_id']}
+            <span id="plan_id" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <input required size="50"
+                type="text" name="plan_id" value="{plan_id}" id="f_plan_id" />
+            <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip"
+                title="{$LANG_MEMBERSHIP['required']}"></i>
+        </div>
     </div>
-  </div>
 
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
-      <span id="short_name" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <input required size="50" type="text" name="name" value="{name}" id="f_name" />
-      <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip"
-            title="{$LANG_MEMBERSHIP['required']}"></i>
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
+            <span id="short_name" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <input required size="50" type="text" name="name" value="{name}" id="f_name" />
+            <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip"
+                title="{$LANG_MEMBERSHIP['required']}"></i>
+        </div>
     </div>
-  </div>
 
-  <div id="html_editarea" class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['description']}
-      <span id="dscp" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    </label>
-    <div class="uk-form-controls">
-      <textarea id="html_content" name="description" cols="35" rows="5" 
-        style="width:70%">{description}</textarea>
+    <div id="html_editarea" class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['description']}
+            <span id="dscp" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <textarea id="html_content" name="description" cols="35" rows="5"
+                style="width:70%">{description}</textarea>
+        </div>
     </div>
-  </div>
 
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}
-      <span id="enabled" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <input type="checkbox" id="f_enabled" name="enabled" value="1" {ena_chk} />
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}
+            <span id="enabled" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <input type="checkbox" id="f_enabled" name="enabled" value="1" {ena_chk} />
+        </div>
     </div>
-  </div>
 
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['upd_links']}
-      <span id="upd_links" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <input type="checkbox" id="f_upd_links" name="upd_links" value="1" {upd_links_chk} />
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['upd_links']}
+            <span id="upd_links" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <input type="checkbox" id="f_upd_links" name="upd_links" value="1" {upd_links_chk} />
+        </div>
     </div>
-  </div>
 
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['purch_access']}
-      <span id="access" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <select name="grp_access" id="f_access">
-        {group_options}
-      </select>
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['purch_access']}
+            <span id="access" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <select name="grp_access" id="f_access">
+                {group_options}
+            </select>
+        </div>
     </div>
-  </div>
 
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
-      <span id="fee_schedule" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <table id="fee_rolling" border="0">
-        <tr>
-          <th>{$LANG_MEMBERSHIP['period']}</th>
-          <th>{$LANG_MEMBERSHIP['new_purch']}</th>
-          <th>{$LANG_MEMBERSHIP['renewal']}</th>
-        </tr>
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['fee_schedule']}
+            <span id="fee_schedule" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <table id="fee_rolling" border="0">
+                <tr>
+                    <th>{$LANG_MEMBERSHIP['period']}</th>
+                    <th>{$LANG_MEMBERSHIP['new_purch']}</th>
+                    <th>{$LANG_MEMBERSHIP['renewal']}</th>
+                </tr>
 <!-- BEGIN FeeTable -->
-        <tr>
-          <td>{text}</td>
-          <td><input style="text-align:right" type="text" name="fee[new][{counter}]" value="{new_fee}" /></td>
-          <td><input style="text-align:right" type="text" name="fee[renew][{counter}]" value="{renew_fee}" /></td>
-        </tr>
+                <tr>
+                    <td>{text}</td>
+                    <td><input style="text-align:right" type="text" name="fee[new][{counter}]" value="{new_fee}" /></td>
+                    <td><input style="text-align:right" type="text" name="fee[renew][{counter}]" value="{renew_fee}" /></td>
+                </tr>
 <!-- END FeeTable -->
-      </table>
+            </table>
+        </div>
     </div>
-  </div>
 
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['fixed_fee']}
-      <span id="fixed_fee" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <input style="text-align:right" id="f_fixed_fee" size="10" type="text" name="fixed_fee" value="{fixed_fee}" />
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['fixed_fee']}
+            <span id="fixed_fee" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <input style="text-align:right" id="f_fixed_fee" size="10" type="text" name="fixed_fee" value="{fixed_fee}" />
+        </div>
     </div>
-  </div>
-
-</fieldset>
+    </fieldset>
 
 {!if has_members}
-<fieldset style="margin-top:20px">
-  <legend>{$LANG_MEMBERSHIP['fs_deleteplan']}</legend>
-  <div class="uk-form-row"{$LANG_MEMBERSHIP['hlp_transfer_plan']}</div>
-  <div class="uk-form-row">
-    <label class="uk-form-label">{$LANG_MEMBERSHIP['transfer_plan']}
-      <span id="transfer_plan" class="tooltip_cfg tooltipstered"></span>
-    </label>
-    <div class="uk-form-controls">
-      <select id="f_transfer_plan" name="transfer_plan">
-        <option value="" selected="selected">{$LANG_MEMBERSHIP['none']}</option>
-        {xfer_plan_select}
-      </select>
+    <fieldset style="margin-top:20px">
+    <legend>{$LANG_MEMBERSHIP['fs_deleteplan']}</legend>
+    <div class="uk-form-row"{$LANG_MEMBERSHIP['hlp_transfer_plan']}</div>
+
+    <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['transfer_plan']}
+            <span id="transfer_plan" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <select id="f_transfer_plan" name="transfer_plan">
+                <option value="" selected="selected">{$LANG_MEMBERSHIP['none']}</option>
+                {xfer_plan_select}
+            </select>
+        </div>
     </div>
-  </div>
-</fieldset>
+    </fieldset>
 {!endif}
 
-<div class="uk-form-row"></div>
-<div class="uk-form-row">
-<div class="uk-form-controls">
-<button type="submit" name="saveplan" class="uk-button uk-button-success"
-    value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
-<button type="reset" name="reset" class="uk-button uk-button-primary"
-    value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
-<button type="submit" name="listplans" class="uk-button"
-    value="{$LANG_ADMIN['cancel']}">{$LANG_ADMIN['cancel']}</button>
-<button name="deleteplan" value="{$LANG_ADMIN['delete']}"
-  type="submit" class="uk-button uk-button-danger" style="float:right;"
-  onclick="return confirm('{$LANG_MEMBERSHIP['q_del_item']}');">{$LANG_ADMIN['delete']}</button>
-</div>
-</div>
+    <div class="uk-form-row"></div>
+    <div class="uk-form-row">
+        <div class="uk-form-controls">
+            <button type="submit" name="saveplan" class="uk-button uk-button-success"
+                value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
+            <button type="reset" name="reset" class="uk-button uk-button-primary"
+                value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
+            <button type="reset" name="listplans" class="uk-button"
+                value="{$LANG_ADMIN['cancel']}"
+                onclick="window.location.replace('{site_admin_url}/plugins/membership/index.php');">{$LANG_ADMIN['cancel']}</button>
+            <button name="deleteplan" value="{$LANG_ADMIN['delete']}"
+                type="submit" class="uk-button uk-button-danger" style="float:right;"
+                onclick="return confirm('{$LANG_MEMBERSHIP['q_del_item']}');">{$LANG_ADMIN['delete']}</button>
+        </div>
+    </div>
 </form>
 
 <script language="javascript" type="text/javascript">
