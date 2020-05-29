@@ -69,7 +69,7 @@ default:
     // Display the application within the normal glFusion site.
     $content .= \Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
-        $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/app.php?edit">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
+        $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/app.php?editapp">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'edit':
