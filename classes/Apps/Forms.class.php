@@ -31,6 +31,7 @@ class Forms extends \Membership\App
      * @var boolean */
     private $isValid = true;
 
+
     /**
      * Constructor. Sets the form ID and gets the result set ID for the user.
      *
@@ -44,7 +45,7 @@ class Forms extends \Membership\App
         parent::__construct($uid);
 
         // Check that the form exists and can be filled out.
-        $status = PLG_invokeService($this->plugin, 'getFormInfo',
+        $status = LGLIB_invokeService($this->plugin, 'getFormInfo',
             array(
                 'frm_id' => $this->frm_id,
                 'perm' =>  2,
@@ -56,7 +57,7 @@ class Forms extends \Membership\App
             $this->isValid = false;
         } else {
             // Get the result ID if the user has filled out the form
-            $status = PLG_invokeService($this->plugin, 'resultId',
+            $status = LGLIB_invokeService($this->plugin, 'resultId',
                 array(
                     'frm_id' => $this->frm_id,
                     'uid' => $this->uid,
@@ -83,7 +84,7 @@ class Forms extends \Membership\App
         global $_USER;
 
         // Get the ID of the result record for this application
-        $status = PLG_invokeService($this->plugin, 'getValues',
+        $status = LGLIB_invokeService($this->plugin, 'getValues',
             array(
                 'frm_id' => $this->frm_id,
                 'uid' => $this->uid,
@@ -112,7 +113,7 @@ class Forms extends \Membership\App
      */
     protected function getEditForm()
     {
-        $status = PLG_invokeService($this->plugin, 'renderForm',
+        $status = LGLIB_invokeService($this->plugin, 'renderForm',
             array(
                 'uid' => $this->uid,
                 'frm_id' => $this->frm_id,
@@ -129,7 +130,7 @@ class Forms extends \Membership\App
     /**
      * Save the member application via the Profile plugin.
      *
-     * @return  integer     Status from PLG_invokeService()
+     * @return  integer     Status from LGLIB_invokeService()
      */
     protected function _Save()
     {
@@ -140,7 +141,7 @@ class Forms extends \Membership\App
             'uid'   => $_POST['mem_uid'],
             'data'  => $_POST,
         );
-        $status = PLG_invokeService($this->plugin, 'saveData',
+        $status = LGLIB_invokeService($this->plugin, 'saveData',
             $args,
             $output,
             $svc_msg
@@ -162,7 +163,7 @@ class Forms extends \Membership\App
         $status = true;
         // todo: Add method to check new application from $_POST
         if ($A === NULL) {      // checking existing application
-            $x = PLG_invokeService($this->plugin, 'validate',
+            $x = LGLIB_invokeService($this->plugin, 'validate',
                 array(
                     'uid' => $this->uid,
                     'frm_id' => $this->frm_id,
