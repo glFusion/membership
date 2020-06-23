@@ -636,8 +636,8 @@ class Membership
                         mem_status = $new_status
                         $dt_sql
                         WHERE mem_uid = $key", 1);
+                self::updatePlugins('membership:' . $key, $old_status, $new_status);
             }
-            self::updatePlugins('membership:' . $key, $old_status, $new_status);
         }
         return true;
     }
