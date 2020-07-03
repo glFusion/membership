@@ -22,45 +22,36 @@ class Logger
 {
 
     /**
-     * Log a debugging message to the system log.
+     * Write a log file entry to the specified file.
      *
-     * @param   string  $msg    Message to be logged
+     * @param   string  $logentry   Log text to be written
+     * @param   string  $logfile    Log filename
+     * @param   boolean $system     True if this is an automated system task
      */
-    public static function debug($msg)
+    private static function write($logentry, $logfile, $system=false)
     {
-        global $_CONF_MEMBERSHIP;
-        if ($_CONF_MEMBERSHIP['debug']) {
-            COM_errorLog('MEMBERSHIP DEBUG: ' . $msg);
-        }
-    }
+        global $_CONF, $_USER, $LANG01, $_CONF_MEMBERSHIP;
 
-
-    /**
-     * Log an audit message to the plugin's log file.
-     *
-     * @param   string  $msg    Message to be logged
-     */
-    public static function audit($msg, $system=false)
-    {
-        global $_CONF, $_CONF_MEMBERSHIP, $_USER, $LANG01, $LANG_MEMBERSHIP;
-
-        if ($msg == '') {
-            return '';
+        if ($logentry == '') {
+            return;
         }
 
         // A little sanitizing
-        $msg = str_replace(
-            array('<?', '?>'),
+        $logentry = str_replace(
+            array('<'.'?', '?'.'>'),
             array('(@', '@)'),
-            $msg
+            $logentry
         );
-
-        $timestamp = $_CONF['_now']->format('c');
-        $logfile = $_CONF['path_log'] . $_CONF_MEMBERSHIP['pi_name'] . '.log';
+        $timestamp = strftime( '%c' );
+        if ($logfile == '') {
+            $logfile = $_CONF_MEMBERSHIP['pi_name'] . '.log';
+        }
+        $logfile = $_CONF['path_log'] . $logfile;
 
         // Can't open the log file?  Return an error
-        if (!$file = fopen($logfile, 'a+')) {
-            return $LANG01[33] . $logfile . ' (' . $timestamp . ')<br />' . LB;
+        if (!$file = fopen($logfile, 'a')) {
+            COM_errorLog("Unable to open $logfile");
+            return;
         }
 
         if ($system == false) {
@@ -73,16 +64,71 @@ class Logger
                         $_USER['fullname']
                     );
             } else {
-                $byuser = 'anon';
+                $byuser = $LANG_MEMBERSHIP['system_task'];
             }
             $byuser .= '@' . $_SERVER['REMOTE_ADDR'];
-        } else {
-            $byuser = $LANG_MEMBERSHIP['system_task'];
         }
 
+        // Get the user name if it's not anonymous
+        if (isset($_USER['uid'])) {
+            $byuser = $_USER['uid'] . '-'.
+                COM_getDisplayName(
+                    $_USER['uid'],
+                    $_USER['username'], $_USER['fullname']
+                );
+        } else {
+            $byuser = 'anon';
+        }
+        $byuser .= '@' . $_SERVER['REMOTE_ADDR'];
+
         // Write the log entry to the file
-        fputs($file, "$timestamp ($byuser) - $msg\n");
+        fputs($file, "$timestamp ($byuser) - $logentry\n");
+        fclose($file);
+    }
+
+
+    /**
+     * Write an entry to the Audit log.
+     *
+     * @param   string  $msg        Message to log
+     * @param   boolean $system     True if this is an automated system task
+     */
+    public static function Audit($msg, $system=false)
+    {
+        global $_CONF_MEMBERSHIP;
+
+        $logfile = $_CONF_MEMBERSHIP['pi_name'] . '.log';
+        self::write($msg, $logfile);
+    }
+
+
+    /**
+     * Write an entry to the system log.
+     * Just a wrapper for COM_errorLog().
+     *
+     * @param   string  $msg        Message to log
+     */
+    public static function System($msg)
+    {
+        COM_errorLog($msg);
+    }
+
+
+    /**
+     * Write a debug log message.
+     * Uses the System() function if debug logging is enabled.
+     *
+     * @param   string  $msg        Message to log
+     */
+    public static function Debug($msg)
+    {
+        global $_CONF_MEMBERSHIP;
+
+        if (isset($_CONF_MEMBERSHIP['log_level']) && (int)$_CONF_MEMBERSHIP['log_level'] <= 100) {
+            self::System('DEBUG: ' . $msg);
+        }
     }
 
 }
 
+?>

@@ -663,12 +663,12 @@ function plugin_runScheduledTask_membership()
                 ON u.uid = m.mem_uid
             WHERE mem_status IN ($stat)
             AND mem_expires < '" . MEMBERSHIP_dtEndGrace()->toMySQL() . "'";
-    //COM_errorLog($sql);
+    //Membership\Logger::System($sql);
     $r = DB_query($sql, 1);
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
             Membership\Membership::Expire($row['mem_uid'], true);
-            Membership\Logger::audit(
+            Membership\Logger::Audit(
                 sprintf(
                     $LANG_MEMBERSHIP['log_expired'],
                     $row['mem_uid'],
@@ -689,12 +689,12 @@ function plugin_runScheduledTask_membership()
                 ON u.uid = m.mem_uid
             WHERE mem_status IN ($stat)
             AND mem_expires < '" . MEMBERSHIP_today() . "'";
-    //COM_errorLog($sql);
+    //Membership\Logger::System($sql);
     $r = DB_query($sql, 1);
     if ($r) {
         while ($row = DB_fetchArray($r, false)) {
             Membership\Membership::Arrears($row['mem_uid'], true);
-            Membership\Logger::audit(
+            Membership\Logger::Audit(
                 sprintf(
                     $LANG_MEMBERSHIP['log_arrears'],
                     $row['mem_uid'],
@@ -713,7 +713,7 @@ function plugin_runScheduledTask_membership()
             '" . MEMBERSHIP_today() . "' > (mem_expires + interval $days DAY)";
         $res = DB_query($sql, 1);
         $num = DB_affectedRows($res);
-        Membership\Logger::audit(
+        Membership\Logger::Audit(
             sprintf($LANG_MEMBERSHIP['log_purged'],$num, $days),
             true
         );
@@ -818,7 +818,7 @@ function MEMBERSHIP_notifyExpiration()
             WHERE m.mem_notified = 0
             AND m.mem_status IN ($stat)
             AND m.mem_expires < '$exp_chk'";
-    //COM_errorLog($sql);
+    //Membership\Logger::System($sql);
     $r = DB_query($sql);
     if (!$r)
         return;
@@ -914,7 +914,7 @@ function MEMBERSHIP_notifyExpiration()
                 WHERE mem_uid IN ($ids)";
         DB_query($sql, 1);
         if (DB_error()) {
-            COM_errorLog("membership: error executing $sql");
+            Membership\Logger::System("membership: error executing $sql");
         }
     }
 }
@@ -996,7 +996,7 @@ function plugin_user_delete_membership($uid)
 {
     global $_TABLES;
 
-    Membership\Logger::audit(
+    Membership\Logger::Audit(
         'Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.'
     );

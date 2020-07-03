@@ -127,7 +127,7 @@ case 'editapp':
     if (!COM_isAnonUser()) {
         $F = Membership\App::getInstance($uid);
         if (!$F->isValidForm()) {
-            COM_errorLog("Membership: Application form invalid - " . print_r($F,true));
+            Membership\Logger::System("Membership: Application form invalid - " . print_r($F,true));
             COM_404();
             exit;
         }

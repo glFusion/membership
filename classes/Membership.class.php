@@ -546,10 +546,10 @@ class Membership
                         mem_notified = {$this->notified},
                         mem_istrial = {$this->istrial}";
             //echo $sql;die;
-            //COM_errorLog($sql);
+            //Logger::System($sql);
             DB_query($sql, 1);
             if (DB_error()) {
-                COM_errorLog(__CLASS__ . '::Save() sql error: ' . $sql);
+                Logger::System(__CLASS__ . '::Save() sql error: ' . $sql);
             }
 
             // Add the member to the groups if the status has changed,
@@ -1069,7 +1069,7 @@ class Membership
                 $svc_msg
             );
             if ($status != PLG_RET_OK) {
-                COM_errorLog('Membership: Error updating mailling list. ' .
+                Logger::System('Membership: Error updating mailling list. ' .
                 "User: $uid, Segment $new_status");
                 $retval = $status;
             }
@@ -1329,10 +1329,10 @@ class Membership
 
         $Mem1 = self::getInstance($uid1);
         if ($Mem1->isNew()) {
-            COM_errorLog("Cannot link user $uid2 to nonexistant membership for $uid1");
+            Logger::System("Cannot link user $uid2 to nonexistant membership for $uid1");
             return false;
         } elseif (!$Mem1->Plan->isFamily()) {
-            COM_errorLog("Cannot link $uid2 to a non-family plan");
+            Logger::System("Cannot link $uid2 to a non-family plan");
             return false;
         }
 
@@ -1367,7 +1367,7 @@ class Membership
         //echo $sql;die;
         DB_query($sql);
         if (DB_error()) {
-            COM_errorLog(__CLASS__ . "/addLink() error: $sql");
+            Logger::System(__CLASS__ . "/addLink() error: $sql");
             return false;
         } else {
             Cache::clear('members');
@@ -1396,7 +1396,7 @@ class Membership
             WHERE mem_uid = $uid";
         DB_query($sql);
         if (DB_error()) {
-            COM_errorLog(__CLASS__ . "::remLink() error: $sql");
+            Logger::System(__CLASS__ . "::remLink() error: $sql");
             return false;
         } else {
             Cache::clear('members');

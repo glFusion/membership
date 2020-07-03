@@ -138,7 +138,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 
     $amount = (float)$ipn_data['pmt_gross'];
     if ($amount < $M->Price()) {    // insufficient funds
-        Membership\Logger::audit('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
+        Membership\Logger::Audit('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
         return PLG_RET_ERROR;
     }
 

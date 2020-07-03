@@ -27,7 +27,7 @@ if (!in_array('membership', $_PLUGINS) || !in_array('subscription', $_PLUGINS)) 
 // Only let admin users access this page
 if (!MEMBERSHIP_isAdmin()) {
     // Someone is trying to illegally access this page
-    COM_errorLog("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
+    Membership\Logger::System("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
     COM_404();
     exit;
 }
