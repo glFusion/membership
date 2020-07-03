@@ -1,19 +1,19 @@
 <?php
 /**
-*   Installation routine for the Membership plugin for GLFusion
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2012 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.0.1
-*   @license    http://opensource.org/licenses/gpl-2.0.php 
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Installation routine for the Membership plugin for GLFusion
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.0.1
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 
 /**
-*   Include required glFusion common functions
-*/
+ *   Include required glFusion common functions
+ */
 require_once '../../../lib-common.php';
 require_once $_CONF['path'].'/plugins/membership/autoinstall.php';
 USES_lib_install();
@@ -32,19 +32,18 @@ if (!SEC_inGroup('Root')) {
 }
 
 /**
-*   @global string $base_path
-*/
+ * @global string $base_path
+ */
 $base_path  = "{$_CONF['path']}plugins/membership";
 
 /**
-*   Include required plugin common functions
-*/
+ * Include required plugin common functions.
+ */
 require_once("$base_path/functions.inc");
 
-
-/* 
-*   Main Function
-*/
+/**
+ * Main Function
+ */
 if (SEC_checkToken()) {
     if ($_GET['action'] == 'install') {
         if (plugin_install_membership()) {
@@ -65,7 +64,6 @@ if (SEC_checkToken()) {
         }
     }
 }
-
 
 echo COM_refresh($_CONF['site_admin_url'] . '/plugins.php');
 
