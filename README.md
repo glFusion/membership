@@ -1,4 +1,4 @@
-#Membership Plugin for glFusion
+# Membership Plugin for glFusion
 
 This plugin is similar to the Subscription plugin, but geared towards club
 memberships. Site members can be linked together to form "families" for
@@ -45,7 +45,7 @@ can provide the application (Profile is recommended).
 
 - Memberships can be paid via the Shop plugin or by check.
 
-##REQUIREMENTS:
-- lgLib 0.0.2 or later for core functions
+## REQUIREMENTS:
+- lgLib plugin 1.0.9 or later for core functions
 - Either the Profile plugin or the Forms plugin to handle applications
 - The Shop plugin can be integrated to handle membership payments.
