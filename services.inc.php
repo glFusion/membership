@@ -202,6 +202,13 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
         $exp_stat = $args['post']['mem_exp_status'];
     } elseif (empty($args['post']) && isset($args['get']['mem_exp_status'])) {
         $exp_stat = explode(',', $args['get']['mem_exp_status']);
+    } elseif (isset($args['exp_stat']) && is_int($args['exp_stat'])) {
+        $exp_stat = array();
+        foreach ($opts as $key=>$txt) {
+            if (($args['exp_stat'] & $key) == $key) {
+                $exp_stat[] = $key;
+            }
+        }
     } else {
         // Use the default setting if no other options received
         $exp_stat = array();
@@ -212,8 +219,9 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
         if ($_CONF_MEMBERSHIP['prflist_expired'] == 1)
             $exp_stat[] = MEMBERSHIP_STATUS_EXPIRED;
     }
-    if (!is_array($exp_stat))
+    if (!is_array($exp_stat)) {
         $exp_stat = array();
+    }
 
     $get_parms = array();
     $output['filter'] = '';
@@ -256,20 +264,38 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     $incl_exp_stat = 0;
 
     // Does not support remote web services, must be local only.
-    if ($args['gl_svc'] !== false) return PLG_RET_PERMISSION_DENIED;
+    if ($args['gl_svc'] !== false) {
+        return PLG_RET_PERMISSION_DENIED;
+    }
 
     // Include the expiration status, if requested
-    if (isset($args['post']['mem_exp_status_flag']))
+    if (isset($args['post']['mem_exp_status_flag'])) {
         $exp_stat = $args['post']['mem_exp_status'];
-    elseif (empty($args['post']) && isset($args['get']['mem_exp_status']))
+    } elseif (empty($args['post']) && isset($args['get']['mem_exp_status'])) {
         $exp_stat = explode(',', $args['get']['mem_exp_status']);
-    elseif (isset($args['incl_exp_stat'])) {
-        if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_ENABLED)
-            $exp_stat[] = MEMBERSHIP_STATUS_ENABLED;
-        if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_ARREARS)
-            $exp_stat[] = MEMBERSHIP_STATUS_ARREARS;
-        if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_EXPIRED)
-            $exp_stat[] = MEMBERSHIP_STATUS_EXPIRED;
+    } elseif (isset($args['incl_exp_stat'])) {
+        $exp_stat = array();
+        if (is_int($args['incl_exp_stat'])) {
+            foreach (array(
+                MEMBERSHIP_STATUS_ENABLED,
+                MEMBERSHIP_STATUS_ARREARS,
+                MEMBERSHIP_STATUS_EXPIRED,
+            ) as $key) {
+                if (($args['incl_exp_stat'] & $key) == $key) {
+                    $exp_stat[] = $key;
+                }
+            }
+        } elseif (is_array($args['incl_exp_stat'])) {
+            if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_ENABLED) {
+                $exp_stat[] = MEMBERSHIP_STATUS_ENABLED;
+            }
+            if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_ARREARS) {
+                $exp_stat[] = MEMBERSHIP_STATUS_ARREARS;
+            }
+            if ($args['incl_exp_stat'] && MEMBERSHIP_STATUS_EXPIRED) {
+                $exp_stat[] = MEMBERSHIP_STATUS_EXPIRED;
+            }
+        }
     }
     if (!empty($exp_stat)) {
         foreach ($exp_stat as $stat) {
@@ -285,7 +311,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
             }
             if ($incl_exp_stat & MEMBERSHIP_STATUS_ARREARS) {
                 $exp_arr[] = "($members.mem_expires < '" . MEMBERSHIP_today() . "'
-                    AND $members.mem_expires >= '" . MEMBERSHIP_dtEndGract() . "')";
+                    AND $members.mem_expires >= '" . MEMBERSHIP_dtEndGrace() . "')";
             }
             if ($incl_exp_stat & MEMBERSHIP_STATUS_EXPIRED) {
                 $exp_arr[] = "$members.mem_expires < '" . MEMBERSHIP_dtEndGrace() . "'";
