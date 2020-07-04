@@ -976,6 +976,7 @@ class Membership
     public static function Delete($uid)
     {
         global $_CONF_MEMBERSHIP, $_TABLES;
+        USES_lib_user();
 
         // Remove this user from the family
         //Link::Emancipate($uid);

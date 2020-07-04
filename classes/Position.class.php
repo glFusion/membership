@@ -52,7 +52,7 @@ class Position
 
     /** Contact info for the position's occupant.
      * @var string */
-    private $contace = '';
+    private $contact = '';
 
 
     /**
@@ -395,8 +395,11 @@ class Position
      */
     private function _updateGroups()
     {
-        if ($this->old_grp_id != $this->grp_id ||
-                $this->old_uid != $this->uid) {
+        USES_lib_user();
+        if (
+            $this->old_grp_id != $this->grp_id ||
+            $this->old_uid != $this->uid
+        ) {
             if ($this->old_grp_id != 0 && $this->old_uid != 0) {
                 // used to be a member in this position, now maybe not
                 USER_delGroup($this->old_grp_id, $this->old_uid);
