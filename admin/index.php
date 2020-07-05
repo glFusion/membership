@@ -170,7 +170,7 @@ case 'saveposition':
 case 'reorderpos':
     $type = isset($_GET['type']) ? $_GET['type'] : '';
     $id = isset($_GET['id']) ? $_GET['id'] : 0;
-    $where = isset($_GET['where']) ? $_GET['where'] : '';
+    $where = $actionval;
     if ($type != '' && $id > 0 && $where != '') {
         $msg = Membership\Position::Move($id, $type, $where);
     }
