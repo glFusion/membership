@@ -668,11 +668,8 @@ class Membership
     public static function Expire($uid=0, $cancel_relatives=true)
     {
         // Remove this member from any club positions held
-        $positions = Position::getMemberPositions($uid);
-        if (!empty($positions)) {
-            foreach ($positions as $P) {
-                $P->setMember(0);
-            }
+        foreach (Position::getByMember($uid) as $P) {
+            $P->setMember(0);
         }
         // Disable the account if so configured
         self::_disableAccount($uid);
@@ -1204,11 +1201,7 @@ class Membership
     public static function Now()
     {
         global $_CONF;
-        static $now = NULL;
-        if ($now === NULL) {
-            $now = new \Date('now', $_CONF['timezone']);
-        }
-        return $now;
+        return $_CONF['_now'];
     }
 
 

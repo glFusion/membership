@@ -54,6 +54,14 @@ class Position
      * @var string */
     private $contact = '';
 
+    /** Original group ID, used when editing to detect changes.
+     * @var integer */
+    private $old_grp_id = 0;
+
+    /** Original user ID, used when editing to detect changes.
+     * @var integer */
+    private $old_uid = 0;
+
 
     /**
      * Set variables and read a record if an ID is provided.
@@ -124,12 +132,12 @@ class Position
 
         if (isset($A['id'])) $this->id = (int)$A['id'];
         $this->uid      = (int)$A['uid'];
-        $this->descr    = $A['descr'];
+        $this->dscp = $A['descr'];
         $this->orderby  = (int)$A['orderby'];
         $this->contact  = $A['contact'];
         $this->grp_id   = (int)$A['grp_id'];
-        $this->old_uid  = isset($A['old_uid']) ? $A['old_uid'] : $this->uid;
-        $this->old_grp_id  = isset($A['old_grp_id']) ? $A['old_grp_id'] : $this->grp_id;
+        $this->old_uid  = isset($A['old_uid']) ? (int)$A['old_uid'] : $this->uid;
+        $this->old_grp_id  = isset($A['old_grp_id']) ? (int)$A['old_grp_id'] : $this->grp_id;
         $this->enabled  = isset($A['enabled']) ? (int)$A['enabled'] : 0;
         $this->show_vacant = isset($A['show_vacant']) ? (int)$A['show_vacant'] : 0;
 
@@ -170,7 +178,7 @@ class Position
 
         $sql2 = "type = '" . DB_escapeString($this->type) . "',
                 uid = {$this->uid},
-                descr = '" . DB_escapeString($this->descr) . "',
+                descr = '" . DB_escapeString($this->dscp) . "',
                 contact = '" . DB_escapeString($this->contact) . "',
                 show_vacant = {$this->show_vacant},
                 orderby = {$this->orderby},
@@ -207,7 +215,7 @@ class Position
      * @param   integer $uid    Member's User ID
      * @return  array       Array of position IDs
      */
-    public static function getMemberPositions($uid)
+    public static function getByMember($uid)
     {
         global $_TABLES;
 
@@ -284,7 +292,7 @@ class Position
         $T->set_var(array(
             'action_url'    => MEMBERSHIP_ADMIN_URL,
             'id'            => $this->id,
-            'description'   => $this->descr,
+            'description'   => $this->dscp,
             'option_user_select' => COM_optionList(
                         $_TABLES['users'],
                         'uid,fullname',
@@ -396,6 +404,7 @@ class Position
     private function _updateGroups()
     {
         USES_lib_user();
+
         if (
             $this->old_grp_id != $this->grp_id ||
             $this->old_uid != $this->uid
@@ -499,12 +508,12 @@ class Position
         );
         $filter = '';
         $text_arr = array(
-            //    'has_extras' => true,
-            //    'form_url' => MEMBERSHIP_ADMIN_URL . '/index.php?attributes=x',
+            'form_url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
         );
 
         $options = array(
-            //'chkdelete' => true, 'chkfield' => 'attr_id',
+            'chkdelete' => true,
+            'chkfield' => 'id',
         );
         if (!isset($_REQUEST['query_limit'])) {
             $_GET['query_limit'] = 20;
@@ -559,13 +568,16 @@ class Position
             break;
 
         case 'move':
+            $base_url = MEMBERSHIP_ADMIN_URL .
+                '/index.php?type=' . urlencode($A['type']) .
+                '&id=' . $A['id'] . '&reorderpos=';
             $retval .= COM_createLink(
                 $_CONF_MEMBERSHIP['icons']['arrow-up'],
-                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=up&id=' . $A['id']
+                $base_url . 'up'
             );
             $retval .= '&nbsp;' . COM_createLink(
                 $_CONF_MEMBERSHIP['icons']['arrow-down'],
-                MEMBERSHIP_ADMIN_URL . '/index.php?vmorder=down&id=' . $A['id']
+                $base_url . 'down'
             );
             break;
 
