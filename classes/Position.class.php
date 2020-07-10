@@ -611,7 +611,10 @@ class Position
             if ($A['uid'] == 0) {
                 $retval = '<i>' . $LANG_MEMBERSHIP['vacant'] . '</i>';
             } else {
-                $retval = $fieldvalue;
+                $retval = COM_createLink(
+                    $fieldvalue,
+                    $_CONF['site_url'] . '/users.php?mode=profile&uid=' . $A['uid']
+                );
             }
             break;
 
