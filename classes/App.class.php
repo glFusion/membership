@@ -87,10 +87,13 @@ class App
      */
     public function Display()
     {
+        global $_CONF;
+
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('app', 'application.thtml');
         $T->set_block('app', 'DataRow', 'row');
         $values = $this->getDisplayValues();
+        $retval = COM_siteHeader();
         foreach ($values as $key=>$fld) {
             $T->set_var(array(
                 'description'   => $fld['prompt'],
@@ -98,7 +101,7 @@ class App
             ) );
             $T->parse('row', 'DataRow', true);
         }
-        $M = Membership::getInstance($uid);
+        $M = Membership::getInstance($this->uid);
         $rel_urls = '';
         if (!$M->isNew()) {
             $relatives = $M->getLinks();
@@ -112,59 +115,20 @@ class App
             'rel_accounts'  => $rel_urls,
         ) );
         $T->parse('output', 'app');
-        $retval = $T->finish($T->get_var('output'));
+        $retval .= $T->finish($T->get_var('output'));
         return $retval;
-        //return $this->getDisplay();
     }
 
 
     /**
-     * Display an application saved by the Custom Profile plugin.
+     * Dummy function to get the display values.
+     * Only used if a valid provider instance couldn't be created.
      *
-     * @param   integer $uid    User ID to display
-     * @return  string      HTML to display application
+     * @return  array       Array of prompt=>value pairs
      */
-    public function XDisplay()
+    public function getDisplayValues()
     {
-        global $_USER, $_CONF;
-
-        if ($this->uid == 0 || !MEMBERSHIP_isManager()) $uid = $_USER['uid'];
-        $retval = '';
-        $status = PLG_invokeService($this->plugin, 'getValues',
-            array(
-                'uid'=>$uid,
-            ),
-            $output,
-            $svc_msg
-        );
-        if ($status == PLG_RET_OK && !empty($output)) {
-            $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
-            $T->set_file('app', 'application.thtml');
-            $T->set_block('app', 'DataRow', 'row');
-            foreach ($output as $key=>$data) {
-                $T->set_var(array(
-                    'description'   => $data->prompt,
-                    'value'         => $data->FormatValue(),
-                ) );
-                $T->parse('row', 'DataRow', true);
-            }
-            $M = Membership::getInstance($uid);
-            $rel_urls = '';
-            if (!$M->isNew()) {
-                $relatives = $M->getLinks();
-                foreach ($relatives as $key=>$name) {
-                    $rel_urls .= '&nbsp;&nbsp;<a href="' . $_CONF['site_url'] .
-                        "/users.php?mode=profile&amp;uid=$key\">$name</a>";
-                }
-            }
-            $T->set_var(array(
-                'member_name'   => COM_getDisplayName($uid),
-                'rel_accounts'  => $rel_urls,
-            ) );
-            $T->parse('output', 'app');
-            $retval = $T->finish($T->get_var('output'));
-        }
-        return $retval;
+        return array();
     }
 
 
@@ -239,98 +203,6 @@ class App
         }
         $T->parse('output', 'app');
         return $T->finish($T->get_var('output'));
-    }
-
-
-    /**
-     * Allow a user to edit their application data.
-     *
-     * @param   integer $uid    User ID to edit
-     * @return  string      HTML for application form
-     */
-    public function XEdit()
-    {
-        global $LANG_MEMBERSHIP, $_CONF, $_CONF_MEMBERSHIP;
-
-        $retval = '';
-        $prf_args = array(
-            'uid'       => $this->uid,
-    //'form_id'   => 'membership_profile_form',
-            'frm_id'    => $this->frm_id,
-        );
-        $typeselect_var = 'app_membership_type';
-        $status = PLG_invokeService($this->plugin, 'renderForm',
-            $prf_args,
-            $output,
-            $svc_msg
-        );
-        if ($status == PLG_RET_OK && !empty($output)) {
-            $M = Membership::getInstance($uid);
-            if (isset($_POST[$typeselect_var])) {
-                $sel = $_POST[$typeselect_var];
-            } elseif ($M->isNew()) {
-                $sel = '';
-            } else {
-                $sel = $M->getPlanID();
-            }
-
-            $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
-            $T->set_file('app', 'app_form.thtml');
-            $T->set_var(array(
-                'form_id'       => 'membership_profile_form',
-                'mem_uid'       => $this->uid,
-                'purch_url'     => MEMBERSHIP_PI_URL . '/index.php?list1',
-                'profile_fields' => $output,
-                'exp_msg'       => $M->isNew() ? '' :
-                    sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlanID(), $M->getExpires()),
-            ) );
-            if ($_CONF_MEMBERSHIP['update_maillist']) {
-                $status = PLG_invokeService('mailchimp', 'issubscribed',
-                    array(
-                        'uid'=>$uid,
-                    ),
-                    $output,
-                    $svc_msg
-                );
-                if ($status == PLG_RET_OK && $output) {
-                    $T->set_var('update_maillist', 'true');
-                }
-            }
-
-            // Add the checkbox to accept terms or waivers, if so configured
-            if ($_CONF_MEMBERSHIP['terms_url'] != '') {
-                $terms_url = str_replace('%site_url%', $_CONF['site_url'],
-                    $_CONF_MEMBERSHIP['terms_url']);
-                $T->set_var(array(
-                    'terms_link' => sprintf($LANG_MEMBERSHIP['terms_link'],
-                                            $terms_url),
-                ) );
-            }
-            if ($_CONF_MEMBERSHIP['terms_accept']) {
-                $T->set_var(array(
-                    'terms_required'    => true,
-                    'terms_cls' => isset($_POST['app_errors']['terms_accept']) ? 'app_error' : '',
-                ) );
-            }
-
-            $T->set_block('app', 'TypeSelect', 'row');
-            $types = self::TypeSelect($sel);
-            foreach ($types as $plan=>$type) {
-                $T->set_var(array(
-                    'plan_id'   => $plan,
-                    'description' => $type['description'],
-                    'price'     => $type['price'],
-                    'totalprice' => $type['total'],
-                    'fee'       => $type['fee'],
-                    'selected'  => $type['sel'],
-                    'varname'   => $typeselect_var,
-                ) );
-                $T->parse('row', 'TypeSelect', true);
-            }
-            $T->parse('output', 'app');
-            $retval .= $T->finish($T->get_var('output'));
-        }
-        return $retval;
     }
 
 

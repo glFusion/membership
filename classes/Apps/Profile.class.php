@@ -22,8 +22,7 @@ class Profile extends \Membership\App
     /**
      * Display an application saved by the Custom Profile plugin.
      *
-     * @param   integer $uid    User ID to display
-     * @return  string      HTML to display application
+     * @return  array   Array of field prompt=>value pairs
      */
     protected function getDisplayValues()
     {

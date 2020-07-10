@@ -77,11 +77,11 @@ class Forms extends \Membership\App
     /**
      * Display an application saved by the Forms plugin.
      *
-     * @return  string      HTML to display application
+     * @return  array   Array of field prompt=>value pairs
      */
     public function getDisplayValues()
     {
-        global $_USER;
+        $retval = array();
 
         // Get the ID of the result record for this application
         $status = LGLIB_invokeService($this->plugin, 'getValues',
@@ -101,7 +101,7 @@ class Forms extends \Membership\App
                 );
             }
         }
-        return $output;
+        return $retval;
     }
 
 
