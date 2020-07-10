@@ -3,9 +3,9 @@
  * Class to handle board and committee possitions.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2014-2016 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2014-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.1.1
+ * @version     v0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -193,19 +193,19 @@ class Position
             return true;
         }
         return false;
-
-    }   // function Save
+    }
 
 
     /**
      * Set the given member as the occupant of a position.
      *
      * @param   integer $uid    User ID to hold the position
+     * @return  boolean     Results from Save()
      */
     public function setMember($uid)
     {
         $this->uid = (int)$uid;
-        $this->Save();
+        return $this->Save();
     }
 
 
@@ -274,6 +274,12 @@ class Position
     {
         global $_TABLES;
 
+        // First remove the member->group assignment, if any
+        $this->uid = 0;
+        $this->grp_id = 0;
+        $this->_updateGroups();
+
+        // Then delete the position record
         DB_delete($_TABLES['membership_positions'], 'id', $this->id);
     }
 
@@ -418,6 +424,7 @@ class Position
                 USER_addGroup($this->grp_id, $this->uid);
             }
         }
+        return $this;
     }
 
 
