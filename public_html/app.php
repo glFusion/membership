@@ -19,10 +19,12 @@ require_once '../lib-common.php';
 if (COM_isAnonUser()) COM_404();
 
 $msg = '';
+$content = '';
 $expected = array(
     'prt', 'view', 'edit',
     'saveapp', 'cancelapp',
 );
+$action = 'edit';
 foreach($expected as $provided) {
     if (isset($_POST[$provided])) {
         $action = $provided;
@@ -37,7 +39,6 @@ foreach($expected as $provided) {
 
 if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
     $uid = (int)$_GET['uid'];
-//    $_CONF_MEMBERSHIP['view_app'] = MEMBERSHIP_APP_ALLACCESS;
 } else {
     $uid = (int)$_USER['uid'];
 }
@@ -73,20 +74,7 @@ default:
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'edit':
-    $output = \Membership\App::getInstance($uid)->Edit();
-/*    $status = LGLIB_invokeService('profile', 'renderForm',
-                array('uid'=>$uid), $output, $svc_msg);
-    if ($status == PLG_RET_OK && !empty($output)) {*/
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
-        $T->set_file('app', 'app_form.thtml');
-        $T->set_var(array(
-            'mem_uid'       => $uid,
-            'purch_url'     => MEMBERSHIP_PI_URL . '/index.php',
-            'profile_fields' => $output,
-        ) );
-        $T->parse('output', 'app');
-        $content .= $T->finish($T->get_var('output'));
-    //}
+    $content = \Membership\App::getInstance($uid)->Edit();
     break;
 }
 
