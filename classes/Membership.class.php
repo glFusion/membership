@@ -1511,6 +1511,14 @@ class Membership
                 'align'=>'center',
             ),
         );
+        if ($_CONF_MEMBERSHIP['require_app']) {
+            $header_arr[] = array(
+                'text' => $LANG_MEMBERSHIP['application'],
+                'field' => 'app_link',
+                'sort' => false,
+                'align' => 'center',
+            );
+        }
         if ($_CONF_MEMBERSHIP['use_mem_number'] > 0) {
             $header_arr[] = array(
                 'text' => $LANG_MEMBERSHIP['mem_number'],
@@ -1618,6 +1626,19 @@ class Membership
             $retval = COM_createLink(
                 $_CONF_MEMBERSHIP['icons']['edit'],
                 MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp
+            );
+            break;
+
+        case 'app_link':
+            $url = MEMBERSHIP_PI_URL . '/app.php?prt&uid=' . $A['mem_uid'];
+            $retval = COM_createLink(
+                '<i class="uk-icon uk-icon-eye"></i>',
+                '#!',
+                array(
+                    'onclick' => "popupWindow('{$url}', 'Help', 640, 480, 1)",
+                    'title' => $LANG_MEMBERSHIP['view_app'],
+                    'class' => 'tooltip',
+                )
             );
             break;
 
