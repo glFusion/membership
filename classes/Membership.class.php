@@ -1553,8 +1553,13 @@ class Membership
             $exp_query = '';
         } else {
             $frmchk = '';
-            $exp_query = "AND m.mem_status = " . MEMBERSHIP_STATUS_ACTIVE .
-                " AND m.mem_expires >= '" . Dates::endGrace() . "'";
+            $exp_query = sprintf(
+                "AND m.mem_status IN(%d, %d, %d) AND mem_expires >= '%s'",
+                MEMBERSHIP_STATUS_ACTIVE,
+                MEMBERSHIP_STATUS_ENABLED,
+                MEMBERSHIP_STATUS_ARREARS,
+                Dates::endGrace()
+            );
         }
         $query_arr = array(
             'table' => 'membership_members',
