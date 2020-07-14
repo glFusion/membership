@@ -68,8 +68,12 @@ class Dates
     public static function endGrace()
     {
         global $_CONF_MEMBERSHIP;
+        static $retval = NULL;
 
-        return self::sub("P{$_CONF_MEMBERSHIP['grace_days']}D");
+        if ($retval === NULL) {
+            $retval = self::sub("P{$_CONF_MEMBERSHIP['grace_days']}D");
+        }
+        return $retval;
     }
 
 
