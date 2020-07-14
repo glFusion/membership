@@ -360,7 +360,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                     {$members}.mem_plan_id as {$pi}_membertype,
                     {$members}.mem_status as {$pi}_status,
                     {$members}.mem_number as {$pi}_membernum,
-                    {$positions}.descr as {$pi}_position,
+                    group_concat(' ', {$positions}.descr) as {$pi}_position,
                     {$plans}.description AS {$pi}_description",
 
         'join' => "LEFT JOIN {$members} ON u.uid = {$members}.mem_uid
