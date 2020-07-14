@@ -1178,12 +1178,7 @@ function MEMBERSHIP_today()
  */
 function MEMBERSHIP_dtEndGrace()
 {
-    global $_CONF_MEMBERSHIP, $_CONF;
-    static $dt = NULL;
-    if ($dt === NULL) {
-        $dt = $_CONF['_now']->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
-    }
-    return $dt;
+    return Dates::endGrace();
 }
 
 
