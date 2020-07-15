@@ -1178,7 +1178,7 @@ function MEMBERSHIP_today()
  */
 function MEMBERSHIP_dtEndGrace()
 {
-    return Dates::endGrace();
+    return Membership\Dates::endGrace();
 }
 
 
