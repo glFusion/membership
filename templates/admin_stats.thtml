@@ -1,19 +1,19 @@
 {# begin {templatelocation} #}
-<table border="0" cellspacing="0" cellpadding="2" align="center">
+<table class="uk-table">
   <tr>
     <th>{$LANG_MEMBERSHIP['plan']}</th>
-    <th style="width:75px;text-align:right;">{$LANG_MEMBERSHIP['current']}</th>
-    <th style="width:75px;text-align:right;">{$LANG_MEMBERSHIP['arrears']}</th>
-    <th style="width:75px;text-align:right;">{$LANG_MEMBERSHIP['total']}</th>
+    <th style="text-align:right;">{$LANG_MEMBERSHIP['current']}</th>
+    <th style="text-align:right;">{$LANG_MEMBERSHIP['arrears']}</th>
+    <th style="text-align:right;">{$LANG_MEMBERSHIP['total']}</th>
   </tr>
-  <!-- BEGIN statrow -->
+<!-- BEGIN statrow -->
   <tr>
     <td>{plan}</td>
     <td class="alignright">{num_current}</td>
     <td class="alignright">{num_arrears}</td>
     <td class="alignright">{line_total}</td>
   </tr>
-  <!-- END statrow -->
+<!-- END statrow -->
   <tr style="line-height:30px;">
     <td class="alignright"><b>{$LANG_MEMBERSHIP['total']}:</b></td>
     <td class="alignright">{tot_current}</td>
