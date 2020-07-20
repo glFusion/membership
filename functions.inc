@@ -1036,15 +1036,16 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 
     if ($op == 'tagname' ) {
         return 'membership';
-    } else if ($op == 'parse') {
-
-        $HTML = '';
+    } elseif ($op == 'parse') {
+        $HTML = '';     // holder for the autotag replacement
         $option = COM_applyFilter($autotag['parm1']);
         switch ($option) {
         case 'grouplist':
             $parms = explode(' ', COM_applyFilter($autotag['parm2']));
             $groupname = $parms[0];
-            if (empty($groupname)) return $content;
+            if (empty($groupname)) {
+                return $content;
+            }
             $show_title = true;
             for ($i = 1; $i < count($parms); $i++) {
                 switch ($parms[$i]) {
@@ -1054,52 +1055,8 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
                 }
             }
 
-            USES_lib_user();
-
-            $sql = "SELECT p.*,u.username,u.fullname,u.email
-                FROM {$_TABLES['membership_positions']} p
-                LEFT JOIN {$_TABLES['users']} u
-                    ON u.uid = p.uid
-                WHERE p.type ='" .
-                DB_escapeString($groupname) . "'
-                ORDER BY p.orderby";
-            //echo $sql;die;
-            $res = DB_query($sql);
-
-            $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
-            $T ->set_file(array(
-                'groups' => 'groups.thtml',
-            ));
-
-            //$T->set_var('list_name', $poslist);
-
-            while ($A = DB_fetchArray($res, false)) {
-                $T->set_block('groups', 'userRow', 'uRow');
-                if ($A['uid'] == 0) {    // vacant position
-                    $user_img = '';
-                    $show_vacant = $A['show_vacant'] ? 'true' : '';
-                    $username = '';
-                } else {
-                    $user_img = USER_getPhoto($A['uid']);
-                    $username = COM_getDisplayName($A['uid'], $A['username'],
-                                    $A['fullname']);
-                    $show_vacant = '';
-                }
-                $T->set_var(array(
-                    'title' => $show_title ?
-                        sprintf($LANG_MEMBERSHIP['title_positionpage'], $groupname) : '',
-                    'position'  => $A['descr'],
-                    'user_name' => $username,
-                    'show_vacant' => $show_vacant,
-                    'user_img'  => $user_img,
-                    'user_email' => empty($A['contact']) ?
-                        $LANG_MEMBERSHIP['contact'] : $A['contact'],
-                    'uid'       => $A['uid'],
-                ) );
-                $T->parse('uRow', 'userRow', true);
-            }
-            $T->parse('output', 'groups');
-            $HTML = $T->finish($T->get_var('output'));
+            $GL = new Membership\GroupList($groupname);
+            $HTML = $GL->showTitle($show_title)->Render();
             return str_replace($autotag['tagstr'],$HTML,$content);
             break;
         }

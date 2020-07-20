@@ -3,7 +3,7 @@
  * Show members by group
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2014-2019 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2014-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
  * @version     v0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
@@ -23,8 +23,12 @@ $autotag = array(
     'parm2' => $type,
     'tagstr' => 'tagstr',
 );
-echo Membership\Menu::siteHeader();
-echo plugin_autotags_membership('parse', 'tagstr', $autotag);
+
+$GL = new Membership\GroupList($type);
+$content = $GL->Render();
+$title = $GL->getPageTitle();
+echo Membership\Menu::siteHeader($title);
+echo $content;
 echo Membership\Menu::siteFooter();
 
 ?>
