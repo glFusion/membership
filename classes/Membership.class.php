@@ -1201,7 +1201,11 @@ class Membership
     public static function Now()
     {
         global $_CONF;
-        return $_CONF['_now'];
+        static $now = NULL;
+        if ($now === NULL) {
+            $now = clone $_CONF['_now'];
+        }
+        return $now;
     }
 
 
@@ -1228,7 +1232,8 @@ class Membership
         global $_CONF_MEMBERSHIP;
         static $dt = NULL;
         if ($dt === NULL) {
-            $dt = self::Now()->add(new \DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
+            $dt = clone self::Now();
+            $dt->add(new \DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
         }
         return $dt;
     }
@@ -1244,7 +1249,8 @@ class Membership
         global $_CONF_MEMBERSHIP;
         static $dt = NULL;
         if ($dt === NULL) {
-            $dt = self::Now()->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
+            $dt = clone self::Now();
+            $dt->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
         }
         return $dt;
     }
