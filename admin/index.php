@@ -215,6 +215,7 @@ case 'importform':
     $LT->set_var(array(
         'frm_grp_options' => $grp_options,
         'plan_sel'      => $plan_sel,
+        'mem_admin_url' => MEMBERSHIP_ADMIN_URL,
     ) );
     $LT->parse('import_form','form');
     $content .= $LT->finish($LT->get_var('import_form'));
