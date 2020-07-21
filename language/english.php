@@ -17,7 +17,7 @@ $LANG_MEMBERSHIP = array(
 'block_title'   => 'Membership Information',
 'plans'         => 'Membership Plans',
 'plan'          => 'Membership Plan',
-'app_header'    => 'Member Application',
+'app_header'    => 'Member Profile',
 'new_plan'      => 'New Plan',
 'new_position'  => 'New Position',
 'list_plans'    => 'List Plans',
@@ -45,7 +45,7 @@ $LANG_MEMBERSHIP = array(
 'exp_notice'    => 'Membership Expiration',
 'you_expire'    => 'Your current membership (%s) expires %s.',
 'curr_plan_expired' => 'Your current plan, expired %s',
-'renew_within'  => 'You can renew your membership within %d days of expiration',
+'renew_within'  => 'You can renew your membership within %d days of expiration.',
 //'must_login'    => 'Please <a href="%s">register</a> or <a href="%s">log in</a> to update your profile and purchase memberships.',
 'must_login'    => 'Please <a href="' . $_CONF['site_url'] . '/users.php?mode=new">register</a> or <a href="' . $_CONF['site_url'] .
         '/users.php?mode=login" data-uk-modal="{target:\'#modalOpen\'}">log in</a> to update your profile and purchase memberships.',
