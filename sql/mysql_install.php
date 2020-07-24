@@ -139,7 +139,7 @@ $_UPGRADE_SQL = array(
             CHANGE access grp_access int(11) unsigned not null default 2",
     ),
     '0.2.0' => array(
-        "ALTER TABLE {$_TABLES['membership_memberships']} ADD KEY (guid)",
+        "ALTER TABLE {$_TABLES['membership_memberships']} ADD KEY (mem_guid)",
         "CREATE TABLE `{$_TABLES['membership_users']}` (
             `uid` int(11) unsigned NOT NULL,
             `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
