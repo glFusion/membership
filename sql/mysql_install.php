@@ -3,7 +3,7 @@
  * Table definitions for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
  * @version     v0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php 
@@ -23,10 +23,10 @@ $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_status` int(1) unsigned NOT NULL DEFAULT '1',
   `mem_guid` varchar(40) DEFAULT NULL,
   `mem_number` varchar(40) DEFAULT '',
-  `mem_istrial` tinyint(1) DEFAULT 0,
+  `mem_istrial` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`mem_uid`),
   KEY `plan_guid` (`mem_plan_id`,`mem_guid`),
-  KEY `guid` (`guid`)
+  KEY `mem_guid` (`mem_guid`)
 ) ENGINE=MyISAM";
 
 $_SQL['membership_plans'] = "CREATE TABLE `{$_TABLES['membership_plans']}` (
@@ -63,33 +63,33 @@ $_SQL['membership_trans'] = "CREATE TABLE `{$_TABLES['membership_trans']}` (
 ) ENGINE=MyISAM";
 
 $_SQL['membership_log'] = "CREATE TABLE {$_TABLES['membership_log']} (
-    id int(11) unsigned NOT NULL auto_increment,
-    uid mediumint(11) unsigned NOT NULL,
-    dt datetime NOT NULL,
-    type varchar(255),
-    data text,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uid` mediumint(11) unsigned NOT NULL,
+  `dt` datetime NOT NULL,
+  `type` varchar(255) DEFAULT NULL,
+  `data` text,
   PRIMARY KEY (`id`),
-  key `uid_dt` ( uid, dt )
+  KEY `uid_dt` (`uid`,`dt`)
 ) ENGINE=MyISAM";
 
 $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']} (
-  id int(11) unsigned NOT NULL auto_increment,
-  type varchar(255) NOT NULL,
-  orderby int(11) unsigned default 10,
-  descr varchar(255) NOT NULL DEFAULT '',
-  contact varchar(255) NOT NULL DEFAULT '',
-  uid mediumint(11) unsigned NOT NULL default 0,
-  enabled tinyint(1) unsigned NOT NULL default 1,
-  show_vacant tinyint(1) unsigned NOT NULL default 1,
-  grp_id int(11) unsigned not null default 0,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `type` varchar(255) NOT NULL,
+  `orderby` int(11) unsigned DEFAULT '10',
+  `descr` varchar(255) NOT NULL DEFAULT '',
+  `contact` varchar(255) NOT NULL DEFAULT '',
+  `uid` mediumint(11) unsigned NOT NULL DEFAULT '0',
+  `enabled` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  `show_vacant` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  `grp_id` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`)
 ) ENGINE=MyISAM";
 
 $_SQL['membership_users'] = "CREATE TABLE `{$_TABLES['membership_users']}` (
-    `uid` int(11) unsigned NOT NULL,
-    `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
-    PRIMARY KEY (`uid`)
+  `uid` int(11) unsigned NOT NULL,
+  `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`uid`)
 ) ENGINE=MyISAM";
 
 $_UPGRADE_SQL = array(
