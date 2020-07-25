@@ -695,7 +695,7 @@ class Plan
             $T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
             $T->set_var('exp_msg_class', 'alert');
         } elseif ($M->getPlanID() == $this->plan_id) {
-            if ($M->getExpires() >= MEMBERSHIP_today()) {
+            if ($M->getExpires() >= Dates::Today()) {
                 $T->set_var(
                     'you_expire',
                     sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlanID(), $M->getExpires())
@@ -887,14 +887,17 @@ class Plan
     {
         global $_CONF_MEMBERSHIP;
 
-        if ($exp == '') $exp = MEMBERSHIP_today();
+        if ($exp == '') {
+            $exp = Dates::Today();
+        }
 
         // If a rolling membership period, just add a year to today or
         // the current expiration, whichever is greater.
         if ($_CONF_MEMBERSHIP['period_start'] == 0) {
             // Check if within the grace period.
-            if ($exp < MEMBERSHIP_dtEndGrace())
-                $exp = MEMBERSHIP_today();
+            if ($exp < Dates::expGraceEnded()) {
+                $exp = Dates::Today();
+            }
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
             if ($_CONF_MEMBERSHIP['expire_eom']) {
@@ -907,11 +910,11 @@ class Plan
             // expiration.
             list($year, $month, $day) = explode('-', $exp);
             list($c_year, $c_month, $c_day) =
-                    explode('-', MEMBERSHIP_today());
+                    explode('-', Dates::Today());
             $exp_month = $_CONF_MEMBERSHIP['period_start'] - 1;
             if ($exp_month == 0) $exp_month = 12;
             $exp_year = $year;
-            if ($exp <= MEMBERSHIP_today()) {
+            if ($exp <= Dates::Today()) {
                 if ($exp_month > $c_month)
                     $exp_year = $c_year - 1;
             }
@@ -1030,7 +1033,7 @@ class Plan
         if ($M->isNew()) {
             // New member, no expiration message
             $T->set_var('you_expire', '');
-        } elseif ($M->getExpires() >= MEMBERSHIP_today()) {
+        } elseif ($M->getExpires() >= Dates::Today()) {
             // Let current members know when they expire
             $T->set_var(
                 'you_expire', sprintf(
@@ -1077,7 +1080,7 @@ class Plan
         foreach ($Plans as $P) {
             $description = $P->getDscp();
             if ($M->getPlanID() == $P->getPlanID()) {
-                if ($M->getExpires()< MEMBERSHIP_today()) {
+                if ($M->getExpires()< Dates::Today()) {
                     $T->set_var(
                         'cur_plan_msg',
                         sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->getExpires())

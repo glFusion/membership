@@ -307,14 +307,14 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
             $grace = (int)$_CONF_MEMBERSHIP['grace_days'];
             $exp_arr = array();
             if ($incl_exp_stat & MEMBERSHIP_STATUS_ENABLED == MEMBERSHIP_STATUS_ENABLED) {
-                $exp_arr[] = "$members.mem_expires >= '" . MEMBERSHIP_today() . "'";
+                $exp_arr[] = "$members.mem_expires >= '" . Membership\Dates::Today() . "'";
             }
             if ($incl_exp_stat & MEMBERSHIP_STATUS_ARREARS) {
-                $exp_arr[] = "($members.mem_expires < '" . MEMBERSHIP_today() . "'
-                    AND $members.mem_expires >= '" . MEMBERSHIP_dtEndGrace() . "')";
+                $exp_arr[] = "($members.mem_expires < '" . Membership\Dates::Today() . "'
+                    AND $members.mem_expires >= '" . Membership\Dates::expGraceEnded() . "')";
             }
             if ($incl_exp_stat & MEMBERSHIP_STATUS_EXPIRED) {
-                $exp_arr[] = "$members.mem_expires < '" . MEMBERSHIP_dtEndGrace() . "'";
+                $exp_arr[] = "$members.mem_expires < '" . Membership\Dates::expGraceEnded() . "'";
             }
             if (!empty($exp_arr)) {
                 $where = "$members.mem_expires > '0000-00-00' AND (" .
@@ -401,9 +401,9 @@ function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
 {
     global $_CONF_MEMBERSHIP;
 
-    if ($fieldvalue >= MEMBERSHIP_today()) {
+    if ($fieldvalue >= Membership\Dates::Today()) {
         $cls = 'member_current';
-    } elseif ($fieldvalue >= MEMBERSHIP_dtEndGrace()) {
+    } elseif ($fieldvalue >= Membership\Dates::expGraceEnded()) {
         $cls = 'member_arrears';
     } else {
         $cls = 'member_expired';
@@ -438,9 +438,9 @@ function service_status_membership($args, &$output, &$svc_msg)
         );
         $Mem = \Membership\Membership::getInstance($uid);
         if (!$Mem->isNew()) {
-            if ($Mem->getExpires() > MEMBERSHIP_today()) {
+            if ($Mem->getExpires() > Membership\Dates::Today()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ACTIVE;
-            } elseif ($Mem->expires < MEMBERSHIP_dtEndGrace()) {
+            } elseif ($Mem->expires < Membership\Dates::expGraceEnded()) {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_EXPIRED;
             } else {
                 $info[$uid]['status'] = MEMBERSHIP_STATUS_ARREARS;

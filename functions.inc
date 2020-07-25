@@ -3,7 +3,7 @@
  * Public API functions for the Membership plugin for glFusion.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
  * @version     v0.2.2
  * @license     http://opensource.org/licenses/gpl-2.0.php
@@ -662,7 +662,7 @@ function plugin_runScheduledTask_membership()
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid
             WHERE mem_status IN ($stat)
-            AND mem_expires < '" . MEMBERSHIP_dtEndGrace()->toMySQL() . "'";
+            AND mem_expires < '" . Membership\Dates::expGraceEnded()->toMySQL() . "'";
     //Membership\Logger::System($sql);
     $r = DB_query($sql, 1);
     if ($r) {
@@ -688,7 +688,7 @@ function plugin_runScheduledTask_membership()
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid
             WHERE mem_status IN ($stat)
-            AND mem_expires < '" . MEMBERSHIP_today() . "'";
+            AND mem_expires < '" . Membership\Dates::Today() . "'";
     //Membership\Logger::System($sql);
     $r = DB_query($sql, 1);
     if ($r) {
@@ -710,7 +710,7 @@ function plugin_runScheduledTask_membership()
     if ($days > -1) {
         $sql = "UPDATE {$_TABLES['membership_members']}
             SET mem_status = " . MEMBERSHIP_STATUS_DROPPED . " WHERE
-            '" . MEMBERSHIP_today() . "' > (mem_expires + interval $days DAY)";
+            '" . Membership\Dates::Today() . "' > (mem_expires + interval $days DAY)";
         $res = DB_query($sql, 1);
         $num = DB_affectedRows($res);
         Membership\Logger::Audit(
@@ -805,7 +805,7 @@ function MEMBERSHIP_notifyExpiration()
     ) {
         return;
     }
-    $exp_chk = Membership\Dates::add("P{$_CONF_MEMBERSHIP['notifydays']}D")->format('Y-m-d');
+    $exp_chk = Membership\Dates::plusNotify();
     $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
     $sql = "SELECT m.mem_uid, m.mem_notified,
                 p.plan_id, p.name, p.description,
@@ -820,8 +820,9 @@ function MEMBERSHIP_notifyExpiration()
             AND m.mem_expires < '$exp_chk'";
     //Membership\Logger::System($sql);
     $r = DB_query($sql);
-    if (!$r)
+    if (!$r) {
         return;
+    }
 
     // Expiration notifications are likely to be done in large batches.
     // Create an array of plans to avoid having to instantiate a plan for
@@ -832,7 +833,6 @@ function MEMBERSHIP_notifyExpiration()
     $notified_ids = array();    // holds memberhsip IDs that get notified
 
     while ($row = DB_fetchArray($r, false)) {
-
         if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_EMAIL) {
             // Create a notification email message.
             $username = COM_getDisplayName($row['mem_uid']);
@@ -1111,31 +1111,6 @@ function MEMBERSHIP_memberstatuses()
         MEMBERSHIP_STATUS_DROPPED => $_CONF_MEMBERSHIP['segment_dropped'],
     );
     return $types;
-}
-
-
-/**
- * Shortcut function to get the SQL-formatted date for today.
- *
- * @return  string  Today's date as "YYYY-MM-DD"
- */
-function MEMBERSHIP_today()
-{
-    global $_CONF;
-
-    return $_CONF['_now']->format('Y-m-d', true);
-}
-
-
-/**
- * Calculate and return the expiration date where the grace has ended.
- * This is the date after which memberships have truly expired.
- *
- * @return  object      Expiration date where grace period has ended.
- */
-function MEMBERSHIP_dtEndGrace()
-{
-    return Membership\Dates::endGrace();
 }
 
 

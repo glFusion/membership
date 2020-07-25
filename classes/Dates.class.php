@@ -51,11 +51,20 @@ class Dates
      *
      * @return  object  Date object
      */
-    public static function beginRenewal()
+    public static function plusRenewal()
     {
         global $_CONF_MEMBERSHIP;
 
-        return self::add("P{$_CONF_MEMBERSHIP['early_renewal']}D");
+        static $retval = NULL;
+        if ($retval === NULL) {
+            $days = $_CONF_MEMBERSHIP['early_renewal'];
+            if ($days > 0) {
+                $retval = self::add("P{$days}D")->format('Y-m-d');
+            } else {
+                $retval = self::Today();
+            }
+        }
+        return $retval;
     }
 
 
@@ -65,13 +74,41 @@ class Dates
      *
      * @return  object      Expiration date where grace period has ended.
      */
-    public static function endGrace()
+    public static function expGraceEnded()
     {
         global $_CONF_MEMBERSHIP;
         static $retval = NULL;
 
         if ($retval === NULL) {
-            $retval = self::sub("P{$_CONF_MEMBERSHIP['grace_days']}D");
+            $days = (int)$_CONF_MEMBERSHIP['grace_days'];
+            if ($days > 0) {
+                $retval = self::sub("P{$days}D")->format('Y-m-d');
+            } else {
+                $retval = self::Today();
+            }
+        }
+        return $retval;
+    }
+
+
+    /**
+     * Get the expiration date which would be now + notification interval.
+     * Returns 9999-12-31 if notification is disabled.
+     *
+     * @return  string      Date as YYYY-MM-DD
+     */
+    public static function plusNotify()
+    {
+        global $_CONF_MEMBERSHIP;
+
+        static $retval = NULL;
+        if ($retval === NULL) {
+            $days = (int)$_CONF_MEMBERSHIP['notifydays'];
+            if ($days > -1) {
+                $retval = self::add("P{$days}D")->format('Y-m-d');
+            } else {
+                $retval = '9999-12-31';
+            }
         }
         return $retval;
     }
@@ -85,7 +122,11 @@ class Dates
      */
     public static function plusOneYear($dt = NULL)
     {
-        return self::add("P1Y")->format('Y-m-d', true);
+        static $retval = NULL;
+        if ($retval === NULL) {
+            $retval = self::add("P1Y")->format('Y-m-d', true);
+        }
+        return $retval;
     }
 
 
@@ -98,9 +139,7 @@ class Dates
      */
     public static function add($interval, $dtobj = NULL)
     {
-        if ($dtobj === NULL) {
-            $dtobj = clone self::Now();
-        }
+        $dtobj = clone self::Now();
         return $dtobj->add(new \DateInterval($interval));
     }
 
@@ -114,9 +153,7 @@ class Dates
      */
     public static function sub($interval, $dtobj = NULL)
     {
-        if ($dtobj === NULL) {
-            $dtobj = clone self::Now();
-        }
+        $dtobj = clone self::Now();
         return $dtobj->sub(new \DateInterval($interval));
     }
 

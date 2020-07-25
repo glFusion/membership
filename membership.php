@@ -38,8 +38,8 @@ $_TABLES['membership_users']    = $prefix . 'users';
  */
 global $_CONF_MEMBERSHIP;
 $_CONF_MEMBERSHIP['pi_name']           = 'membership';
-$_CONF_MEMBERSHIP['pi_version']        = '0.2.0';
-$_CONF_MEMBERSHIP['gl_version']        = '1.7.0';
+$_CONF_MEMBERSHIP['pi_version']        = '0.2.1';
+$_CONF_MEMBERSHIP['gl_version']        = '1.7.8';
 $_CONF_MEMBERSHIP['pi_url']            = 'http://www.leegarner.com';
 $_CONF_MEMBERSHIP['pi_display_name']   = 'Membership';
 

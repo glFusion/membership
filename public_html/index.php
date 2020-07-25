@@ -78,7 +78,7 @@ case 'saveapp':
                 echo COM_refresh($_POST['purch_url'] . $url_extra);
                 exit;
             }
-            if ($M->getExpires() > MEMBERSHIP_today()) {
+            if ($M->getExpires() > Membership\Dates::Today()) {
                 LGLIB_storeMessage(array(
                     'message' => sprintf($LANG_MEMBERSHIP['you_expire'],
                             $M->getPlan()->getPlanID(), $M->getExpires()),

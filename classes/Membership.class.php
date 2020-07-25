@@ -329,7 +329,7 @@ class Membership
             'notified_orig' => $this->notified == 1 ? 1 : 0,
             'plan_id_orig' => $this->plan_id,
             'is_member' => $this->isNew ? '' : 'true',
-            'pmt_date'  => $_CONF['_now']->format('Y-m-d', true),
+            'pmt_date'  => Dates::Today(),
             'mem_number' => $this->mem_number,
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
             'mem_istrial' => $this->istrial,
@@ -919,7 +919,7 @@ class Membership
         } else {
             if ($this->isNew()) {
                 $canPurchase = MEMBERSHIP_CANPURCHASE;
-            } elseif ($this->expires > self::dtBeginRenew()) {
+            } elseif ($this->expires > Dates::plusRenewal()) {
                 $canPurchase = MEMBERSHIP_NO_RENEWAL;
             } else {
                 $canPurchase = MEMBERSHIP_CANPURCHASE;
@@ -1194,70 +1194,7 @@ class Membership
 
 
     /**
-     * Shortcut to get the current date object.
-     *
-     * @return  object  Date object for current timestamp
-     */
-    public static function Now()
-    {
-        global $_CONF;
-        static $now = NULL;
-        if ($now === NULL) {
-            $now = clone $_CONF['_now'];
-        }
-        return $now;
-    }
-
-
-    /**
-     * Shortcut function to get the SQL-formatted date.
-     *
-     * @return  string  Today's date as "YYYY-MM-DD"
-     */
-    public static function Today()
-    {
-        return self::Now()->format('Y-m-d', true);
-    }
-
-
-    /**
-     * Get the latest expiration date that allows renewals.
-     * This works with the early_renewal configuration to allow renewals
-     * within X days of expiration.
-     *
-     * @return  object  Date object
-     */
-    public static function dtBeginRenew()
-    {
-        global $_CONF_MEMBERSHIP;
-        static $dt = NULL;
-        if ($dt === NULL) {
-            $dt = clone self::Now();
-            $dt->add(new \DateInterval("P{$_CONF_MEMBERSHIP['early_renewal']}D"));
-        }
-        return $dt;
-    }
-
-    /**
-     * Calculate and return the expiration date where the grace has ended.
-     * This is the date after which memberships have truly expired.
-     *
-     * @return  object      Expiration date where grace period has ended.
-     */
-    public static function dtEndGrace()
-    {
-        global $_CONF_MEMBERSHIP;
-        static $dt = NULL;
-        if ($dt === NULL) {
-            $dt = clone self::Now();
-            $dt->sub(new \DateInterval("P{$_CONF_MEMBERSHIP['grace_days']}D"));
-        }
-        return $dt;
-    }
-
-
-    /**
-     * Return membership information for the getItemInfo function in functions.inc.
+     * Return information for the getItemInfo function in functions.inc.
      *
      * @param   string  $what   Array of field names, already exploded
      * @param   array   $options    Additional options
@@ -1452,7 +1389,7 @@ class Membership
         // The brute-force way to get summary stats.  There must be a better way.
         $sql = "SELECT DISTINCT(mem_guid), mem_plan_id, mem_expires
             FROM {$_TABLES['membership_members']}
-            WHERE mem_expires > '" . Dates::endGrace() . "'";
+            WHERE mem_expires > '" . Dates::expGraceEnded() . "'";
         $rAll = DB_query($sql);
         $stats = array();
         $template = array('current' => 0, 'arrears' => 0);
@@ -1564,7 +1501,7 @@ class Membership
                 MEMBERSHIP_STATUS_ACTIVE,
                 MEMBERSHIP_STATUS_ENABLED,
                 MEMBERSHIP_STATUS_ARREARS,
-                Dates::endGrace()
+                Dates::expGraceEnded()
             );
         }
         $query_arr = array(
@@ -1680,7 +1617,7 @@ class Membership
         case 'mem_expires':
             if ($fieldvalue >= Dates::Today()) {
                 $status = 'current';
-            } elseif ($fieldvalue >= Dates::endGrace()) {
+            } elseif ($fieldvalue >= Dates::expGraceEnded()) {
                 $status = 'arrears';
             } else {
                 $status = 'expired';
