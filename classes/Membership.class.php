@@ -602,19 +602,16 @@ class Membership
 
         // Remove the member from the membership group
         $groups = array();
-        $dt_sql = '';
         switch ($new_status) {
         case MEMBERSHIP_STATUS_EXPIRED:
             if (!empty($_CONF_MEMBERSHIP['member_group'])) {
                 $groups[] = $_CONF_MEMBERSHIP['member_group'];
             }
-            $dt_sql = ", mem_expires = '" . Dates::Today() . "'";
             break;
         }
         // Set membership status
         $sql = "UPDATE {$_TABLES['membership_members']} SET
                 mem_status = $new_status
-                $dt_sql
                 WHERE mem_uid = $uid";
         //echo $sql;die;
         DB_query($sql, 1);
@@ -623,7 +620,6 @@ class Membership
         foreach ($groups as $group) {
             USER_delGroup($group, $uid);
         }
-        //self::updaePlugins($uid, $old_status, $new_status);
 
         // Now do the same thing for all the relatives.
         if ($inc_relatives) {
@@ -634,7 +630,6 @@ class Membership
                 }
                 DB_query("UPDATE {$_TABLES['membership_members']} SET
                         mem_status = $new_status
-                        $dt_sql
                         WHERE mem_uid = $key", 1);
                 self::updatePlugins('membership:' . $key, $old_status, $new_status);
             }
