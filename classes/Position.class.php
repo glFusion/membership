@@ -93,6 +93,17 @@ class Position
 
 
     /**
+     * Get the group ID associated with this position.
+     *
+     * @return  integer     Group ID
+     */
+    public function getGroupID()
+    {
+        return (int)$this->grp_id;
+    }
+
+
+    /**
      * Read a position from the database.
      *
      * @param   integer $id     Optional ID, current ID if empty
@@ -270,7 +281,7 @@ class Position
     /**
      * Remove the current position.
      */
-    public function Remove()
+    public function Delete()
     {
         global $_TABLES;
 
@@ -415,9 +426,28 @@ class Position
             $this->old_grp_id != $this->grp_id ||
             $this->old_uid != $this->uid
         ) {
-            if ($this->old_grp_id != 0 && $this->old_uid != 0) {
-                // used to be a member in this position, now maybe not
-                USER_delGroup($this->old_grp_id, $this->old_uid);
+            if (
+                $this->old_grp_id != 0 &&
+                $this->old_uid != 0
+            ) {
+                $Positions = self::getByMember($this->old_uid);
+                $del_from_group = true;
+                foreach ($Positions as $Position) {
+                    // Check if the member belongs to any position except this
+                    // one that has the same group ID assignment. If so, do
+                    // not remove the user from the group.
+                    if (
+                        $Position->getID() != $this->id &&
+                        $Position->getGroupID() == $this->old_grp_id
+                    ) {
+                        $del_from_group = false;
+                        break;
+                    }
+                }
+                if ($del_from_group) {
+                    // used to be a member in this position, now maybe not
+                    USER_delGroup($this->old_grp_id, $this->old_uid);
+                }
             }
             if ($this->grp_id != 0 && $this->uid != 0) {
                 // There is a user in this position, add to the group
