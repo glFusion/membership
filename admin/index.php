@@ -179,7 +179,7 @@ case 'reorderpos':
 
 case 'deletepos':
     $P = new Membership\Position($actionval);
-    $P->Remove();
+    $P->Delete();
     COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
     exit;
     break;
