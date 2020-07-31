@@ -62,6 +62,12 @@ class Position
      * @var integer */
     private $old_uid = 0;
 
+    /** Include this position in the custom profile's member listing?
+     * Only affects whether the position name is shown, the member
+     * will still be included.
+     * @var boolean */
+    private $in_lists = 0;
+
 
     /**
      * Set variables and read a record if an ID is provided.
@@ -151,6 +157,7 @@ class Position
         $this->old_grp_id  = isset($A['old_grp_id']) ? (int)$A['old_grp_id'] : $this->grp_id;
         $this->enabled  = isset($A['enabled']) ? (int)$A['enabled'] : 0;
         $this->show_vacant = isset($A['show_vacant']) ? (int)$A['show_vacant'] : 0;
+        $this->in_lists = isset($A['in_lists']) ? (int)$A['in_lists'] : 0;
 
         if ($fromDB) {
             $this->type = $A['type'];
@@ -194,6 +201,7 @@ class Position
                 show_vacant = {$this->show_vacant},
                 orderby = {$this->orderby},
                 enabled = {$this->enabled},
+                in_lists = {$this->in_lists},
                 grp_id = {$this->grp_id} ";
         //echo $sql1 . $sql2 . $sql3;die;
         DB_query($sql1 . $sql2 . $sql3, 1);
@@ -317,6 +325,7 @@ class Position
                 ),
             'orderby'       => $this->orderby,
             'show_vacant_chk'   => $this->show_vacant ? 'checked="checked"' : '',
+            'in_lists_chk'  => $this->in_lists ? 'checked="checked"' : '',
             'ena_chk'       => $this->enabled ? 'checked="checked"' : '',
             'position_type_select' => COM_optionList(
                         $_TABLES['membership_positions'],

@@ -81,6 +81,7 @@ $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']}
   `uid` mediumint(11) unsigned NOT NULL DEFAULT '0',
   `enabled` tinyint(1) unsigned NOT NULL DEFAULT '1',
   `show_vacant` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  `in_lists` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `grp_id` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`)
@@ -139,7 +140,7 @@ $_UPGRADE_SQL = array(
             CHANGE access grp_access int(11) unsigned not null default 2",
     ),
     '0.2.0' => array(
-        "ALTER TABLE {$_TABLES['membership_memberships']} ADD KEY (mem_guid)",
+        "ALTER TABLE {$_TABLES['membership_members']} ADD KEY (mem_guid)",
         "CREATE TABLE `{$_TABLES['membership_users']}` (
             `uid` int(11) unsigned NOT NULL,
             `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
@@ -147,6 +148,10 @@ $_UPGRADE_SQL = array(
         ) ENGINE=MyISAM",
         "UPDATE {$_TABLES['conf_values']} SET name='enable_shop'
             WHERE group_name='membership' AND name='enable_paypal'",
+    ),
+    '0.2.2' => array(
+        "ALTER TABLE {$_TABLES['membership_positions']}
+            ADD `in_lists` tinyint(1) unsigned NOT NULL DEFAULT '0' AFTER `show_vacant`",
     ),
 );
 

@@ -3,9 +3,9 @@
  * Upgrade routines for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     0.2.0
+ * @version     0.2.2
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -104,6 +104,12 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
 
     if (!COM_checkVersion($current_ver, '0.2.0')) {
         $current_ver = '0.2.0';
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
+    }
+
+    if (!COM_checkVersion($current_ver, '0.2.2')) {
+        $current_ver = '0.2.2';
         if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }

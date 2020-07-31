@@ -123,6 +123,7 @@ $LANG_MEMBERSHIP = array(
 'current_user'  => 'Current Member',
 'order'         => 'Order',
 'show_vacant'   => 'Show Vacant?',
+'in_lists'      => 'Show Position Name in Lists?',
 'position_type' => 'Position Type',
 'move'          => 'Move Up/Down',
 'contact_info'  => 'Contact Info',

@@ -365,7 +365,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
 
         'join' => "LEFT JOIN {$members} ON u.uid = {$members}.mem_uid
                 LEFT JOIN {$plans} ON {$plans}.plan_id = {$members}.mem_plan_id
-                LEFT JOIN {$positions} ON {$positions}.uid = u.uid",
+                LEFT JOIN {$positions} ON {$positions}.uid = u.uid AND {$positions}.in_lists = 1",
 
         'where' => $where,
 
