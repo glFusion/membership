@@ -857,6 +857,7 @@ function MEMBERSHIP_notifyExpiration()
                 $msg
             );
             $button = ($status == PLG_RET_OK) ? $output[0] : '';
+            $dt = new \Date($A['mem_expires'], $_CONF['timezone']);
 
             $T = new Template($template_base);
             $T->set_file('message', 'expiration.thtml');
@@ -868,15 +869,17 @@ function MEMBERSHIP_notifyExpiration()
                 'item_id'       => $row['plan_id'],
                 'short_description' => $row['description'],
                 'detail_url'    => MEMBERSHIP_PI_URL .
-                        '/index.php?detail=x&amp;plan_id=' .
-                        urlencode($row['plan_id']),
+                    '/index.php?detail=x&amp;plan_id=' .
+                    urlencode($row['plan_id']
+                ),
                 'buy_button'    => $button,
+                'exp_my'        => $dt->format('F, Y', true),
             ) );
 
             $T->parse('output','message');
             $message = $T->finish($T->get_var('output'));
             COM_mail(
-                "$username <{$row['email']}>",
+                array($row['email'], $username),
                 "{$LANG_MEMBERSHIP['exp_notice']}",
                 $message,
                 "{$_CONF['site_name']} <{$_CONF['site_mail']}>",
