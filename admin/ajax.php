@@ -72,6 +72,12 @@ case 'toggle':
                 $LANG_MEMBERSHIP['item_nochange'],
     );
     break;
+
+case 'pos_orderby_opts':
+    $result = array(
+        'options' => Membership\Position::getOrderbyOptions($_POST['pg_id'], $_POST['orderby']),
+    );
+    break;
 }
 $result = json_encode($result);
 header('Content-Type: application/json; charset=utf-8');

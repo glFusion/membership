@@ -60,3 +60,26 @@ var MEMB_toggle = function(cbox, id, type, component) {
     return false;
 };
 
+var MEMB_getPosOrderbyOpts = function(pg_id, orderby) {
+    var dataS = {
+        "action" : "pos_orderby_opts",
+        "pg_id": pg_id,
+        "orderby": orderby,
+    };
+    data = $.param(dataS);
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: site_admin_url + "/plugins/membership/ajax.php",
+        data: data,
+        success: function(result) {
+            try {
+                var select = $("#f_orderby");
+                select.empty().html(result.options);
+            }
+            catch {
+            }
+        }
+    });
+    return false;
+};

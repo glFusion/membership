@@ -24,6 +24,10 @@ class GroupList
      * @var boolean */
     private $show_title = true;
 
+    /** Title string. Created from the group name if empty.
+     * @var string */
+    private $title = '';
+
     /** Group name to be shown.
      * @var string */
     private $grpname = '';
@@ -32,15 +36,37 @@ class GroupList
      * @var string */
     private $page_title = '';
 
+    /** Group tags to be shown.
+     * @var array */
+    private $groups = array();
+
 
     /**
      * Constructor. Set the group name to list.
      *
-     * @param   string  $grpname    Group name to list
+     * @param   string  $groups Single or array of groups to show
      */
-    public function __construct($grpname='')
+    public function __construct($groups=NULL)
     {
-        $this->grpname = $grpname;
+        if ($groups !== NULL) {
+            $this->setGroups($groups);
+        }
+    }
+
+
+    /**
+     * Set the groups to show if not done in the constructor.
+     *
+     * @param   string  $groups Single or array of group tags
+     * @return  object  $this
+     */
+    public function setGroups($groups)
+    {
+        if (is_string($groups)) {
+            $groups = explode(',', $groups);
+        }
+        $this->groups = $groups;
+        return $this;
     }
 
 
@@ -57,13 +83,20 @@ class GroupList
     }
 
 
+    public function setTitle($title)
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+
     /**
      * Set the show_title flag value.
      *
      * @param   boolean $flag   True to show the title, False to not
      * @return  object  $this
      */
-    public function showTitle($flag)
+    public function ehowTitle($flag)
     {
         $this->show_title = $flag ? 1 : 0;
         return $this;
@@ -92,13 +125,19 @@ class GroupList
 
         USES_lib_user();
 
+        if (empty($this->groups)) {
+            COM_404();
+        }
+
+        $groups = "'" . implode("','", $this->groups) . "'";
         $sql = "SELECT p.*,u.username,u.fullname,u.email
             FROM {$_TABLES['membership_positions']} p
+            LEFT JOIN {$_TABLES['membership_posgroups']} pg
+            ON pg.pg_id = p.pg_id
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = p.uid
-            WHERE p.type ='" .
-            DB_escapeString($this->grpname) . "'
-            ORDER BY p.orderby";
+            WHERE pg.pg_tag IN ($groups)
+            ORDER BY pg.pg_orderby, p.orderby ASC";
         //echo $sql;die;
         $res = DB_query($sql);
 
@@ -106,7 +145,6 @@ class GroupList
         $T ->set_file(array(
             'groups' => 'groups.thtml',
         ));
-        //$T->set_var('list_name', $poslist);
 
         while ($A = DB_fetchArray($res, false)) {
             $T->set_block('groups', 'userRow', 'uRow');
@@ -123,9 +161,17 @@ class GroupList
                 );
                 $show_vacant = '';
             }
-            $this->page_title = sprintf($LANG_MEMBERSHIP['title_positionpage'], $this->grpname);
+            if ($this->show_title) {
+                if (!empty($this->title)) {
+                    $page_title = $this->title;
+                } else {
+                    $page_title = sprintf($LANG_MEMBERSHIP['title_positionpage'], ucfirst($this->groups[0]));
+                }
+            } else {
+                $page_title = '';
+            }
             $T->set_var(array(
-                'title' => $this->show_title ? $this->page_title : '',
+                'title' => $page_title,
                 'position'  => $A['descr'],
                 'user_name' => $username,
                 'show_vacant' => $show_vacant,

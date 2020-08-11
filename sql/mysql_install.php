@@ -37,6 +37,7 @@ $_SQL['membership_plans'] = "CREATE TABLE `{$_TABLES['membership_plans']}` (
   `fees` text,
   `enabled` tinyint(1) DEFAULT '1',
   `upd_links` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `notify_exp` tinyint(1) unsigned NOT NULL DEFAULT '1',
   `grp_access` int(11) unsigned NOT NULL DEFAULT '2',
   PRIMARY KEY (`plan_id`)
 ) ENGINE=MyISAM";
@@ -70,6 +71,16 @@ $_SQL['membership_log'] = "CREATE TABLE {$_TABLES['membership_log']} (
   `data` text,
   PRIMARY KEY (`id`),
   KEY `uid_dt` (`uid`,`dt`)
+) ENGINE=MyISAM";
+
+$_SQL['membership_posgroups'] = "CREATE TABLE `{$_TABLES['membership_posgroups']}` (
+  `pg_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `pg_tag` varchar(40) NOT NULL DEFAULT '',
+  `pg_title` varchar(80) NOT NULL DEFAULT '',
+  `pg_orderby` int(4) NOT NULL DEFAULT '9999',
+  PRIMARY KEY (`pg_id`),
+  UNIQUE KEY `pg_tag` (`pg_tag`),
+  KEY `pg_orderby` (`pg_orderby`)
 ) ENGINE=MyISAM";
 
 $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']} (
@@ -152,6 +163,17 @@ $_UPGRADE_SQL = array(
     '0.2.2' => array(
         "ALTER TABLE {$_TABLES['membership_positions']}
             ADD `in_lists` tinyint(1) unsigned NOT NULL DEFAULT '0' AFTER `show_vacant`",
+        "ALTER TABLE {$_TABLES['membership_plans']}
+            ADD `notify_exp` tinyint(1) unsigned NOT NULL DEFAULT '1' AFTER `upd_links`",
+        "CREATE TABLE `{$_TABLES['membership_posgroups']}` (
+          `pg_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `pg_tag` varchar(40) NOT NULL DEFAULT '',
+          `pg_title` varchar(80) NOT NULL DEFAULT '',
+          `pg_orderby` int(4) NOT NULL DEFAULT '9999',
+          PRIMARY KEY (`pg_id`),
+          UNIQUE KEY `pg_tag` (`pg_tag`),
+          KEY `pg_orderby` (`pg_orderby`)
+        ) ENGINE=MyISAM",
     ),
 );
 

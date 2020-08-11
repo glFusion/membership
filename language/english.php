@@ -20,6 +20,7 @@ $LANG_MEMBERSHIP = array(
 'app_header'    => 'Member Profile',
 'new_plan'      => 'New Plan',
 'new_position'  => 'New Position',
+'new_pg'        => 'New Position Group',
 'list_plans'    => 'List Plans',
 'list_members'  => 'List Members',
 'plan_info'     => 'Plan Information',
@@ -133,7 +134,8 @@ $LANG_MEMBERSHIP = array(
 'select'        => 'Select',
 'expand_pmt_div' => 'Expand and view payment options',
 'collapse_pmt_div' => 'Collaps the quick-renewal section',
-
+'pos_after' => 'Position After',
+'first' => 'First',
 //'duration_type' => 'Duration Type',
 //'show_in_block' => 'Show in Block',
 //'at_registration' => 'At Registration',
@@ -199,8 +201,10 @@ $LANG_MEMBERSHIP = array(
 'item_nochange' => 'Item has not been changed.',
 'rem_this_item' => 'Remove this item',
 'positions' => 'Positions',
+'posgroups' => 'Position Groups',
 'import' => 'Import',
 'date_selector' => 'Date Selector',
+'notify_exp' => 'Send Expiration Reminders?',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';

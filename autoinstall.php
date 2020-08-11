@@ -75,6 +75,12 @@ $INSTALL_plugin['membership'] = array(
 
     array(
         'type'  => 'table',
+        'table' => $_TABLES['membership_posgroups'],
+        'sql'   => $_SQL['membership_posgroups'],
+    ),
+
+    array(
+        'type'  => 'table',
         'table' => $_TABLES['membership_log'],
         'sql'   => $_SQL['membership_log'],
     ),

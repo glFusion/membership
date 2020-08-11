@@ -99,6 +99,62 @@ class Menu
 
 
     /**
+     * Create the administrator sub-menu for the Position options.
+     *
+     * @param   string  $view   View being shown, so set the help text
+     * @return  string      Administrator menu
+     */
+    public static function adminPositions($view='')
+    {
+        global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+
+        $menu_arr = array(
+            array(
+                'url'  => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
+                'text' => $LANG_MEMBERSHIP['positions'],
+                'active' => $view == 'positions' ? true : false,
+            ),
+            array(
+                'url'  => MEMBERSHIP_ADMIN_URL . '/index.php?posgroups',
+                'text' => $LANG_MEMBERSHIP['posgroups'],
+                'active' => $view == 'posgroups' ? true : false,
+            ),
+        );
+        return self::_makeSubMenu($menu_arr);
+    }
+
+
+    /**
+     * Create a submenu using a standard template.
+     *
+     * @param   array   $menu_arr   Array of menu items
+     * @return  string      HTML for the submenu
+     */
+    private static function _makeSubMenu($menu_arr)
+    {
+        $T = new \Template(__DIR__ . '/../templates');
+        $T->set_file('menu', 'submenu.thtml');
+        $T->set_block('menu', 'menuItems', 'items');
+        $hlp = '';
+        foreach ($menu_arr as $mnu) {
+            if ($mnu['active'] && isset($mnu['help'])) {
+                $hlp = $mnu['help'];
+            }
+            $url = COM_createLink($mnu['text'], $mnu['url']);
+            $T->set_var(array(
+                'active'    => $mnu['active'],
+                'url'       => $url,
+            ) );
+            $T->parse('items', 'menuItems', true);
+        }
+        $T->set_var('help', $hlp);
+        $T->parse('output', 'menu');
+        $retval = $T->finish($T->get_var('output'));
+        return $retval;
+    }
+
+
+    /**
      * Display the site header, with or without blocks according to configuration.
      *
      * @param   string  $title  Title to put in header

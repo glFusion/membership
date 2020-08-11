@@ -68,6 +68,18 @@ class Position
      * @var boolean */
     private $in_lists = 0;
 
+    /** Group record ID.
+     * @var integer */
+    private $pg_id = 0;
+
+    /** Group short name, e.g. `Officer`.
+     * @var string */
+    private $pg_tag = '';
+
+    /** Group full title, e.g. `Club Officers`.
+     * @var string */
+    private $pg_title = '';
+
 
     /**
      * Set variables and read a record if an ID is provided.
@@ -123,8 +135,12 @@ class Position
         if ($id == 0) return false;     // need a valid ID
         $id = (int) $id;
 
-        $r = DB_query("SELECT * FROM {$_TABLES['membership_positions']}
-                    WHERE id = $id");
+        $r = DB_query("SELECT p.*, pg.pg_id, pg.pg_tag, pg.pg_title
+            FROM {$_TABLES['membership_positions']} p
+            LEFT JOIN {$_TABLES['membership_posgroups']} pg
+            ON p.pg_id = pg.pg_id
+            WHERE p.id = $id"
+        );
         if ($r) {
             $A = DB_fetchArray($r, false);
             if (is_array($A)) {
@@ -158,15 +174,18 @@ class Position
         $this->enabled  = isset($A['enabled']) ? (int)$A['enabled'] : 0;
         $this->show_vacant = isset($A['show_vacant']) ? (int)$A['show_vacant'] : 0;
         $this->in_lists = isset($A['in_lists']) ? (int)$A['in_lists'] : 0;
+        $this->pg_id = (int)$A['pg_id'];
 
         if ($fromDB) {
-            $this->type = $A['type'];
+            $this->pg_tag = $A['pg_tag'];
+            //$this->type = $A['type'];
         } else {
-            if (isset($A['position_type']) && !empty($A['position_type'])) {
+            //$this->pg_id = (int)$A['pg_id'];
+            /*if (isset($A['position_type']) && !empty($A['position_type'])) {
                 $this->type = $A['position_type'];
             } else {
                 $this->type = $A['position_type_sel'];
-            }
+            }*/
         }
         return true;
    }
@@ -186,6 +205,15 @@ class Position
             $this->setVars($A, false);
         }
 
+        // Get the position group, creating a new one if needed.
+        if (isset($A['position_type']) && !empty($A['position_type'])) {
+            $PG = PosGroup::getByTag($A['position_type']);
+            if ($PG->isNew()) {
+                $PG->setTag($A['position_type'])->Save();
+            }
+            $this->pg_id = $PG->getID();
+        }
+
         if ($this->id == 0) {
             $sql1 = "INSERT INTO {$_TABLES['membership_positions']} SET ";
             $sql3 = '';
@@ -194,7 +222,7 @@ class Position
             $sql3 = " WHERE id = {$this->id}";
         }
 
-        $sql2 = "type = '" . DB_escapeString($this->type) . "',
+        $sql2 = "pg_id = '{$this->pg_id}',
                 uid = {$this->uid},
                 descr = '" . DB_escapeString($this->dscp) . "',
                 contact = '" . DB_escapeString($this->contact) . "',
@@ -319,25 +347,28 @@ class Position
             'id'            => $this->id,
             'description'   => $this->dscp,
             'option_user_select' => COM_optionList(
-                        $_TABLES['users'],
-                        'uid,fullname',
-                        $this->uid, 1
-                ),
-            'orderby'       => $this->orderby,
+                $_TABLES['users'],
+                'uid,fullname',
+                $this->uid, 1
+            ),
+            'orderby_sel'   => self::getOrderbyOptions($this->pg_id, $this->orderby),
             'show_vacant_chk'   => $this->show_vacant ? 'checked="checked"' : '',
             'in_lists_chk'  => $this->in_lists ? 'checked="checked"' : '',
             'ena_chk'       => $this->enabled ? 'checked="checked"' : '',
             'position_type_select' => COM_optionList(
-                        $_TABLES['membership_positions'],
-                        'DISTINCT type,type',
-                        $this->type, 0
-                ),
+                $_TABLES['membership_posgroups'],
+                'pg_id,pg_tag',
+                $this->pg_id,
+                1
+            ),
             'contact'       => $this->contact,
             'grp_select'    => COM_optionList($_TABLES['groups'],
                             'grp_id,grp_name', $this->grp_id, 1),
             'old_grp_id'    => $this->old_grp_id,
             'old_uid'       => $this->old_uid,
             'doc_url'       => LGLIB_getDocURL('position.html', 'membership'),
+            'pg_id'         => $this->pg_id,
+            'orderby'       => $this->orderby,
          ) );
         return $T->parse('output', 'editform');
     }   // function Edit()
@@ -478,8 +509,10 @@ class Position
 
         USES_lib_admin();
 
-        $sql = "SELECT p.*,u.fullname
+        $sql = "SELECT p.*,u.fullname, pg.pg_tag
             FROM {$_TABLES['membership_positions']} p
+            LEFT JOIN {$_TABLES['membership_posgroups']} pg
+            ON pg.pg_id = p.pg_id
             LEFT JOIN {$_TABLES['users']} u
             ON u.uid = p.uid";
 //            WHERE 1=1 ";
@@ -510,7 +543,7 @@ class Position
             ),
             array(
                 'text' => $LANG_MEMBERSHIP['position_type'],
-                'field' => 'type',
+                'field' => 'pg_tag',
                 'sort' => true,
             ),
             array(
@@ -549,7 +582,7 @@ class Position
             'default_filter' => '',
         );
         $defsort_arr = array(
-            'field' => 'type,orderby',
+            'field' => 'pg.pg_orderby,p.orderby',
             'direction' => 'ASC'
         );
         $filter = '';
@@ -639,7 +672,7 @@ class Position
             );
            break;
 
-        case 'type':
+        case 'pg_tag':
             $retval = COM_createLink(
                 $fieldvalue,
                 MEMBERSHIP_PI_URL . '/group.php?type=' . $fieldvalue
@@ -683,6 +716,35 @@ class Position
         return $retval;
     }
 
+
+    /**
+     * Get the HTML for the option values in the "position after" field.
+     *
+     * @param   integer $pg_id      Position Group ID
+     * @param   integer $orderby    Current orderby value.
+     * @return  string      HTML for option values.
+     */
+    public static function getOrderbyOptions($pg_id, $orderby)
+    {
+        global $_TABLES, $LANG_MEMBERSHIP;
+
+        $pg_id = (int)$pg_id;
+        $orderby = (int)$orderby;
+        if ($orderby > 0) {
+            $orderby_sel = $orderby - 10;
+        } else {
+            $orderby_sel = 1;
+        }
+        $retval = '<option value="1">-- ' . $LANG_MEMBERSHIP['first'] . '--</option>' . LB;
+        $retval .= COM_optionList(
+            $_TABLES['membership_positions'],
+            'orderby,descr',
+            $orderby_sel,
+            1,
+            "pg_id = $pg_id AND orderby <> {$orderby}"
+        );
+        return $retval;
+    }
 }
 
 ?>

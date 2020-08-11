@@ -38,12 +38,15 @@ $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'renewmember', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
+    'savepg',
     'renewbutton', 'deletebutton', 'regenbutton',
     'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
-    'deletepos',
+    'reorderpg', 'deletepos', 'deletepg',
     // Views to display
     'editplan', 'listplans', 'listmembers', 'editmember', 'stats',
-    'listtrans', 'positions',  'editpos', 'importform',
+    'listtrans', 'positions', 'editpos',
+    'posgroups', 'editpg',
+    'importform',
 );
 foreach($expected as $provided) {
     if (isset($_POST[$provided])) {
@@ -152,6 +155,21 @@ case 'saveplan':
     }
     break;
 
+case 'savepg':
+    $pg_id = isset($_POST['ppg_id']) ? $_POST['ppg_id'] : 0;
+    $P = new Membership\PosGroup($pg_id);
+    $status = $P->Save($_POST);
+    if ($status == true) {
+        COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?posgroups');
+        exit;
+    } else {
+        // Redisplay the edit form in case of error, keeping $_POST vars
+        $content .= Membership\Menu::Admin('editpg');
+        $content .= $P->Edit();
+        $view = 'none';
+    }
+    break;
+
 case 'saveposition':
     $pos_id = isset($_POST['pos_id']) ? $_POST['pos_id'] : 0;
     $P = new Membership\Position($pos_id);
@@ -165,6 +183,15 @@ case 'saveposition':
         $content .= $P->Edit();
         $view = 'none';
     }
+    break;
+
+case 'reorderpg':
+    $id = isset($_GET['id']) ? $_GET['id'] : 0;
+    $where = $actionval;
+    if ($id > 0 && $where != '') {
+        $msg = Membership\PosGroup::Move($id, $where);
+    }
+    $view = 'posgroups';
     break;
 
 case 'reorderpos':
@@ -241,6 +268,12 @@ case 'editpos':
     $content .= $P->Edit();
     break;
 
+case 'editpg':
+    $PG = new Membership\PosGroup($actionval);
+    $content .= Membership\Menu::Admin($view);
+    $content .= $PG->Edit();
+    break;
+
 case 'listmembers':
     $content .= Membership\Menu::Admin($view);
     $content .= Membership\Membership::adminList();
@@ -260,6 +293,12 @@ case 'listtrans':
     $content .= Membership\Membership::listTrans();
     break;
 
+case 'posgroups':
+    $content .= Membership\Menu::Admin($view);
+    $content .= Membership\Menu::adminPositions($view);
+    $content .= Membership\PosGroup::adminList();
+    break;
+
 case 'positions':
     if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
         // Delete some checked attributes
@@ -268,6 +307,7 @@ case 'positions':
         }
     }
     $content .= Membership\Menu::Admin($view);
+    $content .= Membership\Menu::adminPositions($view);
     $content .= Membership\Position::adminList();
     break;
 

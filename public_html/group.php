@@ -17,14 +17,16 @@ $type = COM_getArgument('type');
 if (empty($type)) {
     COM_404();
 }
-
-$autotag = array(
+/*$autotag = array(
     'parm1' => 'grouplist',
     'parm2' => $type,
     'tagstr' => 'tagstr',
-);
+);*/
 
 $GL = new Membership\GroupList($type);
+if (isset($_GET['title']) && !empty($_GET['title'])) {
+    $GL->setTitle($_GET['title']);
+}
 $content = $GL->Render();
 $title = $GL->getPageTitle();
 echo Membership\Menu::siteHeader($title);
