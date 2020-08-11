@@ -842,6 +842,11 @@ function MEMBERSHIP_notifyExpiration()
                 $Plans[$row['plan_id']] = Membership\Plan::getInstance($row['plan_id']);
             }
             $P = $Plans[$row['plan_id']];   // shortcut variable
+            if (!$P->notificationsEnabled()) {
+                // Do not send notifications for this plan
+                continue;
+            }
+
             $args = array(
                 'custom'    => array('uid'   => $row['mem_uid']),
                 'amount' => $P->Price(false),

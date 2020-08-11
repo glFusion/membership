@@ -60,6 +60,11 @@ class Plan
      * @var array */
     private $fees = array();
 
+    /** Notify of impending expiration?
+     * May exclude for honorary or other "special" plans.
+     * @var boolean */
+    private $notify_exp = 1;
+
 
     /**
      * Constructor.
@@ -72,9 +77,7 @@ class Plan
     {
         global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
-        $this->isNew = true;
         $this->plan_id = $id;
-
         if ($this->plan_id != '') {
             if (!$this->Read($this->plan_id)) {
                 $this->plan_id = '';
@@ -269,6 +272,17 @@ class Plan
 
 
     /**
+     * See if expiration notifications should be sent for this plan.
+     *
+     * @return  integer     1 to send notification, 0 to suppress
+     */
+    public function notificationsEnabled()
+    {
+        return $this->notify_exp ? 1 : 0;
+    }
+
+
+    /**
      * Sets all variables to the matching values from $rows.
      *
      * @param   array   $row        Array of values, from DB or $_POST
@@ -286,6 +300,7 @@ class Plan
         $this->grp_access = (int)$row['grp_access'];
         $this->enabled = isset($row['enabled']) ? (int)$row['enabled'] : 0;
         $this->upd_links = isset($row['upd_links']) ? (int)$row['upd_links'] : 0;
+        $this->notify_exp = isset($row['notify_exp']) ? (int)$row['notify_exp'] : 0;
 
         if ($fromDB) {
             $this->fees = @unserialize($row['fees']);
@@ -411,6 +426,7 @@ class Plan
                 fees = '" . DB_escapeString(@serialize($this->fees)) . "',
                 enabled = '{$this->enabled}',
                 upd_links = '{$this->upd_links}',
+                notify_exp = '{$this->notify_exp}',
                 grp_access = '{$this->grp_access}'";
         $sql = $sql1 . $sql2 . $sql3;
         //Logger::debug($sql);
@@ -556,6 +572,8 @@ class Plan
             'ena_chk'       => $this->enabled == 1 ?
                                     'checked="checked"' : '',
             'upd_links_chk' => $this->upd_links == 1 ?
+                                    'checked="checked"' : '',
+            'notify_chk'    => $this->notify_exp == 1 ?
                                     'checked="checked"' : '',
             'period_start'  => $_CONF_MEMBERSHIP['period_start'],
             'group_options' => COM_optionList(
@@ -1185,6 +1203,12 @@ class Plan
             }
         }
         return $enabled;
+    }
+
+
+    public static function haveLinked()
+    {
+        return DB_count($_TABLES['membership_plans'], 'upd_links', 1);
     }
 
 
