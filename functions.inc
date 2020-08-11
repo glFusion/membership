@@ -805,19 +805,21 @@ function MEMBERSHIP_notifyExpiration()
     ) {
         return;
     }
+    $interval = (int)$_CONF_MEMBERSHIP['notifydays'];
     $exp_chk = Membership\Dates::plusNotify();
     $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
-    $sql = "SELECT m.mem_uid, m.mem_notified,
+    $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires,
                 p.plan_id, p.name, p.description,
-                u.email, m.mem_expires
+                u.email, u.username, u.fullname
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['membership_plans']} p
                 ON p.plan_id = m.mem_plan_id
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid
-            WHERE m.mem_notified = 0
-            AND m.mem_status IN ($stat)
-            AND m.mem_expires < '$exp_chk'";
+            WHERE m.mem_notified > 0
+            AND m.mem_expires < DATE_ADD(now(), INTERVAL (m.mem_notified * $interval) DAY)
+            AND m.mem_status IN ($stat)";
+    //echo $sql;die;
     //Membership\Logger::System($sql);
     $r = DB_query($sql);
     if (!$r) {
@@ -840,7 +842,6 @@ function MEMBERSHIP_notifyExpiration()
                 $Plans[$row['plan_id']] = Membership\Plan::getInstance($row['plan_id']);
             }
             $P = $Plans[$row['plan_id']];   // shortcut variable
-
             $args = array(
                 'custom'    => array('uid'   => $row['mem_uid']),
                 'amount' => $P->Price(false),
@@ -856,11 +857,21 @@ function MEMBERSHIP_notifyExpiration()
                 $output,
                 $msg
             );
+            $nameparts = PLG_callFunctionForOnePlugin(
+                'plugin_parseName_lglib',
+                array(
+                    1 => $row['fullname'],
+                )
+            );
+
             $button = ($status == PLG_RET_OK) ? $output[0] : '';
             $dt = new \Date($A['mem_expires'], $_CONF['timezone']);
 
             $T = new Template($template_base);
-            $T->set_file('message', 'expiration.thtml');
+            $T->set_file(array(
+                'outer' => 'exp_outer.thtml',
+                'message' => 'exp_message.thtml',
+            ) );
             $T->set_var(array(
                 'site_name'     => $_CONF['site_name'],
                 'username'      => $username,
@@ -874,9 +885,13 @@ function MEMBERSHIP_notifyExpiration()
                 ),
                 'buy_button'    => $button,
                 'exp_my'        => $dt->format('F, Y', true),
+                'firstname'     => $nameparts['fname'],
+                'lastname'      => $nameparts['lname'],
+                'fullname'      => $row['fullname'],
             ) );
 
-            $T->parse('output','message');
+            $T->parse('exp_msg', 'message');
+            $T->parse('output', 'outer');
             $message = $T->finish($T->get_var('output'));
             COM_mail(
                 array($row['email'], $username),
@@ -913,7 +928,7 @@ function MEMBERSHIP_notifyExpiration()
     if (!empty($notified_ids)) {
         $ids = implode(',', $notified_ids);
         $sql = "UPDATE {$_TABLES['membership_members']}
-                SET mem_notified=1
+                SET mem_notified=mem_notified - 1
                 WHERE mem_uid IN ($ids)";
         DB_query($sql, 1);
         if (DB_error()) {
