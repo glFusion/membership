@@ -21,7 +21,7 @@
     </div>
 
     <div class="uk-form-row">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['exp_notice']}</label>
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['expires']}</label>
         <div class="uk-form-controls">
             <input type="text" id="f_expiration" name="expiration" data-uk-datepicker />
         </div>
