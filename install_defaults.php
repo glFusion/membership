@@ -126,6 +126,17 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
+    array(
+        'name' => 'notifycount',
+        'default_value' => '0',
+        'type' => 'text',
+        'subgroup' => 0,
+        'fieldset' => 0,
+        'selection_array' => 0,
+        'sort' => 65,
+        'set' => true,
+        'group' => 'membership',
+    ),
     // How to notify members of upcoming expiration.
     // 0 = none
     // 1 = email

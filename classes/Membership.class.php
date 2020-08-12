@@ -90,6 +90,7 @@ class Membership
         } else {
             $this->expires = Dates::plusOneYear();
             $this->joined = Dates::Today();
+            $this->notified = (int)$_CONF_MEMBERSHIP['notifycount'];
         }
     }
 
@@ -162,6 +163,8 @@ class Membership
      */
     public function setVars($A)
     {
+        global $_CONF_MEMBERSHIP;
+
         if (!is_array($A)) {
             return $this;
         }
@@ -175,7 +178,7 @@ class Membership
         if (isset($A['mem_expires'])) $this->expires = $A['mem_expires'];
         if (isset($A['mem_plan_id'])) $this->plan_id = $A['mem_plan_id'];
         if (isset($A['mem_status'])) $this->status = $A['mem_status'] ? 1 : 0;
-        $this->notified = MEMB_getVar($A, 'mem_notified', 'integer', 0);
+        $this->notified = MEMB_getVar($A, 'mem_notified', 'integer', $_CONF_MEMBERSHIP['notifycount']);
         if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
         $this->istrial = MEMB_getVar($A, 'mem_istrial', 'integer', 0);
         // This will never come from a form:
@@ -285,7 +288,7 @@ class Membership
      */
     public function isNotified()
     {
-        return $this->notified ? 1 : 0;
+        return (int)$this->notified;
     }
 
 
@@ -761,6 +764,7 @@ class Membership
         global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_USER, $_TABLES, $_SYSTEM;
 
         if ($uid == 0) $uid = (int)$_USER['uid'];
+        $mem_number = '';
         $positions = array();
         if ($this->isNew || $this->Plan == NULL) {
             if (!$panel) return '';
@@ -781,7 +785,9 @@ class Membership
             $plan_id = $this->Plan->getPlanID();
             $relatives = $this->getLinks();
             //$relatives = Link::getRelatives($this->uid);
-            $mem_number = $this->mem_number;
+            if ($_CONF_MEMBERSHIP['use_mem_number'] && SEC_hasRights('membership.admin')) {
+                $mem_number = $this->mem_number;
+            }
             $sql = "SELECT descr FROM {$_TABLES['membership_positions']}
                     WHERE uid = $uid";
             $res = DB_query($sql, 1);
@@ -814,7 +820,7 @@ class Membership
             'nolinks'   => empty($relatives) ? 'true' : '',
             //'old_links' => $old_links,
             'position' => $position,
-            'mem_number' => SEC_hasRights('membership.admin') ? $this->mem_number : '',
+            'mem_number' => $mem_number,
             'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
         ) );
 

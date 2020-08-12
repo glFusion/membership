@@ -114,6 +114,20 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
 
+    if (!COM_checkVersion($current_ver, '0.3.0')) {
+        $current_ver = '0.3.0';
+        if (!_MEMBtableHasColumn('membership_plans', 'notify_exp')) {
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']}
+                SET mem_notified = 2 WHERE mem_notified = 0";
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']}
+                SET mem_notified = 0 WHERE mem_notified = 1";
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']}
+                SET mem_notified = 1 WHERE mem_notified = 2";
+        }
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
+    }
+
     // Final version update to catch updates that don't go through
     // any of the update functions, e.g. code-only updates
     if (!COM_checkVersion($current_ver, $installed_ver)) {
@@ -191,6 +205,23 @@ function MEMBERSHIP_do_set_version($ver)
     } else {
         return true;
     }
+}
+
+
+/**
+ * Check if a column exists in a table
+ *
+ * @param   string  $table      Table Key, defined in shop.php
+ * @param   string  $col_name   Column name to check
+ * @return  boolean     True if the column exists, False if not
+ */
+function _MEMBtableHasColumn($table, $col_name)
+{
+    global $_TABLES;
+
+    $col_name = DB_escapeString($col_name);
+    $res = DB_query("SHOW COLUMNS FROM {$_TABLES[$table]} LIKE '$col_name'");
+    return DB_numRows($res) == 0 ? false : true;
 }
 
 ?>
