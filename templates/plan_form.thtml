@@ -57,6 +57,15 @@
     </div>
 
     <div class="uk-form-row">
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['notify_exp']}
+            <span id="notify_exp" class="tooltip_cfg tooltipstered"></span>
+        </label>
+        <div class="uk-form-controls">
+            <input type="checkbox" id="f_notify_exp" name="notify_exp" value="1" {notify_chk} />
+        </div>
+    </div>
+
+    <div class="uk-form-row">
         <label class="uk-form-label">{$LANG_MEMBERSHIP['purch_access']}
             <span id="access" class="tooltip_cfg tooltipstered"></span>
         </label>
