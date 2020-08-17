@@ -362,15 +362,19 @@ class Plan
 
 
     /**
-     * Get an instance of a specific membership.
+     * Get an instance of a specific membership plan.
      *
      * @param   string  $plan_id    Plan ID to retrieve
      * @return  object      Plan object
      */
     public static function getInstance($plan_id = '')
     {
-        $retval = new self($plan_id);
-        return $retval;
+        static $plans = array();
+
+        if (!isset($plans[$plan_id])) {
+            $plans[$plan_id] = new self($plan_id);
+        }
+        return $plans[$plan_id];
     }
 
 
