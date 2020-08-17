@@ -433,12 +433,10 @@ class Plan
         //echo $sql;die;
         DB_query($sql);
 
-        // If the update succeeded and the plan ID changed, or if a transfer
-        // plan was selected, rename the plan IDs in the membership table.
+        // If the update succeeded and the plan ID changed,
+        // rename the plan IDs in the membership table.
         if (!DB_error()) {
-            if ($this->xfer_plan != '') {
-                Membership::Transfer($this->plan_id, $this->xfer_plan);
-            } elseif ($this->plan_id != $old_plan_id) {
+            if ($this->plan_id != $old_plan_id) {
                 Membership::Transfer($old_plan_id, $this->plan_id);
             }
             $status = 'OK';
@@ -514,7 +512,7 @@ class Plan
      *
      * @return  boolean     True if ok, False when first test fails.
      */
-    function isValidRecord()
+    public function isValidRecord()
     {
         global $LANG_MEMBERSHIP;
 
@@ -536,20 +534,12 @@ class Plan
     /**
      * Creates the edit form.
      *
-     * @param   integer $id     Optional ID, current record used if zero.
      * @return  string          HTML for edit form
      */
-    function Edit($id = '')
+    public function Edit()
     {
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
                 $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH;
-
-        if ($id != '') {
-            // If an id is passed in, then read that record
-            if (!$this->Read($id)) {
-                return MEMBERSHIP_errorMessage($LANG_MEMBERSHIP['err_plan_id'], 'info');
-            }
-        }
 
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('product', 'plan_form.thtml');
@@ -776,7 +766,7 @@ class Plan
      * @param   string  $text   Text to display
      * @return  string      Formatted error messages.
      */
-    function PrintErrors($text = '')
+    public function PrintErrors($text = '')
     {
         $retval = '<span class="alert">';
         if ($text != '') {
@@ -795,7 +785,7 @@ class Plan
      *
      * @return  boolean     True if Errors[] is not empty, false if it is.
      */
-    function hasErrors()
+    public function hasErrors()
     {
         return (!empty($this->Errors));
     }

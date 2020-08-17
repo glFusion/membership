@@ -1,7 +1,10 @@
-<h2>{site_name} {$LANG_MEMBERSHIP['exp_notice']}</h2>
+<h2>
+    {site_name}<br />
+    {$LANG_MEMBERSHIP['exp_notice']}
+</h2>
 <p>Hello, {username};</p>
 <p>Your membership will be expiring shortly.</p>
-<p>{product}
+<p>{plan_id}
 {!if short_description} - {short_description}{!endif}
 </p>
 <p>Log into <a href="{site_url}">{site_url}</a> to update your application and renew.</p>

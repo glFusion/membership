@@ -5,7 +5,7 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2014-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.0
+ * @version     v0.2.2
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -17,11 +17,6 @@ $type = COM_getArgument('type');
 if (empty($type)) {
     COM_404();
 }
-/*$autotag = array(
-    'parm1' => 'grouplist',
-    'parm2' => $type,
-    'tagstr' => 'tagstr',
-);*/
 
 $GL = new Membership\GroupList($type);
 if (isset($_GET['title']) && !empty($_GET['title'])) {

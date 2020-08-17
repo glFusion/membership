@@ -882,9 +882,9 @@ function MEMBERSHIP_notifyExpiration()
                 'site_name'     => $_CONF['site_name'],
                 'username'      => $username,
                 'pi_name'       => $_CONF_MEMBERSHIP['pi_name'],
-                'product'       => $row['name'],
-                'item_id'       => $row['plan_id'],
-                'short_description' => $row['description'],
+                'plan_name'     => $row['name'],
+                'plan_id'       => $row['plan_id'],
+                'description'   => $row['description'],
                 'detail_url'    => MEMBERSHIP_PI_URL .
                     '/index.php?detail=x&amp;plan_id=' .
                     urlencode($row['plan_id']
