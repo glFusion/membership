@@ -71,6 +71,7 @@
         </label>
         <div class="uk-form-controls">
             <select name="grp_access" id="f_access">
+                <option value="0" {grp_0_select}>-- {$LANG_MEMBERSHIP['none']} ---</option>
                 {group_options}
             </select>
         </div>
