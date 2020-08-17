@@ -656,14 +656,16 @@ function plugin_runScheduledTask_membership()
 
     // Cancel memberships not renewed within the grace period
     // Should already be in arrears, but catch active ones also
-    $stat = MEMBERSHIP_STATUS_ENABLED . ',' . MEMBERSHIP_STATUS_ACTIVE . ',' .
-            MEMBERSHIP_STATUS_ARREARS;
+    $stat = MEMBERSHIP_STATUS_ENABLED . ',' .
+        MEMBERSHIP_STATUS_ACTIVE . ',' .
+        MEMBERSHIP_STATUS_ARREARS;
+
     $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid
             WHERE mem_status IN ($stat)
-            AND mem_expires < '" . Membership\Dates::expGraceEnded()->toMySQL() . "'";
+            AND mem_expires < '" . Membership\Dates::expGraceEnded() . "'";
     //Membership\Logger::System($sql);
     $r = DB_query($sql, 1);
     if ($r) {
@@ -722,7 +724,7 @@ function plugin_runScheduledTask_membership()
 
     // For the memberships that are left, notify the members of
     // impending expiration.
-    MEMBERSHIP_notifyExpiration();
+    Membership\Membership::notifyExpiration();
 }
 
 
@@ -788,159 +790,6 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
         $retval = $tRet[0];
     }
     return $retval;
-}
-
-
-/**
- * Notify users that have memberships soon to expire.
- * This is in functions.inc so it can be called from runscheduledTask.
- */
-function MEMBERSHIP_notifyExpiration()
-{
-    global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
-
-    // Return if we're not configured to notify users.
-    if (
-        $_CONF_MEMBERSHIP['notifydays'] < 0 ||
-        $_CONF_MEMBERSHIP['notifymethod'] == MEMBERSHIP_NOTIFY_NONE
-    ) {
-        return;
-    }
-    $interval = (int)$_CONF_MEMBERSHIP['notifydays'];
-    $exp_chk = Membership\Dates::plusNotify();
-    $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
-    $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires,
-                p.plan_id, p.name, p.description,
-                u.email, u.username, u.fullname
-            FROM {$_TABLES['membership_members']} m
-            LEFT JOIN {$_TABLES['membership_plans']} p
-                ON p.plan_id = m.mem_plan_id
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = m.mem_uid
-            WHERE m.mem_notified > 0
-            AND m.mem_expires < DATE_ADD(now(), INTERVAL (m.mem_notified * $interval) DAY)
-            AND m.mem_status IN ($stat)";
-    //echo $sql;die;
-    //Membership\Logger::System($sql);
-    $r = DB_query($sql);
-    if (!$r) {
-        return;
-    }
-
-    // Expiration notifications are likely to be done in large batches.
-    // Create an array of plans to avoid having to instantiate a plan for
-    // each member.
-    $Plans = array();
-
-    $template_base = MEMBERSHIP_PI_PATH . '/templates/notify';
-    $notified_ids = array();    // holds memberhsip IDs that get notified
-
-    while ($row = DB_fetchArray($r, false)) {
-        if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_EMAIL) {
-            // Create a notification email message.
-            $username = COM_getDisplayName($row['mem_uid']);
-            if (!isset($Plans[$row['plan_id']])) {
-                $Plans[$row['plan_id']] = Membership\Plan::getInstance($row['plan_id']);
-            }
-            $P = $Plans[$row['plan_id']];   // shortcut variable
-            if (!$P->notificationsEnabled()) {
-                // Do not send notifications for this plan
-                continue;
-            }
-
-            $args = array(
-                'custom'    => array('uid'   => $row['mem_uid']),
-                'amount' => $P->Price(false),
-                'item_number' => $_CONF_MEMBERSHIP['pi_name'] . ':' . $P->getPlanID() .
-                        ':renewal',
-                'item_name' => $P->getName(),
-                'btn_type' => 'buy_now',
-            );
-            $status = LGLIB_invokeService(
-                'shop',
-                'genButton',
-                $args,
-                $output,
-                $msg
-            );
-            $nameparts = PLG_callFunctionForOnePlugin(
-                'plugin_parseName_lglib',
-                array(
-                    1 => $row['fullname'],
-                )
-            );
-
-            $button = ($status == PLG_RET_OK) ? $output[0] : '';
-            $dt = new \Date($A['mem_expires'], $_CONF['timezone']);
-
-            $T = new Template($template_base);
-            $T->set_file(array(
-                'outer' => 'exp_outer.thtml',
-                'message' => 'exp_message.thtml',
-            ) );
-            $T->set_var(array(
-                'site_name'     => $_CONF['site_name'],
-                'username'      => $username,
-                'pi_name'       => $_CONF_MEMBERSHIP['pi_name'],
-                'plan_name'     => $row['name'],
-                'plan_id'       => $row['plan_id'],
-                'description'   => $row['description'],
-                'detail_url'    => MEMBERSHIP_PI_URL .
-                    '/index.php?detail=x&amp;plan_id=' .
-                    urlencode($row['plan_id']
-                ),
-                'buy_button'    => $button,
-                'exp_my'        => $dt->format('F, Y', true),
-                'firstname'     => $nameparts['fname'],
-                'lastname'      => $nameparts['lname'],
-                'fullname'      => $row['fullname'],
-            ) );
-
-            $T->parse('exp_msg', 'message');
-            $T->parse('output', 'outer');
-            $message = $T->finish($T->get_var('output'));
-            COM_mail(
-                array($row['email'], $username),
-                "{$LANG_MEMBERSHIP['exp_notice']}",
-                $message,
-                "{$_CONF['site_name']} <{$_CONF['site_mail']}>",
-                true
-            );
-        }
-
-        if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_MESSAGE) {
-            // Save a message for the next time they log in.
-            $msg = sprintf($LANG_MEMBERSHIP['you_expire'],
-                    $row['plan_id'], $row['mem_expires']) .
-                    ' ' . $LANG_MEMBERSHIP['renew_link'];
-            $expire_msg = date('Y-m-d',
-                strtotime('-' . $_CONF_MEMBERSHIP['grace_days'] . ' day',
-                    strtotime($row['mem_expires'])));
-            LGLIB_storeMessage(array(
-                'message' => $msg,
-                'expires' => $expire_msg,
-                'uid' => $row['mem_uid'],
-                'persist' => true,
-                'pi_code' => MEMBERSHIP_MSG_EXPIRING,
-                'use_sess_id' => false)
-            );
-        }
-
-        // Record that we've notified this member
-        $notified_ids[] = $row['mem_uid'];
-    }
-
-    // Mark that the expiration notification has been sent.
-    if (!empty($notified_ids)) {
-        $ids = implode(',', $notified_ids);
-        $sql = "UPDATE {$_TABLES['membership_members']}
-                SET mem_notified=mem_notified - 1
-                WHERE mem_uid IN ($ids)";
-        DB_query($sql, 1);
-        if (DB_error()) {
-            Membership\Logger::System("membership: error executing $sql");
-        }
-    }
 }
 
 
