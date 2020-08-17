@@ -1827,7 +1827,7 @@ class Membership
             return;
         }
         $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
-        $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires,
+        $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
                 u.email, u.username, u.fullname
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['users']} u
@@ -1850,7 +1850,7 @@ class Membership
                 // Create a notification email message.
                 $username = COM_getDisplayName($row['mem_uid']);
                 $P = Plan::getInstance($row['mem_plan_id']);
-                if (!$P->notificationsEnabled()) {
+                if ($P->isNew() || !$P->notificationsEnabled()) {
                     // Do not send notifications for this plan
                     continue;
                 }
