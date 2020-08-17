@@ -571,6 +571,7 @@ class Plan
                 'grp_id,grp_name',
                 $this->grp_access
             ),
+            'grp_0_select'  => $this->grp_access == 0 ? 'selected="selected"' : '',
         ) );
         if (isset($this->fees['new'])) {
             $T->set_var('new_0', sprintf('%.2f', $this->fees['new'][0]));
