@@ -12,6 +12,7 @@ Release TBD
 - Add a message to plan lists indicating the latest plan if expired.
 - Positions can be optionally shown on profile lists.
 - Separate position group table for more flexibility in position lists.
+- Allow multiple expiration notifications at fixed intervals.
 
 ## 0.2.0
 - Implement PHP class autoloader

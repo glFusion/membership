@@ -328,7 +328,6 @@ class Membership
             'doc_url'       => MEMBERSHIP_getDocURL('edit_member.html',
                                             $_CONF['language']),
             'viewApp'   => App::getInstance($this->uid)->Exists(),
-            'notified_chk' => $this->notified == 1 ? 'checked="checked"' : '',
             'notified_orig' => $this->notified == 1 ? 1 : 0,
             'plan_id_orig' => $this->plan_id,
             'is_member' => $this->isNew ? '' : 'true',
@@ -339,6 +338,15 @@ class Membership
             'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
             'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
         ) );
+        $T->set_block('editmember', 'expToSend', 'expTS');
+        for ($i = 0; $i <= $_CONF_MEMBERSHIP['notifycount']; $i++) {
+            $T->set_var(array(
+                'notify_val' => $i,
+                'sel' => $i == $this->notified ? 'selected="selected"' : '',
+            ) );
+            $T->parse('expTS', 'expToSend', true);
+        }
+
         if ($this->Plan) {
             $T->set_var('family_display', $this->Plan->isFamily() ? 'block' : 'none');
         } else {
