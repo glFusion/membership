@@ -286,7 +286,7 @@ class Membership
      *
      * @return  integer     1 if notified, 0 if not
      */
-    public function isNotified()
+    public function expToSend()
     {
         return (int)$this->notified;
     }
@@ -1308,7 +1308,7 @@ class Membership
                 mem_expires = '" . DB_escapeString($Mem1->getExpires()) . "',
                 mem_status = '{$Mem1->getStatus()}',
                 mem_guid = '{$Mem1->getGuid()}',
-                mem_notified = '{$Mem1->isNotified()}',
+                mem_notified = '{$Mem1->expToSend()}',
                 mem_istrial = '{$Mem1->isTrial()}'";
         //echo $sql;die;
         DB_query($sql);
