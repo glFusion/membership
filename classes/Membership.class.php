@@ -79,7 +79,7 @@ class Membership
      */
     public function __construct($uid=0)
     {
-        global $_USER;
+        global $_USER, $_CONF_MEMBERSHIP;
 
         if ($uid == 0) {
             $uid = (int)$_USER['uid'];
@@ -1956,7 +1956,7 @@ class Membership
         if (!empty($notified_ids)) {
             $ids = implode(',', $notified_ids);
             $sql = "UPDATE {$_TABLES['membership_members']}
-                SET mem_notified=mem_notified - 1
+                SET mem_notified = mem_notified - 1
                 WHERE mem_uid IN ($ids)";
             DB_query($sql, 1);
             if (DB_error()) {
