@@ -1906,6 +1906,7 @@ class Membership
                     ),
                     'buy_button'    => $button,
                     'exp_my'        => $dt->format('F, Y', true),
+                    'exp_date'      => $dt->format($_CONF['dateonly'], true),
                     'firstname'     => $nameparts['fname'],
                     'lastname'      => $nameparts['lname'],
                     'fullname'      => $row['fullname'],
