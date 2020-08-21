@@ -1884,6 +1884,13 @@ class Membership
                         1 => $row['fullname'],
                     )
                 );
+                if ($nameparts !== false) {
+                    $fname = $nameparts['fname'];
+                    $lname = $nameparts['lname'];
+                } else {
+                    $fname = '';
+                    $lname = '';
+                }
 
                 $button = ($status == PLG_RET_OK) ? $output[0] : '';
                 $dt = new \Date($A['mem_expires'], $_CONF['timezone']);
@@ -1907,8 +1914,8 @@ class Membership
                     'buy_button'    => $button,
                     'exp_my'        => $dt->format('F, Y', true),
                     'exp_date'      => $dt->format($_CONF['dateonly'], true),
-                    'firstname'     => $nameparts['fname'],
-                    'lastname'      => $nameparts['lname'],
+                    'firstname'     => $fname,
+                    'lastname'      => $lname,
                     'fullname'      => $row['fullname'],
                 ) );
 
