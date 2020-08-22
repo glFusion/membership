@@ -18,7 +18,12 @@
     {site_name}<br />
     {$LANG_MEMBERSHIP['exp_notice']}
 </h2>
+{!if firstname}
+<p>Hello, {firstname};</p>
+{!else}
 <p>Hello, {username};</p>
+{!endif}
+
 <p>Just a reminder that your {site_name} membership has expired or will expire shortly.</p>
 <p>{plan_id}
 {!if short_description} - {short_description}{!endif}
