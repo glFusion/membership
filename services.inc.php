@@ -192,7 +192,7 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     $opts = array(
         MEMBERSHIP_STATUS_ENABLED => $LANG_MEMBERSHIP['current'],
         MEMBERSHIP_STATUS_ARREARS => $LANG_MEMBERSHIP['arrears'],
-        MEMBERSHIP_STATUS_EXPIRED => $LANG_MEMBERSHIP['expired'],
+        //MEMBERSHIP_STATUS_EXPIRED => $LANG_MEMBERSHIP['expired'],
     );
     $output = array();
     // If posted variables are recieved, use them. Otherwise, use GET but only
@@ -216,8 +216,8 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
             $exp_stat[] = MEMBERSHIP_STATUS_ENABLED;
         if ($_CONF_MEMBERSHIP['prflist_arrears'] == 1)
             $exp_stat[] = MEMBERSHIP_STATUS_ARREARS;
-        if ($_CONF_MEMBERSHIP['prflist_expired'] == 1)
-            $exp_stat[] = MEMBERSHIP_STATUS_EXPIRED;
+        //if ($_CONF_MEMBERSHIP['prflist_expired'] == 1)
+        //    $exp_stat[] = MEMBERSHIP_STATUS_EXPIRED;
     }
     if (!is_array($exp_stat)) {
         $exp_stat = array();
@@ -360,7 +360,8 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                     {$members}.mem_plan_id as {$pi}_membertype,
                     {$members}.mem_status as {$pi}_status,
                     {$members}.mem_number as {$pi}_membernum,
-                    group_concat(' ', {$positions}.descr) as {$pi}_position,
+                    (SELECT group_concat(' ', {$positions}.descr) as {$pi}_positioni
+                        FROM {$positions} WHERE {$positions}.uid = u.uid),
                     {$plans}.description AS {$pi}_description",
 
         'join' => "LEFT JOIN {$members} ON u.uid = {$members}.mem_uid
