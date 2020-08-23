@@ -716,10 +716,12 @@ function plugin_runScheduledTask_membership()
             '" . Membership\Dates::Today() . "' > (mem_expires + interval $days DAY)";
         $res = DB_query($sql, 1);
         $num = DB_affectedRows($res);
-        Membership\Logger::Audit(
-            sprintf($LANG_MEMBERSHIP['log_purged'],$num, $days),
-            true
-        );
+        if ($num > 0) {
+            Membership\Logger::Audit(
+                sprintf($LANG_MEMBERSHIP['log_purged'],$num, $days),
+                true
+            );
+        }
     }
 
     // For the memberships that are left, notify the members of
