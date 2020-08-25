@@ -25,6 +25,7 @@ $LANG_MEMBERSHIP = array(
 'list_members'  => 'List Members',
 'plan_info'     => 'Plan Information',
 'plan_id'       => 'Plan ID',
+'plan'          => 'Plan',
 'short_name'    => 'Short Name',
 'price'         => 'Price',
 'description'   => 'Description',

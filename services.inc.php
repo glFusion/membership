@@ -341,7 +341,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
             ),
             $pi . '_membertype' => array(
                 'field' => $members . '.mem_plan_id',
-                'title' => $LANG_MEMBERSHIP['plan_id'],
+                'title' => $LANG_MEMBERSHIP['plan'],
             ),
             $pi . '_position' => array(
                 'field' => $positions . '.descr',
