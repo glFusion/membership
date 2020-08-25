@@ -362,7 +362,7 @@ class Membership
 
         $family_plans = array();
         $T->set_block('editmember', 'PlanBlock', 'planrow');
-        $Plans = Plan::getPlans();
+        $Plans = Plan::getPlans('', true);
         foreach ($Plans as $P) {
             if ($this->plan_id == $P->getPlanID()) {
                 $sel = 'selected="selected"';

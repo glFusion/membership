@@ -964,23 +964,25 @@ class Plan
      * Get all the plans that can be purchased by the current user.
      *
      * @param   string  $plan_id    Optional specific plan to get
+     * @paraam  boolean $admin      True to disregard group access
      * @return  array       Array of plan objects
      */
-    public static function getPlans($plan_id='')
+    public static function getPlans($plan_id='', $admin = false)
     {
         global $_TABLES, $_GROUPS;
-
-        $groups = $_GROUPS;
-        if (!in_array(13, $groups)) {
-            $groups[] = 13;
-        }
-        $groups = implode(',', $groups);
 
         $plans = array();
         $sql = "SELECT plan_id
                 FROM {$_TABLES['membership_plans']}
-                WHERE enabled = 1
-                AND grp_access IN ($groups)";
+                WHERE enabled = 1";
+        if (!$admin) {
+            $groups = $_GROUPS;
+            if (!in_array(13, $groups)) {
+                $groups[] = 13;
+            }
+            $groups = implode(',', $groups);
+            $sql .= " AND grp_access IN ($groups)";
+        }
         if (!empty($plan_id)) {
             $sql .= " AND plan_id = '" . DB_escapeString($plan_id) . "'";
         }
