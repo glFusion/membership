@@ -42,10 +42,6 @@ class Position
      * @var integer */
     private $show_vacant = 1;
 
-    /** Type of position. Used to name lists.
-     * @var string */
-    private $type = '';
-
     /** Description of the position.
      * @var string */
     private $dscp = '';
@@ -178,7 +174,6 @@ class Position
 
         if ($fromDB) {
             $this->pg_tag = $A['pg_tag'];
-            //$this->type = $A['type'];
         } else {
             //$this->pg_id = (int)$A['pg_id'];
             /*if (isset($A['position_type']) && !empty($A['position_type'])) {
@@ -377,15 +372,15 @@ class Position
     /**
      * Reorder the positions for admin lists and information pages.
      *
-     * @param   string  $type   Type of position (board, committee, etc.)
+     * @param   integer $pg_id  Position Group record ID
      */
-    public static function Reorder($type)
+    public static function Reorder($pg_id)
     {
         global $_TABLES;
 
-        $type = DB_escapeString($type);
+        $pg_id = (int)$pg_id;
         $sql = "SELECT id, orderby FROM {$_TABLES['membership_positions']}
-                WHERE type = '$type'
+                WHERE pg_id = '$pg_id'
                 ORDER BY orderby ASC";
         $result = DB_query($sql);
 
@@ -412,16 +407,16 @@ class Position
      * Move a position up or down in the list.
      *
      * @param   integer $id     Record ID to move
-     * @param   string  $type   Type of position (board, committee, etc.)
+     * @param   integer $pg_id      Position Group ID
      * @param   string  $where  Direction to move ('up' or 'down')
      */
-    public static function Move($id, $type, $where)
+    public static function Move($id, $pg_id, $where)
     {
         global $_CONF, $_TABLES, $LANG21;
 
         $retval = '';
         $id = (int)$id;
-        $typs = DB_escapeString($type);
+        $pg_id = (int)$pg_id;
 
         switch ($where) {
         case 'up':
@@ -444,7 +439,7 @@ class Position
 
         if (!DB_error()) {
             // Reorder fields to get them separated by 10
-            self::Reorder($type);
+            self::Reorder($pg_id);
             $msg = '';
         } else {
             $msg = 5;
