@@ -177,7 +177,7 @@ class GroupList
                 'show_vacant' => $show_vacant,
                 'user_img'  => $user_img,
                 'user_email' => empty($A['contact']) ?
-                    $LANG_MEMBERSHIP['contact'] : $A['contact'],
+                    $LANG_MEMBERSHIP['contact'] : PLG_replaceTags($A['contact']),
                 'uid'       => $A['uid'],
             ) );
             $T->parse('uRow', 'userRow', true);
