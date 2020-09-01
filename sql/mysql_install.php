@@ -85,8 +85,8 @@ $_SQL['membership_posgroups'] = "CREATE TABLE `{$_TABLES['membership_posgroups']
 
 $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']} (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `type` varchar(255) NOT NULL,
-  `orderby` int(11) unsigned DEFAULT '10',
+  `pg_id` int(11) unsigned NOT NULL DEFAULT 0,
+  `orderby` int(11) NOT NULL DEFAULT '9999',
   `descr` varchar(255) NOT NULL DEFAULT '',
   `contact` varchar(255) NOT NULL DEFAULT '',
   `uid` mediumint(11) unsigned NOT NULL DEFAULT '0',
@@ -163,6 +163,8 @@ $_UPGRADE_SQL = array(
     '0.2.2' => array(
         "ALTER TABLE {$_TABLES['membership_positions']}
             ADD `in_lists` tinyint(1) unsigned NOT NULL DEFAULT '0' AFTER `show_vacant`",
+        "ALTER TABLE {$_TABLES['membership_positions']}
+            ADD `pg_id` int(11) unsigned NOT NULL DEFAULT '0' AFTER `id`",
         "ALTER TABLE {$_TABLES['membership_plans']}
             ADD `notify_exp` tinyint(1) unsigned NOT NULL DEFAULT '1' AFTER `upd_links`",
         "CREATE TABLE `{$_TABLES['membership_posgroups']}` (
@@ -174,6 +176,7 @@ $_UPGRADE_SQL = array(
           UNIQUE KEY `pg_tag` (`pg_tag`),
           KEY `pg_orderby` (`pg_orderby`)
         ) ENGINE=MyISAM",
+        "ALTER TABLE {$_TABLES['membership_positions']} DROP `type`";
     ),
 );
 

@@ -5,7 +5,7 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     0.2.2
+ * @version     v0.3.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -110,6 +110,21 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
 
     if (!COM_checkVersion($current_ver, '0.2.2')) {
         $current_ver = '0.2.2';
+        if (_MEMBtableHasColumn('membership_positions', 'type')) {
+            // If the old text "type" column is still in the positions table,
+            // get all the types and create position group records from them.
+            $res = DB_query("SELECT id, type FROM {$_TABLES['membership_positions']}");
+            $idx = 0;
+            while ($A = DB_query($res, true)) {
+                $idx++;
+                $orderby = $idx * 10;
+                $_UPGRADE_SQL[$current_ver][] = "INSERT INTO {$_TABLES['membership_posgroups']}
+                    (pg_id, pg_tag, pg_title, pg_orderby) VALUES
+                    ($idx, '{$A['type']}', '{$A['type']}', $orderby)";
+            }
+        } else {
+            COM_errorLog("Membership 0.2.2, type column already converted");
+        }
         if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
@@ -117,6 +132,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     if (!COM_checkVersion($current_ver, '0.3.0')) {
         $current_ver = '0.3.0';
         if (!_MEMBtableHasColumn('membership_plans', 'notify_exp')) {
+            // If adding the notification count, change the existing flag values
             $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']}
                 SET mem_notified = 2 WHERE mem_notified = 0";
             $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']}
