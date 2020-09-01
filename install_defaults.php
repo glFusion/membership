@@ -114,7 +114,7 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
-    // Days before expiration to notify subscribers.  -1 = "never"
+    // Days before expiration to notify members.  -1 = "never"
     array(
         'name' => 'notifydays',
         'default_value' => '-1',
@@ -126,6 +126,7 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
+    // Number of notifications to send before expiration at "notifydays" interval
     array(
         'name' => 'notifycount',
         'default_value' => '0',

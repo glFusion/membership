@@ -157,10 +157,12 @@ function plugin_cclabel_membership()
 {
     global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
-    if (MEMBERSHIP_isAdmin()) {
-        return array($LANG_MEMBERSHIP['menu_title'],
-                MEMBERSHIP_ADMIN_URL . '/index.php',
-                plugin_geticon_membership());
+    if (MEMBERSHIP_isManager()) {
+        return array(
+            $LANG_MEMBERSHIP['menu_title'],
+            MEMBERSHIP_ADMIN_URL . '/index.php',
+            plugin_geticon_membership()
+        );
     } else {
         return false;
     }
@@ -176,10 +178,11 @@ function plugin_getadminoption_membership()
 {
     global $_CONF, $LANG_MEMBERSHIP;
 
-    if (MEMBERSHIP_isAdmin()) {
-        return array($LANG_MEMBERSHIP['menu_title'],
-                MEMBERSHIP_ADMIN_URL . '/index.php',
-                );
+    if (MEMBERSHIP_isManager()) {
+        return array(
+            $LANG_MEMBERSHIP['menu_title'],
+            MEMBERSHIP_ADMIN_URL . '/index.php',
+        );
     } else {
         return false;
     }
@@ -806,8 +809,10 @@ function MEMBERSHIP_isManager()
 
     static $isManager = -1;     // static since this can be called many times
     if ($isManager === -1) {
-        if (MEMBERSHIP_isAdmin() ||
-                SEC_hasRights($_CONF_MEMBERSHIP['pi_name'] . '.manage')) {
+        if (
+            MEMBERSHIP_isAdmin() ||
+            SEC_hasRights($_CONF_MEMBERSHIP['pi_name'] . '.manage')
+        ) {
             $isManager = true;
         } else {
             $isManager = false;
