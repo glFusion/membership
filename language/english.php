@@ -206,6 +206,8 @@ $LANG_MEMBERSHIP = array(
 'import' => 'Import',
 'date_selector' => 'Date Selector',
 'notify_exp' => 'Send Expiration Reminders?',
+'notify' => 'Notify',
+'confirm_notify' => 'Are you sure you want to send notifications to the selected members?',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';

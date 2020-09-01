@@ -1,6 +1,6 @@
 # glFusion Membership Plugin - Change Log
 
-## 0.2.2
+## 0.3.0
 Release TBD
 - Remove support for non-UIkit themes.
 - Members can always view their own application.
@@ -13,6 +13,8 @@ Release TBD
 - Positions can be optionally shown on profile lists.
 - Separate position group table for more flexibility in position lists.
 - Allow multiple expiration notifications at fixed intervals.
+- Allow admins to manually send expiration notifications.
+- Send a final notification at expiration if notifications are used.
 
 ## 0.2.0
 - Implement PHP class autoloader

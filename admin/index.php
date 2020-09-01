@@ -38,7 +38,7 @@ $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'renewmember', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
-    'savepg',
+    'savepg', 'notify',
     'renewbutton', 'deletebutton', 'regenbutton',
     'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
     'reorderpg', 'deletepos', 'deletepg',
@@ -61,6 +61,12 @@ foreach($expected as $provided) {
 }
 
 switch ($action) {
+case 'notify':      // Force-send expiration reminders
+    if (isset($_POST['delitem']) && !empty($_POST['delitem'])) {
+        Membership\Membership::notifyExpiration($_POST['delitem']);
+    }
+    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listmembers');
+    break;
 case 'genmembernum':
 case 'regenbutton_x':
 case 'regenbutton':

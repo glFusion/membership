@@ -339,6 +339,7 @@ class Membership
             'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
         ) );
         $T->set_block('editmember', 'expToSend', 'expTS');
+
         for ($i = 0; $i <= $_CONF_MEMBERSHIP['notifycount']; $i++) {
             $T->set_var(array(
                 'notify_val' => $i,
@@ -680,8 +681,15 @@ class Membership
         // Disable the account if so configured
         self::_disableAccount($uid);
 
-        self::_UpdateStatus($uid, $cancel_relatives,
-                MEMBERSHIP_STATUS_ACTIVE, MEMBERSHIP_STATUS_EXPIRED);
+        // Send a final notification, if notifications are used
+        self::notifyExpiration(array($uid));
+
+        self::_UpdateStatus(
+            $uid,
+            $cancel_relatives,
+            MEMBERSHIP_STATUS_ARREARS,
+            MEMBERSHIP_STATUS_EXPIRED
+        );
     }
 
 
@@ -695,8 +703,15 @@ class Membership
      */
     public static function Arrears($uid=0, $cancel_relatives=true)
     {
-        self::_UpdateStatus($uid, $cancel_relatives,
-                MEMBERSHIP_STATUS_ACTIVE, MEMBERSHIP_STATUS_ARREARS);
+        // Send a final notification, if notifications are used
+        self::notifyExpiration(array($uid));
+
+        self::_UpdateStatus(
+            $uid,
+            $cancel_relatives,
+            MEMBERSHIP_STATUS_ACTIVE,
+            MEMBERSHIP_STATUS_ARREARS
+        );
     }
 
 
@@ -1538,10 +1553,15 @@ class Membership
         $renew_action = '<button class="uk-button uk-button-mini" name="renewbutton" ' .
             'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew'] . '\');">' .
             '<i class="uk-icon uk-icon-refresh"></i> ' . $LANG_MEMBERSHIP['renew'] . '</button>';
+        $notify_action = '<button class="uk-button uk-button-mini" name="notify" ' .
+            'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_notify'] . '\');">' .
+            '<i class="uk-icon uk-icon-envelope"></i> ' . $LANG_MEMBERSHIP['notify'] . '</button>';
+
         $options = array(
             'chkdelete' => 'true',
             'chkfield' => 'mem_uid',
-            'chkactions' => $del_action . '&nbsp;&nbsp;' . $renew_action . '&nbsp;&nbsp;',
+            'chkactions' => $del_action . '&nbsp;&nbsp;' . $renew_action . '&nbsp;&nbsp;' .
+                '&nbsp;&nbsp;' . $notify_action,
         );
 
         if ($_CONF_MEMBERSHIP['use_mem_number'] == 2) {
@@ -1821,7 +1841,7 @@ class Membership
      * Notify users that have memberships soon to expire.
      * This is in functions.inc so it can be called from runscheduledTask.
      */
-    public static function notifyExpiration()
+    public static function notifyExpiration($ids = NULL)
     {
         global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
 
@@ -1839,10 +1859,15 @@ class Membership
                 u.email, u.username, u.fullname
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = m.mem_uid
-            WHERE m.mem_notified > 0
+                ON u.uid = m.mem_uid ";
+        if (is_array($ids)) {
+            // Force the notification and disregard the notification counter
+            $sql .= "WHERE m.mem_uid IN (" . implode(',', $ids) . ")";
+        } else {
+            $sql .= "WHERE m.mem_notified > 0
             AND m.mem_expires < DATE_ADD(now(), INTERVAL (m.mem_notified * $interval) DAY)
             AND m.mem_status IN ($stat)";
+        }
         //echo $sql;die;
         //Logger::System($sql);
         $r = DB_query($sql);
@@ -1922,6 +1947,7 @@ class Membership
                 $T->parse('exp_msg', 'message');
                 $T->parse('output', 'outer');
                 $message = $T->finish($T->get_var('output'));
+                Logger::Audit("Notifying $username at {$row['email']}");
                 COM_mail(
                     array($row['email'], $username),
                     "{$LANG_MEMBERSHIP['exp_notice']}",
@@ -1959,8 +1985,8 @@ class Membership
             $notified_ids[] = $row['mem_uid'];
         }
 
-        // Mark that the expiration notification has been sent.
-        if (!empty($notified_ids)) {
+        // Mark that the expiration notification has been sent, if not forced.
+        if (!is_array($ids) && !empty($notified_ids)) {
             $ids = implode(',', $notified_ids);
             $sql = "UPDATE {$_TABLES['membership_members']}
                 SET mem_notified = mem_notified - 1
