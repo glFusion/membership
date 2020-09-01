@@ -477,7 +477,7 @@ class PosGroup
         $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
         $display .= COM_createLink(
             $LANG_MEMBERSHIP['new_pg'],
-            MEMBERSHIP_ADMIN_URL . '/index.php?editg=0',
+            MEMBERSHIP_ADMIN_URL . '/index.php?editpg=0',
             array(
                 'class' => 'uk-button uk-button-success',
                 'style' => 'float:left',
