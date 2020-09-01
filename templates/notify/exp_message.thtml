@@ -27,6 +27,8 @@
 <p>Just a reminder that your {site_name} membership
 {!if is_expired}
 has expired as of {exp_date}.
+{!elseif expire_eom}
+will expire at the end of {exp_my}.
 {!else}
 will expire on {exp_date}.
 {!endif}

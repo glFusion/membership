@@ -1944,6 +1944,7 @@ class Membership
                     'lastname'      => $lname,
                     'fullname'      => $row['fullname'],
                     'is_expired'    => $is_expired,
+                    'expire_eom'    => $_CONF_MEMBERSHIP['expires_eom'],
                 ) );
 
                 $T->parse('exp_msg', 'message');
