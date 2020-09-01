@@ -360,13 +360,15 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                     {$members}.mem_plan_id as {$pi}_membertype,
                     {$members}.mem_status as {$pi}_status,
                     {$members}.mem_number as {$pi}_membernum,
-                    (SELECT group_concat(' ', {$positions}.descr) as {$pi}_positioni
-                        FROM {$positions} WHERE {$positions}.uid = u.uid),
-                    {$plans}.description AS {$pi}_description",
+                    {$plans}.description AS {$pi}_description,
+                    (SELECT group_concat(' ', {$positions}.descr)
+                        FROM {$positions}
+                        WHERE {$positions}.uid = u.uid
+                        AND $positions.in_lists = 1) as {$pi}_position",
 
         'join' => "LEFT JOIN {$members} ON u.uid = {$members}.mem_uid
-                LEFT JOIN {$plans} ON {$plans}.plan_id = {$members}.mem_plan_id
-                LEFT JOIN {$positions} ON {$positions}.uid = u.uid AND {$positions}.in_lists = 1",
+                LEFT JOIN {$plans} ON {$plans}.plan_id = {$members}.mem_plan_id",
+                //LEFT JOIN {$positions} ON {$positions}.uid = u.uid AND {$positions}.in_lists = 1",
 
         'where' => $where,
 
