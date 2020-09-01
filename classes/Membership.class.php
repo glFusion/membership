@@ -1888,6 +1888,7 @@ class Membership
                     continue;
                 }
 
+                $is_expired = $row['mem_expires'] <= $today ? true : false;
                 $args = array(
                     'custom'    => array('uid'   => $row['mem_uid']),
                     'amount' => $P->Price(false),
@@ -1938,10 +1939,11 @@ class Membership
                     ),
                     'buy_button'    => $button,
                     'exp_my'        => $dt->format('F, Y', true),
-                    'exp_date'      => $dt->format($_CONF['dateonly'], true),
+                    'exp_date'      => $dt->format($_CONF['shortdate'], true),
                     'firstname'     => $fname,
                     'lastname'      => $lname,
                     'fullname'      => $row['fullname'],
+                    'is_expired'    => $is_expired,
                 ) );
 
                 $T->parse('exp_msg', 'message');
