@@ -1918,7 +1918,7 @@ class Membership
                 }
 
                 $button = ($status == PLG_RET_OK) ? $output[0] : '';
-                $dt = new \Date($A['mem_expires'], $_CONF['timezone']);
+                $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
 
                 $T = new \Template($template_base);
                 $T->set_file(array(
