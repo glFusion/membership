@@ -125,12 +125,6 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         } else {
             COM_errorLog("Membership 0.2.2, type column already converted");
         }
-        if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
-        if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
-    }
-
-    if (!COM_checkVersion($current_ver, '0.3.0')) {
-        $current_ver = '0.3.0';
         if (!_MEMBtableHasColumn('membership_plans', 'notify_exp')) {
             // If adding the notification count, change the existing flag values
             $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']}
