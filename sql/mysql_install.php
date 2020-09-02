@@ -176,7 +176,7 @@ $_UPGRADE_SQL = array(
           UNIQUE KEY `pg_tag` (`pg_tag`),
           KEY `pg_orderby` (`pg_orderby`)
         ) ENGINE=MyISAM",
-        "ALTER TABLE {$_TABLES['membership_positions']} DROP `type`";
+        "ALTER TABLE {$_TABLES['membership_positions']} DROP `type`",
     ),
 );
 

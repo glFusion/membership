@@ -176,9 +176,9 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
         $sql_err_msg .= ' - Ignored';
     }
     // Execute SQL now to perform the upgrade
-    COM_errorLOG("--Updating Membership to version $version");
+    COM_errorLog("--Updating Membership to version $version");
     foreach ($_UPGRADE_SQL[$version] as $q) {
-        COM_errorLOG("Membership Plugin $version update: Executing SQL => $q");
+        COM_errorLog("Membership Plugin $version update: Executing SQL => $q");
         DB_query($q, '1');
         if (DB_error()) {
             Membership\Logger::System($sql_err_msg, 1);
