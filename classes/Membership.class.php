@@ -666,7 +666,8 @@ class Membership
 
     /**
      * Expire a membership.
-     * Called from plugin_runScheduledTask when the membership has expired.
+     * Called from PurgeOld when the membership has expired, and from
+     * self::Cancel for memberships that are cancelled manually.
      * Assume the current status is "Active" to force status-change operations.
      *
      * @param   integer $uid    User ID to cancel
@@ -1838,6 +1839,100 @@ class Membership
 
 
     /**
+     * Expire memberships that have not been renewed within the grace period.
+     */
+    public static function batchExpire()
+    {
+        global $_TABLES, $LANG_MEMBERSHIP;
+
+        $stat = MEMBERSHIP_STATUS_ENABLED . ',' .
+            MEMBERSHIP_STATUS_ACTIVE . ',' .
+            MEMBERSHIP_STATUS_ARREARS;
+
+        $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
+            FROM {$_TABLES['membership_members']} m
+            LEFT JOIN {$_TABLES['users']} u
+                ON u.uid = m.mem_uid
+            WHERE mem_status IN ($stat)
+            AND mem_expires < '" . Dates::expGraceEnded() . "'";
+        //Membership\Logger::System($sql);
+        $r = DB_query($sql, 1);
+        if ($r) {
+            while ($row = DB_fetchArray($r, false)) {
+                self::Expire($row['mem_uid'], true);
+                Logger::Audit(
+                    sprintf(
+                        $LANG_MEMBERSHIP['log_expired'],
+                        $row['mem_uid'],
+                        $row['fullname']
+                    ),
+                    true
+                );
+            }
+        }
+    }
+
+
+    /**
+     * Set overdue memberships to "in arrears".
+     * Runs nearly the same query as expirePostGrace() above since expired
+     * members now have their statuses changed to "expired"
+     */
+    public static function batchArrears()
+    {
+        global $_TABLES;
+
+        $stat = MEMBERSHIP_STATUS_ENABLED . ',' . MEMBERSHIP_STATUS_ACTIVE;
+        $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
+            FROM {$_TABLES['membership_members']} m
+            LEFT JOIN {$_TABLES['users']} u
+                ON u.uid = m.mem_uid
+            WHERE mem_status IN ($stat)
+            AND mem_expires < '" . Dates::Today() . "'";
+        //echo $sql;die;
+        //Membership\Logger::System($sql);
+        $r = DB_query($sql, 1);
+        if ($r) {
+            while ($row = DB_fetchArray($r, false)) {
+                self::Arrears($row['mem_uid'], true);
+                Logger::Audit(
+                    sprintf(
+                        $LANG_MEMBERSHIP['log_arrears'],
+                        $row['mem_uid'],
+                        $row['fullname']
+                    ),
+                    true
+                );
+            }
+        }
+    }
+
+
+    /**
+     * Purge old membership records that have been expired for some time.
+     */
+    public static function batchPurge()
+    {
+        global $_TABLES, $_CONF_MEMBERSHIP;
+
+        $days = (int)$_CONF_MEMBERSHIP['drop_days'];
+        if ($days > -1) {
+            $sql = "UPDATE {$_TABLES['membership_members']}
+                SET mem_status = " . MEMBERSHIP_STATUS_DROPPED . " WHERE
+                '" . Dates::Today() . "' > (mem_expires + interval $days DAY)";
+            $res = DB_query($sql, 1);
+            $num = DB_affectedRows($res);
+            if ($num > 0) {
+                Logger::Audit(
+                    sprintf($LANG_MEMBERSHIP['log_purged'],$num, $days),
+                    true
+                );
+            }
+        }
+    }
+
+
+    /**
      * Notify users that have memberships soon to expire.
      * This is in functions.inc so it can be called from runscheduledTask.
      */
@@ -1875,6 +1970,7 @@ class Membership
             return;
         }
 
+        $today = $_CONF['_now']->format('Y-m-d', true);
         $notified_ids = array();    // holds memberhsip IDs that get notified
         $template_base = MEMBERSHIP_PI_PATH . '/templates/notify';
 
@@ -1985,10 +2081,11 @@ class Membership
             }
 
             // Record that we've notified this member
-            $notified_ids[] = $row['mem_uid'];
+            $notified_ids[] = (int)$row['mem_uid'];
         }
 
-        // Mark that the expiration notification has been sent, if not forced.
+        // Mark that the expiration notification has been sent, if not forced
+        // or triggered by self::Expires() or self::Arrears()
         if (!is_array($ids) && !empty($notified_ids)) {
             $ids = implode(',', $notified_ids);
             $sql = "UPDATE {$_TABLES['membership_members']}

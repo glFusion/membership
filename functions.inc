@@ -655,80 +655,13 @@ function MEMBERSHIP_groupSelection()
  */
 function plugin_runScheduledTask_membership()
 {
-    global $_TABLES, $_CONF_MEMBERSHIP, $_CONF, $LANG_MEMBERSHIP;
-
-    // Cancel memberships not renewed within the grace period
-    // Should already be in arrears, but catch active ones also
-    $stat = MEMBERSHIP_STATUS_ENABLED . ',' .
-        MEMBERSHIP_STATUS_ACTIVE . ',' .
-        MEMBERSHIP_STATUS_ARREARS;
-
-    $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
-            FROM {$_TABLES['membership_members']} m
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = m.mem_uid
-            WHERE mem_status IN ($stat)
-            AND mem_expires < '" . Membership\Dates::expGraceEnded() . "'";
-    //Membership\Logger::System($sql);
-    $r = DB_query($sql, 1);
-    if ($r) {
-        while ($row = DB_fetchArray($r, false)) {
-            Membership\Membership::Expire($row['mem_uid'], true);
-            Membership\Logger::Audit(
-                sprintf(
-                    $LANG_MEMBERSHIP['log_expired'],
-                    $row['mem_uid'],
-                    $row['fullname']
-                ),
-                true
-            );
-        }
-    }
-
-    // Set overdue memberships to "in arrears". Runs nearly the same query
-    // as the expiration above since expired members now have their statuses
-    // changed to "expired"
-    $stat = MEMBERSHIP_STATUS_ENABLED . ',' . MEMBERSHIP_STATUS_ACTIVE;
-    $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
-            FROM {$_TABLES['membership_members']} m
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = m.mem_uid
-            WHERE mem_status IN ($stat)
-            AND mem_expires < '" . Membership\Dates::Today() . "'";
-    //Membership\Logger::System($sql);
-    $r = DB_query($sql, 1);
-    if ($r) {
-        while ($row = DB_fetchArray($r, false)) {
-            Membership\Membership::Arrears($row['mem_uid'], true);
-            Membership\Logger::Audit(
-                sprintf(
-                    $LANG_MEMBERSHIP['log_arrears'],
-                    $row['mem_uid'],
-                    $row['fullname']
-                ),
-                true
-            );
-        }
-    }
-
-    // Purge old membership records.
-    $days = (int)$_CONF_MEMBERSHIP['drop_days'];
-    if ($days > -1) {
-        $sql = "UPDATE {$_TABLES['membership_members']}
-            SET mem_status = " . MEMBERSHIP_STATUS_DROPPED . " WHERE
-            '" . Membership\Dates::Today() . "' > (mem_expires + interval $days DAY)";
-        $res = DB_query($sql, 1);
-        $num = DB_affectedRows($res);
-        if ($num > 0) {
-            Membership\Logger::Audit(
-                sprintf($LANG_MEMBERSHIP['log_purged'],$num, $days),
-                true
-            );
-        }
-    }
-
-    // For the memberships that are left, notify the members of
-    // impending expiration.
+    // Expire memberships not renewed within the grace period.
+    Membership\Membership::batchExpire();
+    // Set members to "in arrears" if expired but within the grace period.
+    Membership\Membership::batchArrears();
+    // Set members to "dropped" if they've been expired for a long time.
+    Membership\Membership::batchPurge();
+    // For the current members that are left, notify of impending expiration.
     Membership\Membership::notifyExpiration();
 }
 
