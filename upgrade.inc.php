@@ -149,6 +149,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     global $membershipConfigData;
     require_once __DIR__ . '/install_defaults.php';
     _update_config('membership', $membershipConfigData);
+    _MEMB_remove_old_files();
 
     Membership\Logger::System("Successfully updated the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin", 1);
     return true;
@@ -233,5 +234,62 @@ function _MEMBtableHasColumn($table, $col_name)
     $res = DB_query("SHOW COLUMNS FROM {$_TABLES[$table]} LIKE '$col_name'");
     return DB_numRows($res) == 0 ? false : true;
 }
+
+
+/**
+ * Remove a file, or recursively remove a directory.
+ *
+ * @param   string  $dir    Directory name
+ */
+function _MEMB_rmdir($dir)
+{
+    if (is_dir($dir)) {
+        $objects = scandir($dir);
+        foreach ($objects as $object) {
+            if ($object != "." && $object != "..") {
+                if (is_dir($dir . '/' . $object)) {
+                    _MEMB_rmdir($dir . '/' . $object);
+                } else {
+                    @unlink($dir . '/' . $object);
+                }
+            }
+        }
+        @rmdir($dir);
+    } elseif (is_file($dir)) {
+        @unlink($dir);
+    }
+}
+
+
+/**
+ * Remove deprecated files
+ * Errors in unlink() and rmdir() are ignored.
+ */
+function _MEMB_remove_old_files()
+{
+    global $_CONF;
+
+    $paths = array(
+        // private/plugins/shop
+        __DIR__ => array(
+            // 0.2.3
+            'language/english.php',
+        ),
+        // public_html/shop
+        $_CONF['path_html'] . 'shop' => array(
+        ),
+        // admin/plugins/shop
+        $_CONF['path_html'] . 'admin/plugins/shop' => array(
+        ),
+    );
+
+    foreach ($paths as $path=>$files) {
+        foreach ($files as $file) {
+            COM_errorLog("removing $path/$file");
+            _MEMB_rmdir("$path/$file");
+        }
+    }
+}
+
 
 ?>

@@ -61,7 +61,7 @@ define('MEMBERSHIP_NOTIFY_BOTH', 3);
 $langpath = MEMBERSHIP_PI_PATH . '/language';
 $langfile = $_CONF['language'] . '.php';
 if (!file_exists("$langpath/$langfile")) {
-    $langfile = 'english.php';
+    $langfile = 'english_utf-8.php';
 }
 
 /** Include plugin language file */
