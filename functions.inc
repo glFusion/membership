@@ -36,16 +36,7 @@ define('MEMBERSHIP_ADMIN_URL',
 // Define types of membership activity
 define('MEMBERSHIP_NEW', 1);
 define('MEMBERSHIP_RENEW', 2);
-define('MEMBERSHIP_STATUS_ACTIVE',  0);
-define('MEMBERSHIP_STATUS_ENABLED', 1);
-define('MEMBERSHIP_STATUS_ARREARS', 2);
-define('MEMBERSHIP_STATUS_EXPIRED', 4);
-define('MEMBERSHIP_STATUS_DROPPED', 128);
-#define('MEMBERSHIP_APP_NONE', 0);
-#define('MEMBERSHIP_APP_READ', 1);
-#define('MEMBERSHIP_APP_CREATE', 2);
-#define('MEMBERSHIP_APP_EDIT', 4);
-#define('MEMBERSHIP_APP_ALLACCESS', 7);
+
 // Settings for whether a membership app is available and required
 define('MEMBERSHIP_APP_DISABLED', 0);
 define('MEMBERSHIP_APP_OPTIONAL', 1);
@@ -847,9 +838,24 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 {
     global $_TABLES, $LANG_MEMBERSHIP;
 
-    if ($op == 'tagname' ) {
+    switch ($op) {
+    case 'tagname':
         return 'membership';
-    } elseif ($op == 'parse') {
+        break;
+    case 'tagusage':
+        return array('namespace' => 'membership', 'usage' => 'description');
+        break;
+    case 'desc':
+        switch ($content) {
+        case 'membership':
+            return $LANG_MEMBERSHIP['at_dscp_' . $content];
+            break;
+        default:
+            return '';
+            break;
+        }
+        break;
+    case 'parse':
         $HTML = '';     // holder for the autotag replacement
         $option = COM_applyFilter($autotag['parm1']);
         switch ($option) {
@@ -873,8 +879,10 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
             return str_replace($autotag['tagstr'],$HTML,$content);
             break;
         }
-    } else {
+        break;
+    default:
         return $content;
+        break;
     }
 }
 
@@ -918,10 +926,10 @@ function MEMBERSHIP_memberstatuses()
 {
     global $_CONF_MEMBERSHIP;
     $types = array(
-        MEMBERSHIP_STATUS_ACTIVE => $_CONF_MEMBERSHIP['segment_active'],
-        MEMBERSHIP_STATUS_ARREARS => $_CONF_MEMBERSHIP['segment_arrears'],
-        MEMBERSHIP_STATUS_EXPIRED => $_CONF_MEMBERSHIP['segment_expired'],
-        MEMBERSHIP_STATUS_DROPPED => $_CONF_MEMBERSHIP['segment_dropped'],
+        Membership\Models\Status::ACTIVE => $_CONF_MEMBERSHIP['segment_active'],
+        Membership\Models\Status::ARREARS => $_CONF_MEMBERSHIP['segment_arrears'],
+        Membership\Models\Status::EXPIRED => $_CONF_MEMBERSHIP['segment_expired'],
+        Membership\Models\Status::DROPPED => $_CONF_MEMBERSHIP['segment_dropped'],
     );
     return $types;
 }

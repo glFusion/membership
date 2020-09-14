@@ -11,6 +11,8 @@
  * @filesource
  */
 namespace Membership;
+use Membership\Models\Status;
+
 
 /**
  * Class for a membership record.
@@ -18,12 +20,6 @@ namespace Membership;
  */
 class Membership
 {
-    const STATUS_ACTIVE = 0;
-    const STATUS_ENABLED = 1;
-    const STATUS_ARREARS = 2;
-    const STATUS_EXPIRED = 4;
-    const STATUS_DROPPED = 128;
-
     /** Plan ID.
      * @var string */
     private $plan_id = '';
@@ -42,7 +38,7 @@ class Membership
 
     /** Membership status.
      * @var integer */
-    private $status = self::STATUS_ACTIVE;
+    private $status = Status::ACTIVE;
 
     /** Date joined.
      * @var string */
@@ -304,6 +300,46 @@ class Membership
 
 
     /**
+     * Check if this membership is expired.
+     * Compares the expiration date to the date when the grace period ends.
+     *
+     * @return  boolean     True if expired, False if current or in arrears.
+     */
+    public function isExpired()
+    {
+        return $this->expires < Dates::expGraceEnded();
+    }
+
+
+    /**
+     * Check if this membership is in arrears.
+     * Checks that today is between the expiration date and the end of the
+     * grace period.
+     *
+     * @return  boolean     True if in arrears, False if current or expired.
+     */
+    public function isArrears()
+    {
+        return (
+            $this->expires > Dates::Today() &&
+            Dates::Today() < Dates::expGraceEnded()
+        );
+    }
+
+
+    /**
+     * Check if the membership is current.
+     * Just checks that the expiration falls after today.
+     *
+     * @return  boolean     True if current, False if in arrears or expired
+     */
+    public function isCurrent()
+    {
+        return ($this->getExpires() > Dates::Today());
+    }
+
+
+    /**
      * Create the edit member for all the members variables.
      * Checks the type of edit being done to select the right template.
      *
@@ -503,7 +539,7 @@ class Membership
         // date then the expiration/arrears will be handled by
         // runScheduledTask
         if ($this->expires > Dates::Today()) {
-            $this->status = MEMBERSHIP_STATUS_ACTIVE;
+            $this->status = Status::ACTIVE;
         }
 
         // If this plan updates linked accounts, get all the accounts.
@@ -568,7 +604,7 @@ class Membership
             // and the status is active. If the expiration was set to a past
             // date then the status and group changes will be handled by
             // runScheduledTask
-            if ($this->status == MEMBERSHIP_STATUS_ACTIVE) {
+            if ($this->status == Status::ACTIVE) {
                 USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
             }
             self::updatePlugins('membership:' . $key, $old_status, $this->status);
@@ -615,7 +651,7 @@ class Membership
         // Remove the member from the membership group
         $groups = array();
         switch ($new_status) {
-        case MEMBERSHIP_STATUS_EXPIRED:
+        case Status::EXPIRED:
             if (!empty($_CONF_MEMBERSHIP['member_group'])) {
                 $groups[] = $_CONF_MEMBERSHIP['member_group'];
             }
@@ -688,8 +724,8 @@ class Membership
         self::_UpdateStatus(
             $uid,
             $cancel_relatives,
-            MEMBERSHIP_STATUS_ARREARS,
-            MEMBERSHIP_STATUS_EXPIRED
+            Status::ARREARS,
+            Status::EXPIRED
         );
     }
 
@@ -710,8 +746,8 @@ class Membership
         self::_UpdateStatus(
             $uid,
             $cancel_relatives,
-            MEMBERSHIP_STATUS_ACTIVE,
-            MEMBERSHIP_STATUS_ARREARS
+            Status::ACTIVE,
+            Status::ARREARS
         );
     }
 
@@ -742,7 +778,7 @@ class Membership
             return false;       // invalid plan requested
         }
         $this->notified = 0;
-        $this->status = MEMBERSHIP_STATUS_ACTIVE;
+        $this->status = Status::ACTIVE;
         $this->istrial = 0;
         if ($exp == '')  {
             $this->expires = $this->Plan->calcExpiration($this->expires);
@@ -1115,8 +1151,8 @@ class Membership
                 if ($min < 1) $min = 1;
                 if ($max == 0 || $min < $max) {
                     switch ($mem_status) {
-                    case MEMBERSHIP_STATUS_ACTIVE:
-                    case MEMBERSHIP_STATUS_ARREARS:
+                    case Status::ACTIVE:
+                    case Status::ARREARS:
                         $size = $max * 1048576;
                         break;
                     default:
@@ -1249,8 +1285,13 @@ class Membership
                 break;
             default:
                 // User fields
-                $retval[$fld] = $U->$fld;
+                if (isset($U->$fld)) {
+                    $retval[$fld] = $U->$fld;
+                } else {
+                    $retval[$fld] = '';
+                }
                 if ($retval[$fld] === NULL) {
+                    // set from the object, but null
                     $retval[$fld] = '';
                 }
                 break;
@@ -1523,9 +1564,9 @@ class Membership
             $frmchk = '';
             $exp_query = sprintf(
                 "AND m.mem_status IN(%d, %d, %d) AND mem_expires >= '%s'",
-                MEMBERSHIP_STATUS_ACTIVE,
-                MEMBERSHIP_STATUS_ENABLED,
-                MEMBERSHIP_STATUS_ARREARS,
+                Status::ACTIVE,
+                Status::ENABLED,
+                Status::ARREARS,
                 Dates::expGraceEnded()
             );
         }
@@ -1845,9 +1886,9 @@ class Membership
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
-        $stat = MEMBERSHIP_STATUS_ENABLED . ',' .
-            MEMBERSHIP_STATUS_ACTIVE . ',' .
-            MEMBERSHIP_STATUS_ARREARS;
+        $stat = Status::ENABLED . ',' .
+            Status::ACTIVE . ',' .
+            Status::ARREARS;
 
         $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
             FROM {$_TABLES['membership_members']} m
@@ -1882,7 +1923,7 @@ class Membership
     {
         global $_TABLES;
 
-        $stat = MEMBERSHIP_STATUS_ENABLED . ',' . MEMBERSHIP_STATUS_ACTIVE;
+        $stat = Status::ENABLED . ',' . Status::ACTIVE;
         $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['users']} u
@@ -1918,7 +1959,7 @@ class Membership
         $days = (int)$_CONF_MEMBERSHIP['drop_days'];
         if ($days > -1) {
             $sql = "UPDATE {$_TABLES['membership_members']}
-                SET mem_status = " . MEMBERSHIP_STATUS_DROPPED . " WHERE
+                SET mem_status = " . Status::DROPPED . " WHERE
                 '" . Dates::Today() . "' > (mem_expires + interval $days DAY)";
             $res = DB_query($sql, 1);
             $num = DB_affectedRows($res);
@@ -1949,7 +1990,7 @@ class Membership
         ) {
             return;
         }
-        $stat = MEMBERSHIP_STATUS_ACTIVE . ',' . MEMBERSHIP_STATUS_ENABLED;
+        $stat = Status::ACTIVE . ',' . Status::ENABLED;
         $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
                 u.email, u.username, u.fullname
             FROM {$_TABLES['membership_members']} m

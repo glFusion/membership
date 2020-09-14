@@ -208,6 +208,7 @@ $LANG_MEMBERSHIP = array(
 'notify_exp' => 'Send Expiration Reminders?',
 'notify' => 'Notify',
 'confirm_notify' => 'Are you sure you want to send notifications to the selected members?',
+'at_dscp_membership' => 'Show a member group list in a page. [membership:grplist listname notitle:true|false]',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
