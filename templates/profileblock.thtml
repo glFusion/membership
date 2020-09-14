@@ -4,66 +4,63 @@
   <fieldset>
   <legend>{$LANG_MEMBERSHIP['block_title']}</legend>
 {!else}
-<nav class="uk-navbar">
-  <div class="uk-navbar-content">
-  {$LANG_MEMBERSHIP['block_title']}
-  </div>
-</nav>
+<div class="block-box">
+    <h2>{$LANG_MEMBERSHIP['block_title']}</h2>
 {!endif}
-<table class="uk-table uk-table-condensed">
-  <tr>
-    <td>{$LANG_MEMBERSHIP['plan']}:</td>
-    <td>{plan_name}</td>
-  </tr>
-  <tr>
-    <td>{$LANG_MEMBERSHIP['joined']}:</td>
-    <td>{joined}</td>
-  </tr>
-  <tr>
-    <td>{$LANG_MEMBERSHIP['expires']}:</td>
-    <td>{expires}</td>
-  </tr>
-  {!if position}
-  <tr>
-    <td>{$LANG_MEMBERSHIP['position']}:</td>
-    <td>{position}</td>
-  </tr>
-  {!endif}
+    <table class="uk-table uk-table-condensed">
+        <tr>
+            <td>{$LANG_MEMBERSHIP['plan']}:</td>
+            <td>{plan_name}</td>
+        </tr>
+        <tr>
+            <td>{$LANG_MEMBERSHIP['joined']}:</td>
+            <td>{joined}</td>
+        </tr>
+        <tr>
+            <td>{$LANG_MEMBERSHIP['expires']}:</td>
+            <td>{expires}</td>
+        </tr>
+{!if position}
+        <tr>
+            <td>{$LANG_MEMBERSHIP['position']}:</td>
+            <td>{position}</td>
+        </tr>
+{!endif}
 {!if mem_number}
-  <tr>
-    <td>{$LANG_MEMBERSHIP['mem_number']}:</td>
-    <td>{mem_number}</td>
-  </tr>
+        <tr>
+            <td>{$LANG_MEMBERSHIP['mem_number']}:</td>
+            <td>{mem_number}</td>
+        </tr>
 {!endif}
-  <tr>
-    <td>{$LANG_MEMBERSHIP['linked_accounts']}:</td>
-    <td>
-      <input type="hidden" value="{old_links}" />
-      {!if nolinks}
-      {$LANG_MEMBERSHIP['none']}
-      {!else}
-      <table id="linktable" border="0">
-        <!-- BEGIN LinkBlock -->
-        <tr><td>
-          <a href="{site_url}/users.php?mode=profile&amp;uid={link_uid}">{link_uname}</a>
-        </td></tr>
-        <!-- END LinkBlock -->
-      </table>
-      {!endif}
-    </td>
-  </tr>
-  {!if app_link}
-  <tr>
-    <td>{$LANG_MEMBERSHIP['application']}:</td>
-    <td>
-      <a href="#!" onclick="popupWindow('{site_url}/membership/app.php?uid={uid}&amp;prt', 'Application', 640, 480, 1)" class="toolbar">{$LANG_MEMBERSHIP['view']}</a>&nbsp;&nbsp;
-      <a href="{site_url}/membership/index.php?prt&amp;uid={my_uid}" target="_blank" class="toolbar">{$LANG_MEMBERSHIP['print']}</a>
-    </td>
-  </tr>
-  {!endif}
-</table>
+        <tr>
+            <td>{$LANG_MEMBERSHIP['linked_accounts']}:</td>
+            <td>
+                <input type="hidden" value="{old_links}" />
+{!if nolinks}
+                {$LANG_MEMBERSHIP['none']}
+{!else}
+                <table id="linktable" border="0">
+<!-- BEGIN LinkBlock -->
+                    <tr><td>
+                        <a href="{site_url}/users.php?mode=profile&amp;uid={link_uid}">{link_uname}</a>
+                    </td></tr>
+<!-- END LinkBlock -->
+                </table>
+{!endif}
+            </td>
+        </tr>
+{!if app_link}
+        <tr>
+            <td>{$LANG_MEMBERSHIP['application']}:</td>
+            <td>
+                <a href="#!" onclick="popupWindow('{site_url}/membership/app.php?uid={uid}&amp;prt', 'Application', 640, 480, 1)" class="toolbar">{$LANG_MEMBERSHIP['view']}</a>&nbsp;&nbsp;
+                <a href="{site_url}/membership/index.php?prt&amp;uid={my_uid}" target="_blank" class="toolbar">{$LANG_MEMBERSHIP['print']}</a>
+            </td>
+        </tr>
+{!endif}
+    </table>
 {!if panel}
-  </fieldset>
-</div>
+    </fieldset>
 {!endif}
+</div>
 {# end {templatelocation} #}
