@@ -41,7 +41,6 @@ class Status
      */
     public const DROPPED = 128;
 
-    
     /**
      * Get the mailing list segment for different member statuses.
      * Used with Mailchimp integration to set the group (segment) in the list.
@@ -49,7 +48,7 @@ class Status
      *
      * @return  string      List segment matching the membership status
      */
-    function getSegment($status)
+    public static function getSegment($status)
     {
         global $_CONF_MEMBERSHIP;
 
