@@ -17,6 +17,11 @@ if (!defined ('GVERSION')) {
     die ('This file can not be used on its own!');
 }
 
+use Membership\Status;
+use Membership\Plan;
+use Membership\Membership;
+use Membership\Logger;
+use Membership\Dates;
 
 /**
  * Get information about a specific item.
@@ -57,7 +62,7 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     );
     $retval = PLG_RET_OK;       // assume response will be OK
 
-    $P = new \Membership\Plan($plan_id);
+    $P = new Plan($plan_id);
     if ($P->getPlanID() != '') {
         $isnew = $plan_mod == 'renewal' ? false : true;
         $output['short_description'] = $P->getName();
@@ -119,7 +124,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     }
 
     // Retrieve or create a membership record.
-    $M = new \Membership\Membership($uid);
+    $M = new Membership($uid);
 
     if ($M->getPlanID() != $id[1]) {
         // Changed membership plans
@@ -128,7 +133,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 
     if ($M->getPlan() === NULL && MEMB_getVar($_CONF_MEMBERSHIP, 'use_mem_number', 'integer') == 2) {
         // New member, apply membership number if configured
-        $M->setMemNumber(\Membership\Membership::createMemberNumber($uid));
+        $M->setMemNumber(Membership::createMemberNumber($uid));
     }
 
     if (!SEC_inGroup($M->getPlan()->getGrpAccess(), $uid)) {
@@ -138,7 +143,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 
     $amount = (float)$ipn_data['pmt_gross'];
     if ($amount < $M->Price()) {    // insufficient funds
-        Membership\Logger::Audit('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
+        Logger::Audit('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
         return PLG_RET_ERROR;
     }
 
@@ -153,7 +158,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
             'file' => '',
     );
 
-    Membership\audit(
+    Logger::Audit(
         'Processing membership for ' . COM_getDisplayName($uid) . "($uid), plan {$id[1]}", true
     );
     if ($uid > 1) {
@@ -190,9 +195,9 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     if (!MEMBERSHIP_isManager()) return PLG_RET_NOACCESS;
 
     $opts = array(
-        Membership\Status::ENABLED => $LANG_MEMBERSHIP['current'],
-        Membership\Status::ARREARS => $LANG_MEMBERSHIP['arrears'],
-        //Membership\Status::EXPIRED => $LANG_MEMBERSHIP['expired'],
+        Status::ENABLED => $LANG_MEMBERSHIP['current'],
+        Status::ARREARS => $LANG_MEMBERSHIP['arrears'],
+        //Status::EXPIRED => $LANG_MEMBERSHIP['expired'],
     );
     $output = array();
     // If posted variables are recieved, use them. Otherwise, use GET but only
@@ -213,11 +218,11 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
         // Use the default setting if no other options received
         $exp_stat = array();
         if ($_CONF_MEMBERSHIP['prflist_current'] == 1)
-            $exp_stat[] = Membership\Models\Status::ENABLED;
+            $exp_stat[] = Status::ENABLED;
         if ($_CONF_MEMBERSHIP['prflist_arrears'] == 1)
-            $exp_stat[] = Membership\Models\Status::ARREARS;
+            $exp_stat[] = Status::ARREARS;
         //if ($_CONF_MEMBERSHIP['prflist_expired'] == 1)
-        //    $exp_stat[] = Membership\Models\Status::EXPIRED;
+        //    $exp_stat[] = Status::EXPIRED;
     }
     if (!is_array($exp_stat)) {
         $exp_stat = array();
@@ -277,23 +282,23 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
         $exp_stat = array();
         if (is_int($args['incl_exp_stat'])) {
             foreach (array(
-                Membership\Models\Status::ENABLED,
-                Membership\Models\Status::ARREARS,
-                Membership\Models\Status::EXPIRED,
+                Status::ENABLED,
+                Status::ARREARS,
+                Status::EXPIRED,
             ) as $key) {
                 if (($args['incl_exp_stat'] & $key) == $key) {
                     $exp_stat[] = $key;
                 }
             }
         } elseif (is_array($args['incl_exp_stat'])) {
-            if ($args['incl_exp_stat'] && Membership\Models\Status::ENABLED) {
-                $exp_stat[] = Membership\Models\Status::ENABLED;
+            if ($args['incl_exp_stat'] && Status::ENABLED) {
+                $exp_stat[] = Status::ENABLED;
             }
-            if ($args['incl_exp_stat'] && Membership\Models\Status::ARREARS) {
-                $exp_stat[] = Membership\Models\Status::ARREARS;
+            if ($args['incl_exp_stat'] && Status::ARREARS) {
+                $exp_stat[] = Status::ARREARS;
             }
-            if ($args['incl_exp_stat'] && Membership\Models\Status::EXPIRED) {
-                $exp_stat[] = Membership\Models\Status::EXPIRED;
+            if ($args['incl_exp_stat'] && Status::EXPIRED) {
+                $exp_stat[] = Status::EXPIRED;
             }
         }
     }
@@ -306,15 +311,15 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
             // Only create sql if filtering on some expiration status
             $grace = (int)$_CONF_MEMBERSHIP['grace_days'];
             $exp_arr = array();
-            if ($incl_exp_stat & Membership\Models\Status::ENABLED == Membership\Models\Status::ENABLED) {
-                $exp_arr[] = "$members.mem_expires >= '" . Membership\Dates::Today() . "'";
+            if ($incl_exp_stat & Status::ENABLED == Status::ENABLED) {
+                $exp_arr[] = "$members.mem_expires >= '" . Dates::Today() . "'";
             }
-            if ($incl_exp_stat & Membership\Models\Status::ARREARS) {
-                $exp_arr[] = "($members.mem_expires < '" . Membership\Dates::Today() . "'
-                    AND $members.mem_expires >= '" . Membership\Dates::expGraceEnded() . "')";
+            if ($incl_exp_stat & Status::ARREARS) {
+                $exp_arr[] = "($members.mem_expires < '" . Dates::Today() . "'
+                    AND $members.mem_expires >= '" . Dates::expGraceEnded() . "')";
             }
-            if ($incl_exp_stat & Membership\Models\Status::EXPIRED) {
-                $exp_arr[] = "$members.mem_expires < '" . Membership\Dates::expGraceEnded() . "'";
+            if ($incl_exp_stat & Status::EXPIRED) {
+                $exp_arr[] = "$members.mem_expires < '" . Dates::expGraceEnded() . "'";
             }
             if (!empty($exp_arr)) {
                 $where = "$members.mem_expires > '0000-00-00' AND (" .
@@ -404,9 +409,9 @@ function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
 {
     global $_CONF_MEMBERSHIP;
 
-    if ($fieldvalue >= Membership\Dates::Today()) {
+    if ($fieldvalue >= Dates::Today()) {
         $cls = 'member_current';
-    } elseif ($fieldvalue >= Membership\Dates::expGraceEnded()) {
+    } elseif ($fieldvalue >= Dates::expGraceEnded()) {
         $cls = 'member_arrears';
     } else {
         $cls = 'member_expired';
@@ -434,19 +439,19 @@ function service_status_membership($args, &$output, &$svc_msg)
     if (!isset($info[$uid])) {
         // Create user element and populate with default values
         $info[$uid] = array(
-            'status' => Membership\Models\Status::DROPPED,
+            'status' => Status::DROPPED,
             'joined' => '0000-00-00',
             'expires' => '0000-00-00',
             'plan' => '',
         );
-        $Mem = \Membership\Membership::getInstance($uid);
+        $Mem = Membership::getInstance($uid);
         if (!$Mem->isNew()) {
             if ($Mem->isCurrent()) {
-                $info[$uid]['status'] = Membership\Models\Status::ACTIVE;
+                $info[$uid]['status'] = Status::ACTIVE;
             } elseif ($Mem->isExpired()) {
-                $info[$uid]['status'] = Membership\Models\Status::EXPIRED;
+                $info[$uid]['status'] = Status::EXPIRED;
             } else {
-                $info[$uid]['status'] = Membership\Models\Status::ARREARS;
+                $info[$uid]['status'] = Status::ARREARS;
             }
             $info[$uid]['joined'] = $Mem->getJoined();
             $info[$uid]['expires'] = $Mem->getExpires();
@@ -476,7 +481,7 @@ function service_iscurrent_membership($args, &$output, &$svc_msg)
     $status = service_status_membership($args, $myout, $svc_msg);
     if ($status != PLG_RET_OK) return $status;
 
-    if ($myout['status'] == Membership\Models\Status::ACTIVE) {
+    if ($myout['status'] == Status::ACTIVE) {
         $output = true;
     } else {
         $output = false;
@@ -503,8 +508,8 @@ function service_ismember_membership($args, &$output, &$svc_msg)
     if ($status != PLG_RET_OK) return $status;
 
     if (
-        $myout['status'] == Membership\Models\Status::ACTIVE ||
-        $myout['status'] == Membership\Models\Status::ARREARS
+        $myout['status'] == Status::ACTIVE ||
+        $myout['status'] == Status::ARREARS
     ) {
         $output = true;
     } else {
@@ -527,12 +532,12 @@ function service_ismember_membership($args, &$output, &$svc_msg)
 function service_mailingSegment_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES;
-
+var_dump($args);die;
     // Get the current statuses
     //$statuses = MEMBERSHIP_memberstatuses();
 
     // Set a default return value
-    $output = Membership\Models\Status::getSegment(Membership\Models\Status::DROPPED);
+    $output = Status::getSegment(Status::DROPPED);
     $uid = 0;
 
     if (isset($args['email']) && !empty($args['email'])) {
@@ -546,7 +551,7 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
         $myargs = array('uid' => $uid);
         $code = service_status_membership($myargs, $myout, $svc_msg);
         if ($code == PLG_RET_OK && isset($statuses[$myout['status']])) {
-            $output = Membership\Models\Status::getSegment($myout['status']);
+            $output = Status::getSegment($myout['status']);
         }
     }
     return PLG_RET_OK;
@@ -573,7 +578,7 @@ function service_getDetailPage_membership($args, &$output, &$svc_msg)
     if (!isset($item_info[1]) || empty($item_info[1])) {    // missing item ID
         return PLG_RET_PRECONDITION_FAILED;
     }
-    $output = \Membership\Plan::listPlans($item_info[1]);
+    $output = Plan::listPlans($item_info[1]);
     return PLG_RET_OK;
 }
 

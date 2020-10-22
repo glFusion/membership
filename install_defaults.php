@@ -493,6 +493,17 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
+    array(
+        'name' => 'merge_fldname',
+        'default_value' => '',
+        'type' => 'text',
+        'subgroup' => 10,
+        'fieldset' => 10,
+        'selection_array' => 0,
+        'sort' => 60,
+        'set' => true,
+        'group' => 'membership',
+    ),
 
     // Media Gallery integration
     array(

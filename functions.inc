@@ -675,7 +675,6 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
     $parts = explode(':', $id);
     $type = $parts[0];
     $id = isset($parts[1]) ? $parts[1] : 0;
-//    $subtype = isset($options['subtype']) ? $options['subtype'] : 'plan';
     $properties = explode(',', $what);
     $retval = array();
 
@@ -710,7 +709,7 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
     case 'membership':
         if ($id == '*') return $retval; // getAll not supported
         $M = Membership\Membership::getInstance($id);
-        $props = $M->getItemInfo($properties, $options);
+        $retval = $M->getItemInfo($properties, $options);
         break;
     }
 
@@ -926,10 +925,10 @@ function MEMBERSHIP_memberstatuses()
 {
     global $_CONF_MEMBERSHIP;
     $types = array(
-        Membership\Models\Status::ACTIVE => $_CONF_MEMBERSHIP['segment_active'],
-        Membership\Models\Status::ARREARS => $_CONF_MEMBERSHIP['segment_arrears'],
-        Membership\Models\Status::EXPIRED => $_CONF_MEMBERSHIP['segment_expired'],
-        Membership\Models\Status::DROPPED => $_CONF_MEMBERSHIP['segment_dropped'],
+        Membership\Status::ACTIVE => $_CONF_MEMBERSHIP['segment_active'],
+        Membership\Status::ARREARS => $_CONF_MEMBERSHIP['segment_arrears'],
+        Membership\Status::EXPIRED => $_CONF_MEMBERSHIP['segment_expired'],
+        Membership\Status::DROPPED => $_CONF_MEMBERSHIP['segment_dropped'],
     );
     return $types;
 }

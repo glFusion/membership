@@ -11,7 +11,7 @@
  *              GNU Public License v2 or later
  * @filesource
  */
-namespace Membership\Models;
+namespace Membership;
 
 
 /**
@@ -66,6 +66,58 @@ class Status
         case self::DROPPED:
             $retval = $_CONF_MEMBERSHIP['segment_dropped'];
             break;
+        }
+        return $retval;
+    }
+
+
+    public static function getTags($segment)
+    {
+        global $_CONF_MEMBERSHIP;
+
+        $tags = array();
+        foreach (array(
+            'segment_active', 'segment_arrears', 'segment_expired', 'segment_dropped'
+            ) as $key
+        ) {
+            if (!empty($_CONF_MEMBERSHIP[$key])) {
+                $tags[$_CONF_MEMBERSHIP[$key]] = 'inactive';
+            }
+        }
+        if (!empty($segment) && isset($tags[$segment])) {
+            $tags[$segment] = 'active';
+        }
+        return $tags;
+    }
+
+
+    /**
+     * Get parameters for Mailchimp to update tags or merge fields.
+     * Returns a merge field name=>value if a field name is configured,
+     * otherwise returns an array of tags.
+     *
+     * @param   integer $status     Membership status
+     * @return  array       Array of merge field or tag values
+     */
+    public static function getMCparams($status)
+    {
+        global $_CONF_MEMBERSHIP;
+
+        $retval = array();
+        $segment = self::getSegment($status);
+        if (
+            !empty($_CONF_MEMBERSHIP['merge_fldname']) &&
+            !empty($segment)
+        ) {
+            $retval = array(
+                'merge_fields' => array(
+                    $_CONF_MEMBERSHIP['merge_fldname'] => $segment,
+                ),
+            );
+        } else {
+            $retval = array(
+                'tags' => self::getTags($segment),
+            );
         }
         return $retval;
     }

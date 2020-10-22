@@ -11,7 +11,6 @@
  * @filesource
  */
 namespace Membership;
-use Membership\Models\Status;
 
 
 /**
@@ -169,11 +168,10 @@ class Membership
             // Will be set via DB read, probably not via form
             $this->uid = (int)$A['mem_uid'];
         }
-//        if (isset($A['mem_paid'])) $this->paid = $A['mem_paid'];
         if (isset($A['mem_joined'])) $this->joined = $A['mem_joined'];
         if (isset($A['mem_expires'])) $this->expires = $A['mem_expires'];
         if (isset($A['mem_plan_id'])) $this->plan_id = $A['mem_plan_id'];
-        if (isset($A['mem_status'])) $this->status = $A['mem_status'] ? 1 : 0;
+        if (isset($A['mem_status'])) $this->status = (int)$A['mem_status'];
         $this->notified = MEMB_getVar($A, 'mem_notified', 'integer', $_CONF_MEMBERSHIP['notifycount']);
         if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
         $this->istrial = MEMB_getVar($A, 'mem_istrial', 'integer', 0);
@@ -607,7 +605,7 @@ class Membership
             if ($this->status == Status::ACTIVE) {
                 USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
             }
-            self::updatePlugins('membership:' . $key, $old_status, $this->status);
+            self::updatePlugins($key, $old_status, $this->status);
         }
 
         // If this is a payment transaction, as opposed to a simple edit,
@@ -661,7 +659,7 @@ class Membership
         $sql = "UPDATE {$_TABLES['membership_members']} SET
                 mem_status = $new_status
                 WHERE mem_uid = $uid";
-        //echo $sql;die;
+        //COM_errorLog($sql);
         DB_query($sql, 1);
 
         // Remove this member from the membership groups
@@ -679,7 +677,7 @@ class Membership
                 DB_query("UPDATE {$_TABLES['membership_members']} SET
                         mem_status = $new_status
                         WHERE mem_uid = $key", 1);
-                self::updatePlugins('membership:' . $key, $old_status, $new_status);
+                self::updatePlugins($key, $old_status, $new_status);
             }
         }
         return true;
@@ -689,14 +687,28 @@ class Membership
     /**
      * Cancel a membership.
      * Called when the administrator removes a membership plan from a
-     * member's profile.
+     * member's profile. Updates the expiration date to the current date
+     * and then calls self::Expire() to perform normal expiration actions.
      *
      * @param   integer $uid    User ID to cancel
      * @param   boolean $cancel_relatives   True to cancel linked accounts
      */
     public static function Cancel($uid=0, $cancel_relatives=true)
     {
-        self::Expire($uid, $cancel_relatives);
+        global $_TABLES, $_CONF;
+
+        $uid = (int)$uid;
+        $sql = "UPDATE {$_TABLES['membership_members']} SET
+            mem_expires = '" . $_CONF['_now']->format('Y-m-d') . "',
+            mem_notified = 0 ";
+        if ($cancel_relatives) {
+            $M = self::getInstance($uid);
+            $sql .= "WHERE mem_guid = '" . $M->getGuid() . "'";
+        } else {
+            $sql .= " WHERE mem_uid = " . $uid;
+        }
+        DB_query($sql);
+        self::Expire($uid, $cancel_relatives, false);
     }
 
 
@@ -708,8 +720,9 @@ class Membership
      *
      * @param   integer $uid    User ID to cancel
      * @param   boolean $cancel_relatives   True to cancel linked accounts
+     * @param   boolean $notify True to send normal notification
      */
-    public static function Expire($uid=0, $cancel_relatives=true)
+    public static function Expire($uid=0, $cancel_relatives=true, $notify=true)
     {
         // Remove this member from any club positions held
         foreach (Position::getByMember($uid) as $P) {
@@ -719,7 +732,9 @@ class Membership
         self::_disableAccount($uid);
 
         // Send a final notification, if notifications are used
-        self::notifyExpiration(array($uid));
+        if ($notify) {
+            self::notifyExpiration(array($uid));
+        }
 
         self::_UpdateStatus(
             $uid,
@@ -727,6 +742,7 @@ class Membership
             Status::ARREARS,
             Status::EXPIRED
         );
+        Cache::clear('members');
     }
 
 
@@ -1097,7 +1113,7 @@ class Membership
             return;
         }
 
-        PLG_itemSaved($uid, $_CONF_MEMBERSHIP['pi_name']);
+        PLG_itemSaved('membership:' . $uid, $_CONF_MEMBERSHIP['pi_name']);
 
         /*
         // Gets statuses from plugin config into an array
@@ -1257,7 +1273,7 @@ class Membership
     /**
      * Return information for the getItemInfo function in functions.inc.
      *
-     * @param   string  $what   Array of field names, already exploded
+     * @param   array   $what   Array of field names, already exploded
      * @param   array   $options    Additional options
      * @return  array       Array of fieldname=>value
      */
@@ -1271,7 +1287,7 @@ class Membership
                 $retval[$fld] = $this->uid;
                 break;
             case 'list_segment':
-                $retval[$fld] = MEMBERSHIP_memberstatuses()[$this->status];
+                $retval[$fld] = Status::getMCparams($this->status);
                 break;
             case 'uid':
             case 'plan_id':
@@ -1297,7 +1313,6 @@ class Membership
                 break;
             }
         }
-        //var_dump($retval);die;
         return $retval;
     }
 
@@ -1997,8 +2012,10 @@ class Membership
         }
         $stat = Status::ACTIVE . ',' . Status::ENABLED;
         $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
-                u.email, u.username, u.fullname
+                u.email, u.username, u.fullname, p.name, p.description
             FROM {$_TABLES['membership_members']} m
+            LEFT JOIN {$_TABLES['membership_plans']} p
+                ON p.plan_id = m.mem_plan_id
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid ";
         if (is_array($ids)) {
@@ -2072,12 +2089,12 @@ class Membership
                     'site_name'     => $_CONF['site_name'],
                     'username'      => $username,
                     'pi_name'       => $_CONF_MEMBERSHIP['pi_name'],
-                    'plan_name'     => $row['name'],
-                    'plan_id'       => $row['plan_id'],
+                    'plan_id'       => $row['mem_plan_id'],
+                    'name'          => $row['name'],
                     'description'   => $row['description'],
                     'detail_url'    => MEMBERSHIP_PI_URL .
                         '/index.php?detail=x&amp;plan_id=' .
-                        urlencode($row['plan_id']
+                        urlencode($row['mem_plan_id']
                     ),
                     'buy_button'    => $button,
                     'exp_my'        => $dt->format('F, Y', true),
@@ -2141,6 +2158,7 @@ class Membership
             if (DB_error()) {
                 Logger::System("membership: error executing $sql");
             }
+            Cache::clear('members');
         }
     }
 
