@@ -115,7 +115,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
             // get all the types and create position group records from them.
             $res = DB_query("SELECT id, type FROM {$_TABLES['membership_positions']}");
             $idx = 0;
-            while ($A = DB_query($res, true)) {
+            while ($A = DB_fetchArray($res, false)) {
                 $idx++;
                 $orderby = $idx * 10;
                 $_UPGRADE_SQL[$current_ver][] = "INSERT INTO {$_TABLES['membership_posgroups']}
@@ -150,7 +150,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     require_once __DIR__ . '/install_defaults.php';
     _update_config('membership', $membershipConfigData);
     _MEMB_remove_old_files();
-
+    Membership\Cache::clear();
     Membership\Logger::System("Successfully updated the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin", 1);
     return true;
 }
