@@ -122,4 +122,23 @@ class Status
         return $retval;
     }
 
+
+    /**
+     * Get the status value from the expiration date.
+     *
+     * @param   string  $exp_date   Expiration date YYYY-MM-DD
+     * @return  integer         Membership status value
+     */
+    public static function fromExpiration($exp_date)
+    {
+        if ($exp_date >= Dates::Today()) {
+            $retval = self::ACTIVE;
+        } elseif ($exp_date > Dates::expGraceEnded()) {
+            $retval = self::ARREARS;
+        } else {
+            $retval = self::EXPIRED;
+        }
+        return $retval;
+    }
+
 }
