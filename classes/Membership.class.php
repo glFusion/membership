@@ -305,7 +305,8 @@ class Membership
      */
     public function isExpired()
     {
-        return $this->expires < Dates::expGraceEnded();
+        return Status::fromExpiration($this->expires) == Status::EXPIRED;
+        //return $this->expires < Dates::expGraceEnded();
     }
 
 
@@ -318,10 +319,11 @@ class Membership
      */
     public function isArrears()
     {
-        return (
+        return Status::fromExpiration($this->expires) == Status::ARREARS;
+        /*return (
             $this->expires > Dates::Today() &&
             Dates::Today() < Dates::expGraceEnded()
-        );
+        );*/
     }
 
 
@@ -346,7 +348,7 @@ class Membership
      */
     public function EditForm($action_url = '')
     {
-        global $_CONF, $_USER, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+        global $_CONF, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file(array(
@@ -533,12 +535,7 @@ class Membership
             return true;
         }
 
-        // Date has been updated with a later date. If updated to an earlier
-        // date then the expiration/arrears will be handled by
-        // runScheduledTask
-        if ($this->expires > Dates::Today()) {
-            $this->status = Status::ACTIVE;
-        }
+        $this->status = Status::fromExpiration($this->expires);
 
         // If this plan updates linked accounts, get all the accounts.
         // Already updated any link changes above.
@@ -567,8 +564,11 @@ class Membership
             // Create membership number if not already defined for the account
             // Include trailing comma, be sure to place it appropriately in
             // the sql statement that follows
-            if ($_CONF_MEMBERSHIP['use_mem_number'] &&
-                    $this->isNew && $this->mem_number == '') {
+            if (
+                $_CONF_MEMBERSHIP['use_mem_number'] &&
+                $this->isNew &&
+                $this->mem_number == ''
+            ) {
                 $this->mem_number = self::createMemberNumber($key);
             }
 
@@ -636,13 +636,12 @@ class Membership
      * @param   integer $new_status     New status value to set
      * @return  boolean     True on success, False on error
      */
-    private static function _UpdateStatus($uid, $inc_relatives, $old_status, $new_status)
+    private function _UpdateStatus($uid, $inc_relatives, $old_status, $new_status)
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
 
         $uid = (int)$uid;
         if ($uid < 2) return false;
-        $Mem = self::getInstance($uid);
         $new_status = (int)$new_status;
         USES_lib_user();
 
@@ -669,7 +668,7 @@ class Membership
 
         // Now do the same thing for all the relatives.
         if ($inc_relatives) {
-            $relatives = $Mem->getLinks();
+            $relatives = $this->getLinks();
             foreach ($relatives as $key => $name) {
                 foreach ($groups as $group) {
                     USER_delGroup($group, $key);
@@ -708,7 +707,7 @@ class Membership
             $sql .= " WHERE mem_uid = " . $uid;
         }
         DB_query($sql);
-        self::Expire($uid, $cancel_relatives, false);
+        $this->Expire($cancel_relatives, false);
     }
 
 
@@ -718,31 +717,32 @@ class Membership
      * self::Cancel for memberships that are cancelled manually.
      * Assume the current status is "Active" to force status-change operations.
      *
-     * @param   integer $uid    User ID to cancel
      * @param   boolean $cancel_relatives   True to cancel linked accounts
      * @param   boolean $notify True to send normal notification
+     * @return  object  $this
      */
-    public static function Expire($uid=0, $cancel_relatives=true, $notify=true)
+    public function Expire($cancel_relatives=true, $notify=true)
     {
         // Remove this member from any club positions held
         foreach (Position::getByMember($uid) as $P) {
             $P->setMember(0);
         }
         // Disable the account if so configured
-        self::_disableAccount($uid);
+        $this->_disableAccount();
 
         // Send a final notification, if notifications are used
         if ($notify) {
             self::notifyExpiration(array($uid));
         }
 
-        self::_UpdateStatus(
+        $this->_UpdateStatus(
             $uid,
             $cancel_relatives,
             Status::ARREARS,
             Status::EXPIRED
         );
         Cache::clear('members');
+        return $this;
     }
 
 
@@ -751,20 +751,20 @@ class Membership
      * Called from plugin_runScheduledTask when the membership is overdue.
      * Assume the current status is "Active" to force status-change operations.
      *
-     * @param   integer $uid    User ID to cancel
      * @param   boolean $cancel_relatives   True to cancel linked accounts
      */
-    public static function Arrears($uid=0, $cancel_relatives=true)
+    public function Arrears($cancel_relatives=true)
     {
         // Send a final notification, if notifications are used
         self::notifyExpiration(array($uid));
 
-        self::_UpdateStatus(
+        $this->_UpdateStatus(
             $uid,
             $cancel_relatives,
             Status::ACTIVE,
             Status::ARREARS
         );
+        return $this;
     }
 
 
@@ -1115,51 +1115,15 @@ class Membership
 
         PLG_itemSaved('membership:' . $uid, $_CONF_MEMBERSHIP['pi_name']);
 
-        /*
-        // Gets statuses from plugin config into an array
-        //  my_status_name => mailchimp_value_name
-        $statuses = MEMBERSHIP_memberstatuses();
-
-        $retval = PLG_RET_OK;
-        $uid = (int)$uid;
-        $new_status = isset($statuses[$new_status]) ?
-                $statuses[$new_status] : null;
-        if ($new_status === null) {
-            // unrecognized status received
-            return;
-        }
-
-        // 1. Update the Mailchimp plugin
-        if ($_CONF_MEMBERSHIP['update_maillist']) {
-            $status = PLGinvokeService('mailchimp', 'updateuser',
-                array(
-                    'uid' => $uid,
-                    'params' => array(
-                        'merge_vars' => array(
-                            'MEMSTATUS'=> $new_status,
-                        ),
-                    ),
-                ),
-                $output,
-                $svc_msg
-            );
-            if ($status != PLG_RET_OK) {
-                Logger::System('Membership: Error updating mailling list. ' .
-                "User: $uid, Segment $new_status");
-                $retval = $status;
-            }
-        }
-        */
-
-        // 2. Update the image quota in mediagallery.
+        // Update the image quota in mediagallery.
         // Mediagallery doesn't have a service function, have to update the
         // database directly. Don't update users with unlimited quotas.
-        if ($_CONF_MEMBERSHIP['manage_mg_quota']  &&
-                in_array('mediagallery', $_PLUGINS)) {
-
+        if (
+            $_CONF_MEMBERSHIP['manage_mg_quota']  &&
+            in_array('mediagallery', $_PLUGINS)
+        ) {
             $quota = DB_getItem($_TABLES['mg_userprefs'], 'quota', "uid=$uid");
             if ($quota > 0) {
-
                 $max = (int)$_CONF_MEMBERSHIP['mg_quota_member'];
                 $min = (int)$_CONF_MEMBERSHIP['mg_quota_nonmember'];
                 // sanity checking. Min must be positive to have an effect,
@@ -1183,14 +1147,12 @@ class Membership
                             VALUES
                                 ($uid, $size)
                             ON DUPLICATE KEY UPDATE
-                                    quota = '$size'";
+                                quota = '$size'";
                         DB_query($sql, 1);
                     }
                 }
             }
         }
-
-        return;
     }
 
 
@@ -1279,6 +1241,8 @@ class Membership
      */
     public function getItemInfo($what, $options = array())
     {
+        global $_CONF_MEMBERSHIP;
+
         $retval = array();
         $U = User::getInstance($this->uid);
         foreach ($what as $fld) {
@@ -1287,7 +1251,9 @@ class Membership
                 $retval[$fld] = $this->uid;
                 break;
             case 'list_segment':
-                $retval[$fld] = Status::getMCparams($this->status);
+                if ($_CONF_MEMBERSHIP['update_maillist']) {
+                    $retval[$fld] = Status::getMCparams($this->status);
+                }
                 break;
             case 'uid':
             case 'plan_id':
@@ -1431,7 +1397,7 @@ class Membership
      */
     public function getLinks()
     {
-        global $_TABLES, $_USER;
+        global $_TABLES;
 
         // If uid is empty, use the curent id
         if ($this->uid < 1) return array();   // invalid user ID requested
@@ -1468,39 +1434,30 @@ class Membership
         global $_CONF_MEMBERSHIP, $_TABLES;
 
         // The brute-force way to get summary stats.  There must be a better way.
-        $sql = "SELECT DISTINCT(mem_guid), mem_plan_id, mem_expires
+        $sql = "SELECT mem_plan_id,
+            sum(case when mem_status = " . Status::ACTIVE . " then 1 else 0 end) as active,
+            sum(case when mem_status = " . Status::ARREARS . " then 1 else 0 end) as arrears
             FROM {$_TABLES['membership_members']}
-            WHERE mem_expires > '" . Dates::expGraceEnded() . "'";
+            WHERE mem_expires > '" . Dates::expGraceEnded() . "'
+            GROUP BY mem_plan_id";
         $rAll = DB_query($sql);
-        $stats = array();
-        $template = array('current' => 0, 'arrears' => 0);
-        while ($A = DB_fetchArray($rAll, false)) {
-            if (!isset($stats[$A['mem_plan_id']])) {
-                $stats[$A['mem_plan_id']] = $template;
-            }
-            if ($A['mem_expires'] >= Dates::Today()) {
-                $stats[$A['mem_plan_id']]['current']++;
-            } else {
-                $stats[$A['mem_plan_id']]['arrears']++;
-            }
-        }
 
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('stats', 'admin_stats.thtml');
-        $T->set_block('stats', 'statrow', 'srow');
         $linetotal = 0;
         $tot_current = 0;
         $tot_arrears = 0;
         $gtotal = 0;
-        foreach ($stats as $plan_id=>$data) {
-            $linetotal = $data['current'] + $data['arrears'];
-            $tot_current += $data['current'];
-            $tot_arrears += $data['arrears'];
+        while ($A = DB_fetchArray($rAll, false)) {
+            $T->set_block('stats', 'statrow', 'srow');
+            $linetotal = $A['active'] + $A['arrears'];
+            $tot_current += $A['active'];
+            $tot_arrears += $A['arrears'];
             $gtotal += $linetotal;
             $T->set_var(array(
-                'plan'          => $plan_id,
-                'num_current'   => $data['current'],
-                'num_arrears'   => $data['arrears'],
+                'plan'          => $A['mem_plan_id'],
+                'num_current'   => $A['active'],
+                'num_arrears'   => $A['arrears'],
                 'line_total'    => $linetotal,
             ) );
             $T->parse('srow', 'statrow', true);
@@ -1920,7 +1877,7 @@ class Membership
         $r = DB_query($sql, 1);
         if ($r) {
             while ($row = DB_fetchArray($r, false)) {
-                self::Expire($row['mem_uid'], true);
+                self::getInstance($row['mem_uid'])->Expire(true);
                 Logger::Audit(
                     sprintf(
                         $LANG_MEMBERSHIP['log_expired'],
@@ -1955,7 +1912,7 @@ class Membership
         $r = DB_query($sql, 1);
         if ($r) {
             while ($row = DB_fetchArray($r, false)) {
-                self::Arrears($row['mem_uid'], true);
+                self::getInstance($row['mem_uid'])->Arrears(true);
                 Logger::Audit(
                     sprintf(
                         $LANG_MEMBERSHIP['log_arrears'],
@@ -1999,7 +1956,7 @@ class Membership
      */
     public static function notifyExpiration($ids = NULL)
     {
-        global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
+        global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
 
         $interval = (int)$_CONF_MEMBERSHIP['notifydays'];
 
@@ -2010,6 +1967,7 @@ class Membership
         ) {
             return;
         }
+
         $stat = Status::ACTIVE . ',' . Status::ENABLED;
         $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
                 u.email, u.username, u.fullname, p.name, p.description
