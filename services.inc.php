@@ -532,7 +532,7 @@ function service_ismember_membership($args, &$output, &$svc_msg)
 function service_mailingSegment_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES;
-var_dump($args);die;
+
     // Get the current statuses
     //$statuses = MEMBERSHIP_memberstatuses();
 
@@ -548,11 +548,14 @@ var_dump($args);die;
     }
 
     if ($uid > 0) {
+        $output = plugin_getiteminfo_membership('membership:' . $uid, 'id,list_segment');
+        /*
         $myargs = array('uid' => $uid);
         $code = service_status_membership($myargs, $myout, $svc_msg);
         if ($code == PLG_RET_OK && isset($statuses[$myout['status']])) {
             $output = Status::getSegment($myout['status']);
         }
+         */
     }
     return PLG_RET_OK;
 }
