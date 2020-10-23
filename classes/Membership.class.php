@@ -482,7 +482,7 @@ class Membership
         if (is_array($A) && !empty($A)) {
             if ($A['mem_plan_id'] == '') {
                 // remove membership, leave record
-                self::Cancel($this->uid);
+                $this->Cancel();
                 return true;        // cancellation is a valid operation
             }
             $this->setVars($A);
@@ -531,7 +531,7 @@ class Membership
         // If set, cancel this member's membership along with all the new links
         // and return.
         if (isset($A['mem_cancel'])) {
-            self::Cancel($this->uid);
+            $this->Cancel();
             return true;
         }
 
@@ -692,7 +692,7 @@ class Membership
      * @param   integer $uid    User ID to cancel
      * @param   boolean $cancel_relatives   True to cancel linked accounts
      */
-    public static function Cancel($uid=0, $cancel_relatives=true)
+    public function Cancel($cancel_relatives=true)
     {
         global $_TABLES, $_CONF;
 
@@ -1044,25 +1044,22 @@ class Membership
      * Delete a membership record.
      * Only the specified user is deleted; linked accounts are not affected.
      * The specified user is also removed from the linked accounts.
-     *
-     * @param   integer $uid    Member's user ID
      */
-    public static function Delete($uid)
+    public function Delete()
     {
         global $_CONF_MEMBERSHIP, $_TABLES;
         USES_lib_user();
 
         // Remove this user from the family
-        //Link::Emancipate($uid);
-        self::remLink($uid);
+        self::remLink($this->uid);
 
         // Remove this user from the membership group
-        USER_delGroup($_CONF_MEMBERSHIP['member_group'], $uid);
+        USER_delGroup($_CONF_MEMBERSHIP['member_group'], $this->uid);
 
         // Delete this membership record
-        DB_delete($_TABLES['membership_members'], 'mem_uid', $uid);
+        DB_delete($_TABLES['membership_members'], 'mem_uid', $this->uid);
         Cache::clear('members');     // Make sure members and links are cleared
-        self::_disableAccount($uid);
+        $this->_disableAccount();
     }
 
 
@@ -1216,10 +1213,8 @@ class Membership
 
     /**
      * Disable a specific user's site account.
-     *
-     * @param   integer $uid    User ID to disable
      */
-    private static function _disableAccount($uid)
+    private function _disableAccount()
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
 
@@ -1227,7 +1222,7 @@ class Membership
             // Disable the user account at expiration, if so configured
             DB_query("UPDATE {$_TABLES['users']}
                     SET status = " . USER_ACCOUNT_DISABLED .
-                    " WHERE uid = $uid", 1);
+                    " WHERE uid = $this->uid", 1);
         }
     }
 
