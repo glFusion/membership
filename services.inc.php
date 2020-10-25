@@ -195,9 +195,9 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     if (!MEMBERSHIP_isManager()) return PLG_RET_NOACCESS;
 
     $opts = array(
-        Status::ENABLED => $LANG_MEMBERSHIP['current'],
+        Status::ACTIVE => $LANG_MEMBERSHIP['current'],
         Status::ARREARS => $LANG_MEMBERSHIP['arrears'],
-        //Status::EXPIRED => $LANG_MEMBERSHIP['expired'],
+        Status::EXPIRED => $LANG_MEMBERSHIP['expired'],
     );
     $output = array();
     // If posted variables are recieved, use them. Otherwise, use GET but only
@@ -218,7 +218,7 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
         // Use the default setting if no other options received
         $exp_stat = array();
         if ($_CONF_MEMBERSHIP['prflist_current'] == 1)
-            $exp_stat[] = Status::ENABLED;
+            $exp_stat[] = Status::ACTIVE;
         if ($_CONF_MEMBERSHIP['prflist_arrears'] == 1)
             $exp_stat[] = Status::ARREARS;
         //if ($_CONF_MEMBERSHIP['prflist_expired'] == 1)
@@ -282,7 +282,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
         $exp_stat = array();
         if (is_int($args['incl_exp_stat'])) {
             foreach (array(
-                Status::ENABLED,
+                Status::ACTIVE,
                 Status::ARREARS,
                 Status::EXPIRED,
             ) as $key) {
@@ -291,8 +291,8 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                 }
             }
         } elseif (is_array($args['incl_exp_stat'])) {
-            if ($args['incl_exp_stat'] && Status::ENABLED) {
-                $exp_stat[] = Status::ENABLED;
+            if ($args['incl_exp_stat'] && Status::ACTIVE) {
+                $exp_stat[] = Status::ACTIVE;
             }
             if ($args['incl_exp_stat'] && Status::ARREARS) {
                 $exp_stat[] = Status::ARREARS;
@@ -311,7 +311,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
             // Only create sql if filtering on some expiration status
             $grace = (int)$_CONF_MEMBERSHIP['grace_days'];
             $exp_arr = array();
-            if ($incl_exp_stat & Status::ENABLED == Status::ENABLED) {
+            if ($incl_exp_stat & Status::ACTIVE == Status::ACTIVE) {
                 $exp_arr[] = "$members.mem_expires >= '" . Dates::Today() . "'";
             }
             if ($incl_exp_stat & Status::ARREARS) {
@@ -548,7 +548,7 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
     }
 
     if ($uid > 0) {
-        $output = plugin_getiteminfo_membership('membership:' . $uid, 'id,list_segment');
+        $output = plugin_getiteminfo_membership('membership:' . $uid, 'id,merge_fields');
         /*
         $myargs = array('uid' => $uid);
         $code = service_status_membership($myargs, $myout, $svc_msg);

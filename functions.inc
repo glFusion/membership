@@ -658,6 +658,28 @@ function plugin_runScheduledTask_membership()
 
 
 /**
+ * Get mailing list merge fields.
+ *
+ * @param   integer $uid    Member user ID
+ * @return  array       Array of name=>value pairs
+ */
+function plugin_getMergeFields_membership($uid)
+{
+    $properties = array(
+        'id',
+        'merge_fields',
+    );
+    $M = Membership\Membership::getInstance($uid);
+    $output = $M->getItemInfo($properties);
+    if (isset($output['merge_fields'])) {
+        return $output['merge_fields'];
+    } else {
+        return array();
+    }
+}
+
+
+/**
  * Provides the getItemInfo function for memberships.
  * The $id parameter may indicate a plan ID or a specific member ID,
  * depending on the fields in $options.

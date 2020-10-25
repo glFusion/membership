@@ -24,10 +24,6 @@ class Status
      */
     public const ACTIVE = 0;
 
-    /** Member is enabled. Unused.
-     */
-    public const ENABLED = 1;
-
     /** Member is in arrears.
      * Expired, but within the grace period for renewal.
      */
@@ -99,7 +95,7 @@ class Status
      * @param   integer $status     Membership status
      * @return  array       Array of merge field or tag values
      */
-    public static function getMCparams($status)
+    public static function getMergeFields($status)
     {
         global $_CONF_MEMBERSHIP;
 
@@ -110,13 +106,7 @@ class Status
             !empty($segment)
         ) {
             $retval = array(
-                'merge_fields' => array(
-                    $_CONF_MEMBERSHIP['merge_fldname'] => $segment,
-                ),
-            );
-        } else {
-            $retval = array(
-                'tags' => self::getTags($segment),
+                $_CONF_MEMBERSHIP['merge_fldname'] => $segment,
             );
         }
         return $retval;

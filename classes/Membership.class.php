@@ -37,7 +37,7 @@ class Membership
 
     /** Membership status.
      * @var integer */
-    private $status = Status::ACTIVE;
+    private $status = Status::DROPPED;
 
     /** Date joined.
      * @var string */
@@ -107,7 +107,9 @@ class Membership
             $retval = Cache::get($cache_key);
             if ($retval === NULL) {
                 $retval = new self($uid);
-                Cache::set($cache_key, $retval, 'members');
+                if (!$retval->isNew()) {
+                    Cache::set($cache_key, $retval, 'members');
+                }
             }
         } else {
             $retval = new self();
@@ -1240,15 +1242,14 @@ class Membership
 
         $retval = array();
         $U = User::getInstance($this->uid);
+
         foreach ($what as $fld) {
             switch ($fld) {
             case 'id':
                 $retval[$fld] = $this->uid;
                 break;
-            case 'list_segment':
-                if ($_CONF_MEMBERSHIP['update_maillist']) {
-                    $retval[$fld] = Status::getMCparams($this->status);
-                }
+            case 'merge_fields':
+                $retval[$fld] = Status::getMergeFields($this->status);
                 break;
             case 'uid':
             case 'plan_id':
@@ -1537,7 +1538,6 @@ class Membership
             $exp_query = sprintf(
                 "AND m.mem_status IN(%d, %d, %d) AND mem_expires >= '%s'",
                 Status::ACTIVE,
-                Status::ENABLED,
                 Status::ARREARS,
                 Dates::expGraceEnded()
             );
@@ -1858,8 +1858,7 @@ class Membership
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
-        $stat = Status::ENABLED . ',' .
-            Status::ACTIVE . ',' .
+        $stat = Status::ACTIVE . ',' .
             Status::ARREARS;
 
         $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
@@ -1895,7 +1894,7 @@ class Membership
     {
         global $_TABLES;
 
-        $stat = Status::ENABLED . ',' . Status::ACTIVE;
+        $stat = Status::ACTIVE;
         $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['users']} u
@@ -1963,7 +1962,7 @@ class Membership
             return;
         }
 
-        $stat = Status::ACTIVE . ',' . Status::ENABLED;
+        $stat = Status::ACTIVE;
         $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
                 u.email, u.username, u.fullname, p.name, p.description
             FROM {$_TABLES['membership_members']} m
