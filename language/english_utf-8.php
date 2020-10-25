@@ -286,6 +286,7 @@ $LANG_confignames['membership'] = array(
     'app_form_id' => 'Application form ID if Forms plugin is used',
     'expires_eom' => 'Memberships expire at end of month?',
     'notifycount' => 'Number of notifications to send',
+    'merge_fldname' => 'Merge Field Name',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']
