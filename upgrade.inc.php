@@ -175,7 +175,7 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
 
     // If no sql statements passed in, return success
     if (!isset($_UPGRADE_SQL[$version]) || !is_array($_UPGRADE_SQL[$version])) {
-        Membership\Logger::System("No SQL update for $current_ver");
+        Membership\Logger::System("No SQL update for $version");
         return true;
     }
     $sql_err_msg = 'SQL Error during Membership plugin update';
