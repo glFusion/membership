@@ -39,7 +39,7 @@ class User
         global $_USER;
 
         if ($uid == 0) {
-            $uid = $_USER['uid'];
+            $uid = (int)$_USER['uid'];
         }
         $this->Read($uid);
     }
@@ -92,11 +92,12 @@ class User
         global $_TABLES;
 
         $uid = (int)$uid;
-        $cache_key = 'uid_' . $uid;
+        //$cache_key = 'uid_' . $uid;
         //$A = Cache::get($cache_key);
         $A = NULL;  // temp until user caching works
         if ($A === NULL) {
-            $sql = "SELECT * from {$_TABLES['users']} u
+            $sql = "SELECT u.*, m.terms_accept
+                FROM {$_TABLES['users']} u
                 LEFT JOIN {$_TABLES['membership_users']} m
                 ON m.uid = u.uid
                 WHERE u.uid=$uid";
