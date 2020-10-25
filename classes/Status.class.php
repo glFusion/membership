@@ -22,7 +22,7 @@ class Status
 {
     /** Member is active (current).
      */
-    public const ACTIVE = 0;
+    public const ACTIVE = 1;
 
     /** Member is in arrears.
      * Expired, but within the grace period for renewal.
