@@ -74,10 +74,20 @@ class User
      */
     public function setVars($info)
     {
+        global $_CONF;
+
         foreach ($info as $key=>$value) {
+            if ($key == 'passwd') {
+                continue;
+            }
             $this->$key = $value;
         }
         if ($this->fullname == '') $this->fullname = $this->username;
+        if (isset($info['language']) && !empty($info['language'])) {
+            $this->language = $info['language'];
+        } else {
+            $this->language = $_CONF['language'];
+        }
     }
 
 
@@ -132,6 +142,27 @@ class User
     }
 
 
+    /**
+     * Get the name of the current language, minus the character set.
+     * Same as COM_getLanguageName() but works on the current user language.
+     * Strips the character set from `$_CONF['language']`.
+     *
+     * @return  string  Language name, e.g. "english"
+     */
+    public static function getLanguageName($language)
+    {
+        global $_CONF;
+
+        $retval = '';
+
+        $charset = '_' . strtolower(COM_getCharset());
+        if (substr($language, -strlen($charset)) == $charset) {
+            $retval = substr($language, 0, -strlen($charset));
+        } else {
+            $retval = $language;
+        }
+        return $retval;
+    }
+
 }   // class User
 
-?>
