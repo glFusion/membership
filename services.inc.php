@@ -192,13 +192,14 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
 
     // Non-managers don't get access to view other members' expiration
-    if (!MEMBERSHIP_isManager()) return PLG_RET_NOACCESS;
+    if (!MEMBERSHIP_isManager()) return PLG_RET_PERMISSION_DENIED;
 
     $opts = array(
         Status::ACTIVE => $LANG_MEMBERSHIP['current'],
         Status::ARREARS => $LANG_MEMBERSHIP['arrears'],
         Status::EXPIRED => $LANG_MEMBERSHIP['expired'],
     );
+
     $output = array();
     // If posted variables are recieved, use them. Otherwise, use GET but only
     // if POST is empty. Otherwise the user may have just unchecked all the
