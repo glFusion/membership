@@ -1311,12 +1311,11 @@ class Membership
         if ($Mem1->isNew()) {
             Logger::System("Cannot link user $uid2 to nonexistant membership for $uid1");
             return false;
-        } elseif (!$Mem1->Plan->isFamily()) {
+        } elseif (!$Mem1->getPlan()->isFamily()) {
             Logger::System("Cannot link $uid2 to a non-family plan");
             return false;
         }
 
-        // TODO: Check here for $Mem1->Plan to see if it uses linked accounts?
         $Mem2 = self::getInstance($uid2);
         if ($Mem2->isNew()) {
             if ($_CONF_MEMBERSHIP['use_mem_number']) {
@@ -1946,7 +1945,6 @@ class Membership
 
     /**
      * Notify users that have memberships soon to expire.
-     * This is in functions.inc so it can be called from runscheduledTask.
      */
     public static function notifyExpiration($ids = NULL)
     {
@@ -1964,13 +1962,17 @@ class Membership
 
         $stat = Status::ACTIVE;
         $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
-                u.email, u.username, u.fullname, p.name, p.description
+                u.email, u.username, u.fullname, u.language,
+                p.name, p.description
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['membership_plans']} p
                 ON p.plan_id = m.mem_plan_id
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid ";
-        if (is_array($ids)) {
+        if (!empty($ids)) {
+            if (!is_array($ids)) {
+                $ids = array($ids);
+            }
             // Force the notification and disregard the notification counter
             $sql .= "WHERE m.mem_uid IN (" . implode(',', $ids) . ")";
         } else {
@@ -1987,18 +1989,18 @@ class Membership
 
         $today = $_CONF['_now']->format('Y-m-d', true);
         $notified_ids = array();    // holds memberhsip IDs that get notified
-        $template_base = MEMBERSHIP_PI_PATH . '/templates/notify';
+        $template_base = __DIR__ . '/../templates/notify';
 
         while ($row = DB_fetchArray($r, false)) {
             if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_EMAIL) {
                 // Create a notification email message.
                 $username = COM_getDisplayName($row['mem_uid']);
+
                 $P = Plan::getInstance($row['mem_plan_id']);
                 if ($P->isNew() || !$P->notificationsEnabled()) {
                     // Do not send notifications for this plan
                     continue;
                 }
-
                 $is_expired = $row['mem_expires'] <= $today ? true : false;
                 $args = array(
                     'custom'    => array('uid'   => $row['mem_uid']),
@@ -2032,7 +2034,9 @@ class Membership
                 $button = ($status == PLG_RET_OK) ? $output[0] : '';
                 $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
 
-                $T = new \Template($template_base);
+                $T = new \Template(array(
+                    $template_base,
+                ) );
                 $T->set_file(array(
                     'outer' => 'exp_outer.thtml',
                     'message' => 'exp_message.thtml',
@@ -2042,8 +2046,8 @@ class Membership
                     'username'      => $username,
                     'pi_name'       => $_CONF_MEMBERSHIP['pi_name'],
                     'plan_id'       => $row['mem_plan_id'],
-                    'name'          => $row['name'],
-                    'description'   => $row['description'],
+                    'plan_name'     => $row['name'],
+                    'plan_dscp'     => $row['description'],
                     'detail_url'    => MEMBERSHIP_PI_URL .
                         '/index.php?detail=x&amp;plan_id=' .
                         urlencode($row['mem_plan_id']

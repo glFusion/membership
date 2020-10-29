@@ -209,6 +209,13 @@ $LANG_MEMBERSHIP = array(
 'notify' => 'Notify',
 'confirm_notify' => 'Are you sure you want to send notifications to the selected members?',
 'at_dscp_membership' => 'Show a member group list in a page. [membership:grplist listname notitle:true|false]',
+'msg_exp_reminder' => 'Just a reminder that your ' . $_CONF['site_name'] . ' membership',
+'msg_is-expired' => 'has expired as of',
+'msg_expiring_eom' => 'will expire at the end of',
+'msg_expiring_on' => 'will expire on',
+'msg_expiring_renew' => 'Log into <a href="{site_url}/membership/index.php">{site_url}/membership/index.php</a> to update your application and renew.',
+'msg_renew_shop' => 'Or, renew now by clicking here',
+'sincerely' => 'Sincerely',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
