@@ -216,6 +216,7 @@ $LANG_MEMBERSHIP = array(
 'msg_expiring_renew' => 'Log into <a href="{site_url}/membership/index.php">{site_url}/membership/index.php</a> to update your application and renew.',
 'msg_renew_shop' => 'Or, renew now by clicking here',
 'sincerely' => 'Sincerely',
+'greeting' => 'Hello',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';

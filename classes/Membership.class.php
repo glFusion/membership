@@ -1989,7 +1989,15 @@ class Membership
 
         $today = $_CONF['_now']->format('Y-m-d', true);
         $notified_ids = array();    // holds memberhsip IDs that get notified
-        $template_base = __DIR__ . '/../templates/notify';
+        $T = new \Template(array(
+            $_CONF['path_layout'] . 'email/',
+            __DIR__ . '/../templates/notify/',
+        ) );
+        $T->set_file(array(
+            'html_msg' => 'mailtemplate_html.thtml',
+            'text_msg' => 'mailtemplate_text.thtml',
+            'message' => 'exp_message.thtml',
+        ) );
 
         while ($row = DB_fetchArray($r, false)) {
             if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_EMAIL) {
@@ -2034,13 +2042,6 @@ class Membership
                 $button = ($status == PLG_RET_OK) ? $output[0] : '';
                 $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
 
-                $T = new \Template(array(
-                    $template_base,
-                ) );
-                $T->set_file(array(
-                    'outer' => 'exp_outer.thtml',
-                    'message' => 'exp_message.thtml',
-                ) );
                 $T->set_var(array(
                     'site_name'     => $_CONF['site_name'],
                     'username'      => $username,
@@ -2061,18 +2062,43 @@ class Membership
                     'is_expired'    => $is_expired,
                     'expire_eom'    => $_CONF_MEMBERSHIP['expires_eom'],
                 ) );
-
                 $T->parse('exp_msg', 'message');
-                $T->parse('output', 'outer');
-                $message = $T->finish($T->get_var('output'));
+
+                $html_content = $T->finish($T->get_var('exp_msg'));
+                $T->set_block('html_msg', 'content', 'contentblock');
+                $T->set_var('content_text', $html_content);
+                $T->parse('contentblock', 'content',true);
+
+                // Remove the button from the text version, HTML not supported.
+                $T->unset_var('buy_button');
+                $T->parse('exp_msg', 'message');
+                $html_content = $T->finish($T->get_var('exp_msg'));
+                $html2TextConverter = new \Html2Text\Html2Text($html_content);
+                $text_content = $html2TextConverter->getText();
+                $T->set_block('text_msg', 'contenttext', 'contenttextblock');
+                $T->set_var('content_text', $text_content);
+                $T->parse('contenttextblock', 'contenttext',true);
+
+                $T->parse('output', 'html_msg');
+                $html_msg = $T->finish($T->get_var('output'));
+                $T->parse('textoutput', 'text_msg');
+                $text_msg = $T->finish($T->get_var('textoutput'));
+
                 Logger::Audit("Notifying $username at {$row['email']}");
-                COM_mail(
-                    array($row['email'], $username),
-                    "{$LANG_MEMBERSHIP['exp_notice']}",
-                    $message,
-                    "{$_CONF['site_name']} <{$_CONF['site_mail']}>",
-                    true
+                $msgData = array(
+                    'htmlmessage' => $html_msg,
+                    'textmessage' => $text_msg,
+                    'subject' => $LANG_MEMBERSHIP['exp_notice'],
+                    'from' => array(
+                        'name' => $_CONF['site_name'],
+                        'email' => $_CONF['noreply_mail'],
+                    ),
+                    'to' => array(
+                        'name' => $username,
+                        'email' => $row['email'],
+                    ),
                 );
+                COM_emailNotification($msgData);
             }
 
             if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_MESSAGE) {
@@ -2120,4 +2146,3 @@ class Membership
 
 }
 
-?>
