@@ -832,7 +832,7 @@ class Membership
      * in the tab and will include the javascript-controlled div tags.
      *
      * @see     plugin_profileedit_membership()
-     * @see     plugin_profilevariablesdisplay_membership()
+     * @see     plugin_profileblocksdisplay_membership()
      * @param   boolean $panel  True if showing in the panel, false if not.
      * @param   integer $uid    User ID being displayed, default = current user
      * @return  string      HTML for membership data display

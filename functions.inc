@@ -423,20 +423,19 @@ function plugin_itemPreSave_membership($mode, $username)
  * Displays membership info in the user's profile.
  *
  * @param   integer  $uid   User ID whose profile is being displayed
- * @param   object   $T     Pointer to template object
  * @return  string          HTML to include in profile page
  */
-function plugin_profilevariablesdisplay_membership($uid, &$T)
+function plugin_profileblocksdisplay_membership($uid)
 {
     global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
 
     // non-admins can only see their own subscription.
-    if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager())
+    if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager()) {
         return '';
+    }
 
     $M = Membership\Membership::getInstance($uid);
-    $existingFields = $T->get_var('plugin_fields');
-    $T->set_var('plugin_fields', $existingFields . $M->showInfo(false, $uid));
+    return $M->showInfo(false, $uid);
 }
 
 
