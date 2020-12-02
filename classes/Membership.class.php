@@ -734,11 +734,11 @@ class Membership
 
         // Send a final notification, if notifications are used
         if ($notify) {
-            self::notifyExpiration(array($uid));
+            self::notifyExpiration(array($this->uid));
         }
 
         $this->_UpdateStatus(
-            $uid,
+            $this->uid,
             $cancel_relatives,
             Status::ARREARS,
             Status::EXPIRED
@@ -758,10 +758,10 @@ class Membership
     public function Arrears($cancel_relatives=true)
     {
         // Send a final notification, if notifications are used
-        self::notifyExpiration(array($uid));
+        self::notifyExpiration(array($this->uid));
 
         $this->_UpdateStatus(
-            $uid,
+            $this->uid,
             $cancel_relatives,
             Status::ACTIVE,
             Status::ARREARS
