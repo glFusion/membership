@@ -1203,9 +1203,14 @@ class Plan
     }
 
 
-    public static function haveLinked()
+    /**
+     * Check if the current site user can purchase this plan.
+     *
+     * @return  boolean     True if purchase is allowed, False if not
+     */
+    public function canPurchase()
     {
-        return DB_count($_TABLES['membership_plans'], 'upd_links', 1);
+        return SEC_inGroup($this->grp_access);
     }
 
 
