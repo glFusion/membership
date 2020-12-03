@@ -1945,6 +1945,8 @@ class Membership
 
     /**
      * Notify users that have memberships soon to expire.
+     *
+     * @param   array   $ids    Optional specific IDs to notify
      */
     public static function notifyExpiration($ids = NULL)
     {
@@ -1960,6 +1962,7 @@ class Membership
             return;
         }
 
+        // By default only active members are notified.
         $stat = Status::ACTIVE;
         $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
                 u.email, u.username, u.fullname, u.language,
