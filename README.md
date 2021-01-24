@@ -49,4 +49,4 @@ can provide the application (Profile is recommended).
 - lgLib plugin 1.0.9 or later for core functions
 - Either the Profile plugin or the Forms plugin to handle applications
 - The Shop plugin can be integrated to handle membership payments.
-- The Mailchimp plugin can be integrated to segment lists by member status.
+- The Mailer plugin can be integrated to segment lists by member status.

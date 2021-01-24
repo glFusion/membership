@@ -160,7 +160,7 @@ class App
                 sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlanID(), $M->getExpires()),
         ) );
         if ($_CONF_MEMBERSHIP['update_maillist']) {
-            $status = PLG_invokeService('mailchimp', 'issubscribed',
+            $status = PLG_invokeService('mailer', 'issubscribed',
                 array(
                     'uid'=>$this->uid,
                 ),
@@ -280,9 +280,11 @@ class App
                 // Save and log the terms and conditions acceptance.
                 // Subscribe the user to the default mailing list
                 // if selected
-                if (isset($_POST['mailchimp_subscribe']) &&
-                    $_POST['mailchimp_subscribe'] == 1) {
-                    PLG_invokeService('mailchimp', 'subscribe',
+                if (
+                    isset($_POST['maillist_subscribe']) &&
+                    $_POST['maillist_subscribe'] == 1
+                ) {
+                    PLG_invokeService('mailer', 'subscribe',
                         array(
                             'uid'=> $uid,
                         ),

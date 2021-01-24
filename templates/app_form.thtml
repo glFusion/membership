@@ -7,13 +7,6 @@
 <input type="hidden" name="mem_uid" value="{mem_uid}" />
 <input type="hidden" name="purch_url" value="{purch_url}" />
 {profile_fields}
-{!if update_maillist}
-<p>
-  {$LANG_MEMBERSHIP['mailchimp_subscribe']}&nbsp;&nbsp;
-  <input type="radio" name="mailchimp_subscribe" value="1" />Yes&nbsp;&nbsp;
-  <input type="radio" name="mailchimp_subscribe" value="0" />No
-</p>
-{!endif}
 <hr />
 {!if terms_required}
 <a name="agree_terms"></a>

@@ -863,7 +863,7 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
         return 'membership';
         break;
     case 'tagusage':
-        return array('namespace' => 'membership', 'usage' => 'description');
+        return array(array('namespace' => 'membership', 'usage' => 'description'));
         break;
     case 'desc':
         switch ($content) {
@@ -937,8 +937,9 @@ function MEMBERSHIP_currentMembership()
 
 /**
  * Get the description for different member types.
- * Used with Mailchimp integration to set the group (segment) in the list.
- * The strings must match segments (groups) set up in Mailchimp.
+ * Used with Mailer integration to set the group/segment/merge field in
+ * the list. The strings must match segments (groups) set up with the
+ * mailing list provider.
  *
  * @return  array   array(int=>string) of membership statuses
  */

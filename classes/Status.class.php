@@ -39,8 +39,8 @@ class Status
 
     /**
      * Get the mailing list segment for different member statuses.
-     * Used with Mailchimp integration to set the group (segment) in the list.
-     * The strings must match segments (groups) set up in Mailchimp.
+     * Used with Mailer integration to set the group (segment) in the list.
+     * The strings must match segments (groups) set up in Mailer.
      *
      * @return  string      List segment matching the membership status
      */
@@ -88,7 +88,7 @@ class Status
 
 
     /**
-     * Get parameters for Mailchimp to update tags or merge fields.
+     * Get parameters for Mailer to update tags or merge fields.
      * Returns a merge field name=>value if a field name is configured,
      * otherwise returns an array of tags.
      *

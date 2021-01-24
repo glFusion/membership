@@ -58,8 +58,8 @@ There is no automatic facility for deleting membership records completely from t
       </dl>
 
       <dl id="desc_notifydays">
-        <dt>Days before expiration to send notifications</dt>
-        <dd>This is the number of days prior to expiration when notifications will be sent to members. Only one notification will be sent per expiration; when the membership is renewed the flag is reset so that an email will be sent before the new expiration date. Enter "-1" to disable notifications completely.</dd>
+        <dt>Expiration Notification Interval</dt>
+        <dd>Enter a number of days to serve as the notification interval. Used with the Number of Notifications, this will be the &quot;Y&quot; in &quot;Send X notifications Y days apart.&quot;</dd>
       </dl>
 
       <dl id="desc_notifycount">
@@ -186,27 +186,27 @@ There is no automatic facility for deleting membership records completely from t
 
       <dl id="desc_update_maillist">
         <dt>Update mailing list segment</dt>
-        <dd>If the Mailchimp plugin is installed, the Membership plugin can call it to update the list segment associated with different member statuses. You can then segment your mailing list by Current, Former and Non-Members. The segments must be set up in Mailchimp in advance for this to work.</dd>
+        <dd>If the Mailer plugin is installed, the Membership plugin can call it to update the list segment associated with different member statuses. You can then segment your mailing list by Current, Former and Non-Members. The segments must be set up in Mailer in advance for this to work.</dd>
       </dl>
 
       <dl id="desc_segment_active">
         <dt>Segment for active members</dt>
-        <dd>Enter the Mailchimp list segment to use for active (current) members.</dd>
+        <dd>Enter the Mailer list segment to use for active (current) members.</dd>
       </dl>
 
       <dl id="desc_segment_arrears">
         <dt>Segment for members in arrears</dt>
-        <dd>Enter the Mailchimp list segment to use for members in arrears (expired but within the grace period).</dd>
+        <dd>Enter the Mailer list segment to use for members in arrears (expired but within the grace period).</dd>
       </dl>
 
       <dl id="desc_segment_expired">
         <dt>Segment for expired members</dt>
-        <dd>Enter the Mailchimp list segment to use for expired members who have not renewed within the grace period.</dd>
+        <dd>Enter the Mailer list segment to use for expired members who have not renewed within the grace period.</dd>
       </dl>
 
       <dl id="desc_segment_dropped">
         <dt>Segment for non-members</dt>
-        <dd>Enter the Mailchimp list segment to use for members with no membership record. Includes members dropped from the database.</dd>
+        <dd>Enter the Mailer list segment to use for members with no membership record. Includes members dropped from the database.</dd>
       </dl>
 
       <dl id="desc_manage_mg_quota">
@@ -241,7 +241,7 @@ There is no automatic facility for deleting membership records completely from t
 
       <dl id="desc_merge_fldname">
           <dt>Merge Field Name</dt>
-          <dd>Enter the Mailchimp merge field name used to indicate member status. Only needed if you wish to segment your mailing list.</dd>
+          <dd>Enter the Mailer merge field name used to indicate member status. Only needed if you wish to segment your mailing list.</dd>
       </dl>
 
     </div>
