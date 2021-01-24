@@ -913,8 +913,8 @@ class Plan
             }
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
-            if ($_CONF_MEMBERSHIP['expire_eom']) {
-                $exp_day = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+            if ($_CONF_MEMBERSHIP['expires_eom']) {
+                $exp_day = cal_days_in_month(CAL_GREGORIAN, $exp_month, $exp_year);
             }
         } else {
             // If there's a fixed month for renewal, check if the membership
@@ -1203,9 +1203,14 @@ class Plan
     }
 
 
-    public static function haveLinked()
+    /**
+     * Check if the current site user can purchase this plan.
+     *
+     * @return  boolean     True if purchase is allowed, False if not
+     */
+    public function canPurchase()
     {
-        return DB_count($_TABLES['membership_plans'], 'upd_links', 1);
+        return SEC_inGroup($this->grp_access);
     }
 
 

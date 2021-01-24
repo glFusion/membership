@@ -426,7 +426,7 @@ $membershipConfigData = array(
         'group' => 'membership',
     ),
     array(
-        'name' => 'fs_mailchimp',
+        'name' => 'fs_mailer',
         'default_value' => NULL,
         'type' => 'fieldset',
         'subgroup' => 10,
@@ -436,7 +436,7 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
-    // Update Mailchimp mailing list?
+    // Update Mailer segment?
     array(
         'name' => 'update_maillist',
         'default_value' => 0,
@@ -448,7 +448,7 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
-    // Mailchimp segments. Enter a segment name for Active, Arrears, Expired and Non-Membrers.
+    // Mailer segments. Enter a segment name for Active, Arrears, Expired and Non-Membrers.
     array(
         'name' => 'segment_active',
         'default_value' => '',

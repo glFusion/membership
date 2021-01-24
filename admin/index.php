@@ -334,7 +334,6 @@ $T->set_var(array(
 ) );
 $T->parse('output','page');
 $output .= $T->finish($T->get_var('output'));
-$output .= LGLIB_showAllMessages();
 $output .= $content;
 if ($footer != '') $output .= '<p>' . $footer . '</p>' . LB;
 $output .= Membership\Menu::siteFooter();

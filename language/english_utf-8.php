@@ -107,7 +107,7 @@ $LANG_MEMBERSHIP = array(
 'from'          => 'From',
 'to'            => 'To',
 'pmt_form'      => 'Remittance Coupon',
-'pmt_instructions' => 'Please print this coupon and include it with your payment to be sure that we credit your membership properly.<br />Once your payment and application are processed, your website account will be updated to reflect your membership.',
+'pmt_instructions' => 'Please print this coupon and include it with your payment to be sure that we credit your membership properly.<br /><br />Once your payment and application are processed, your website account will be updated to reflect your membership.',
 'make_payable'  => 'Make your check or money order payable to &quot;%s&quot; and send it to',
 'membership_fee' => 'Membership Fee',
 'processing_fee' => 'Online Processing Fee',
@@ -191,7 +191,6 @@ $LANG_MEMBERSHIP = array(
 'terms_link' => 'Click <a href="#!agree_terms" onclick="popupWindow(\'%s\', \'Help\', 640, 480, 1)" class="toolbar">here</a> to review.',
 'err_terms_accept' => 'You must accept the terms and conditions.',
 'field_required' => 'This item cannot be left blank',
-'mailchimp_subscribe' => 'Subscribe to our mailing list?',
 'import_current' => 'Import Current Members',
 'import_from_grp' => 'Import members from group',
 'mem_number' => 'Membership Number',
@@ -209,6 +208,14 @@ $LANG_MEMBERSHIP = array(
 'notify' => 'Notify',
 'confirm_notify' => 'Are you sure you want to send notifications to the selected members?',
 'at_dscp_membership' => 'Show a member group list in a page. [membership:grplist listname notitle:true|false]',
+'msg_exp_reminder' => 'Just a reminder that your ' . $_CONF['site_name'] . ' membership',
+'msg_is_expired' => 'has expired as of',
+'msg_expiring_eom' => 'will expire at the end of',
+'msg_expiring_on' => 'will expire on',
+'msg_expiring_renew' => 'Log into <a href="{site_url}/membership/index.php">{site_url}/membership/index.php</a> to update your application and renew.',
+'msg_renew_shop' => 'Or, renew now by clicking here',
+'sincerely' => 'Sincerely',
+'greeting' => 'Hello',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
@@ -235,7 +242,7 @@ $LANG_fs['membership'] = array(
     'fs_main' => 'General Settings',
     'fs_prflist' => 'Member List Options',
     'fs_checkpay' => 'Manual Payment Options',
-    'fs_mailchimp' => 'Mailchimp',
+    'fs_mailer' => 'Mailer',
     'fs_mediagallery' => 'MediaGallery',
     'fs_shop' => 'Shop Plugin',
     'fs_app' => 'Applications',
@@ -286,6 +293,7 @@ $LANG_confignames['membership'] = array(
     'app_form_id' => 'Application form ID if Forms plugin is used',
     'expires_eom' => 'Memberships expire at end of month?',
     'notifycount' => 'Number of notifications to send',
+    'merge_fldname' => 'Merge Field Name',
 );
 
 // Note: entries 0, 1, and 12 are the same as in $LANG_configselects['Core']

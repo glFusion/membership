@@ -151,7 +151,7 @@ case 'prt':
 case 'pmtform':
     $M = \Membership\Membership::getInstance();
     $P = \Membership\Plan::getInstance($_GET['plan_id']);
-    if (!$P->isNew()) {
+    if (!$P->isNew() && $P->canPurchase()) {
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('pmt', 'pmt_form.thtml');
         $price_actual = $P->Price($M->isNew(), 'actual');
@@ -185,6 +185,8 @@ case 'pmtform':
         $content = $T->finish($T->get_var('output'));
         echo $content;
         exit;
+    } else {
+        COM_404();
     }
     break;
 
@@ -202,7 +204,6 @@ default:
 }
 
 $display = \Membership\Menu::siteHeader($pageTitle);
-$display .= LGLIB_showAllMessages();
 $display .= $content;
 $display .= \Membership\Menu::siteFooter();
 echo $display;

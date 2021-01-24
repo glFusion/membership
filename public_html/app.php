@@ -79,9 +79,9 @@ case 'edit':
 }
 
 $display = \Membership\Menu::siteHeader();
-$display .= LGLIB_showAllMessages(true);
-if (!empty($msg))
+if (!empty($msg)) {
     $display .= COM_showMessage($msg, $_CONF_MEMBERSHIP['pi_name']);
+}
 $display .= $content;
 $display .= \Membership\Menu::siteFooter();
 echo $display;

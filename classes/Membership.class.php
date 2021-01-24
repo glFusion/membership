@@ -37,7 +37,7 @@ class Membership
 
     /** Membership status.
      * @var integer */
-    private $status = Status::ACTIVE;
+    private $status = Status::DROPPED;
 
     /** Date joined.
      * @var string */
@@ -107,7 +107,9 @@ class Membership
             $retval = Cache::get($cache_key);
             if ($retval === NULL) {
                 $retval = new self($uid);
-                Cache::set($cache_key, $retval, 'members');
+                if (!$retval->isNew()) {
+                    Cache::set($cache_key, $retval, 'members');
+                }
             }
         } else {
             $retval = new self();
@@ -178,6 +180,17 @@ class Membership
         // This will never come from a form:
         if (isset($A['mem_guid'])) $this->guid = $A['mem_guid'];
         return $this;
+    }
+
+
+    /**
+     * Get the glFusion user ID.
+     *
+     * @return  integer     User ID
+     */
+    public function getUid()
+    {
+        return (int)$this->uid;
     }
 
 
@@ -306,7 +319,6 @@ class Membership
     public function isExpired()
     {
         return Status::fromExpiration($this->expires) == Status::EXPIRED;
-        //return $this->expires < Dates::expGraceEnded();
     }
 
 
@@ -482,7 +494,7 @@ class Membership
         if (is_array($A) && !empty($A)) {
             if ($A['mem_plan_id'] == '') {
                 // remove membership, leave record
-                self::Cancel($this->uid);
+                $this->Cancel();
                 return true;        // cancellation is a valid operation
             }
             $this->setVars($A);
@@ -531,7 +543,7 @@ class Membership
         // If set, cancel this member's membership along with all the new links
         // and return.
         if (isset($A['mem_cancel'])) {
-            self::Cancel($this->uid);
+            $this->Cancel();
             return true;
         }
 
@@ -596,6 +608,8 @@ class Membership
             DB_query($sql, 1);
             if (DB_error()) {
                 Logger::System(__CLASS__ . '::Save() sql error: ' . $sql);
+            } else {
+                Logger::Audit("Member {$this->uid} updated.");
             }
 
             // Add the member to the groups if the status has changed,
@@ -692,19 +706,17 @@ class Membership
      * @param   integer $uid    User ID to cancel
      * @param   boolean $cancel_relatives   True to cancel linked accounts
      */
-    public static function Cancel($uid=0, $cancel_relatives=true)
+    public function Cancel($cancel_relatives=true)
     {
         global $_TABLES, $_CONF;
 
-        $uid = (int)$uid;
         $sql = "UPDATE {$_TABLES['membership_members']} SET
             mem_expires = '" . $_CONF['_now']->format('Y-m-d') . "',
             mem_notified = 0 ";
         if ($cancel_relatives) {
-            $M = self::getInstance($uid);
-            $sql .= "WHERE mem_guid = '" . $M->getGuid() . "'";
+            $sql .= "WHERE mem_guid = '" . $this->getGuid() . "'";
         } else {
-            $sql .= " WHERE mem_uid = " . $uid;
+            $sql .= " WHERE mem_uid = " . $this->getUid();
         }
         DB_query($sql);
         $this->Expire($cancel_relatives, false);
@@ -724,7 +736,7 @@ class Membership
     public function Expire($cancel_relatives=true, $notify=true)
     {
         // Remove this member from any club positions held
-        foreach (Position::getByMember($uid) as $P) {
+        foreach (Position::getByMember($this->uid) as $P) {
             $P->setMember(0);
         }
         // Disable the account if so configured
@@ -732,11 +744,11 @@ class Membership
 
         // Send a final notification, if notifications are used
         if ($notify) {
-            self::notifyExpiration(array($uid));
+            self::notifyExpiration(array($this->uid));
         }
 
         $this->_UpdateStatus(
-            $uid,
+            $this->uid,
             $cancel_relatives,
             Status::ARREARS,
             Status::EXPIRED
@@ -756,10 +768,10 @@ class Membership
     public function Arrears($cancel_relatives=true)
     {
         // Send a final notification, if notifications are used
-        self::notifyExpiration(array($uid));
+        self::notifyExpiration(array($this->uid));
 
         $this->_UpdateStatus(
-            $uid,
+            $this->uid,
             $cancel_relatives,
             Status::ACTIVE,
             Status::ARREARS
@@ -830,7 +842,7 @@ class Membership
      * in the tab and will include the javascript-controlled div tags.
      *
      * @see     plugin_profileedit_membership()
-     * @see     plugin_profilevariablesdisplay_membership()
+     * @see     plugin_profileblocksdisplay_membership()
      * @param   boolean $panel  True if showing in the panel, false if not.
      * @param   integer $uid    User ID being displayed, default = current user
      * @return  string      HTML for membership data display
@@ -1044,25 +1056,22 @@ class Membership
      * Delete a membership record.
      * Only the specified user is deleted; linked accounts are not affected.
      * The specified user is also removed from the linked accounts.
-     *
-     * @param   integer $uid    Member's user ID
      */
-    public static function Delete($uid)
+    public function Delete()
     {
         global $_CONF_MEMBERSHIP, $_TABLES;
         USES_lib_user();
 
         // Remove this user from the family
-        //Link::Emancipate($uid);
-        self::remLink($uid);
+        self::remLink($this->uid);
 
         // Remove this user from the membership group
-        USER_delGroup($_CONF_MEMBERSHIP['member_group'], $uid);
+        USER_delGroup($_CONF_MEMBERSHIP['member_group'], $this->uid);
 
         // Delete this membership record
-        DB_delete($_TABLES['membership_members'], 'mem_uid', $uid);
+        DB_delete($_TABLES['membership_members'], 'mem_uid', $this->uid);
         Cache::clear('members');     // Make sure members and links are cleared
-        self::_disableAccount($uid);
+        $this->_disableAccount();
     }
 
 
@@ -1216,10 +1225,8 @@ class Membership
 
     /**
      * Disable a specific user's site account.
-     *
-     * @param   integer $uid    User ID to disable
      */
-    private static function _disableAccount($uid)
+    private function _disableAccount()
     {
         global $_TABLES, $_CONF_MEMBERSHIP;
 
@@ -1227,7 +1234,7 @@ class Membership
             // Disable the user account at expiration, if so configured
             DB_query("UPDATE {$_TABLES['users']}
                     SET status = " . USER_ACCOUNT_DISABLED .
-                    " WHERE uid = $uid", 1);
+                    " WHERE uid = $this->uid", 1);
         }
     }
 
@@ -1245,15 +1252,14 @@ class Membership
 
         $retval = array();
         $U = User::getInstance($this->uid);
+
         foreach ($what as $fld) {
             switch ($fld) {
             case 'id':
                 $retval[$fld] = $this->uid;
                 break;
-            case 'list_segment':
-                if ($_CONF_MEMBERSHIP['update_maillist']) {
-                    $retval[$fld] = Status::getMCparams($this->status);
-                }
+            case 'merge_fields':
+                $retval[$fld] = Status::getMergeFields($this->status);
                 break;
             case 'uid':
             case 'plan_id':
@@ -1264,6 +1270,9 @@ class Membership
             case 'istrial':
                 // Membership fields
                 $retval[$fld] = $this->$fld;
+                break;
+            case 'list_segment':
+                $retval[$fld] = Status::getSegment($this->status);
                 break;
             default:
                 // User fields
@@ -1315,12 +1324,11 @@ class Membership
         if ($Mem1->isNew()) {
             Logger::System("Cannot link user $uid2 to nonexistant membership for $uid1");
             return false;
-        } elseif (!$Mem1->Plan->isFamily()) {
+        } elseif (!$Mem1->getPlan()->isFamily()) {
             Logger::System("Cannot link $uid2 to a non-family plan");
             return false;
         }
 
-        // TODO: Check here for $Mem1->Plan to see if it uses linked accounts?
         $Mem2 = self::getInstance($uid2);
         if ($Mem2->isNew()) {
             if ($_CONF_MEMBERSHIP['use_mem_number']) {
@@ -1354,6 +1362,7 @@ class Membership
             Logger::System(__CLASS__ . "/addLink() error: $sql");
             return false;
         } else {
+            Logger::Audit("Member $uid linked to member $uid1");
             Cache::clear('members');
             return true;
         }
@@ -1383,6 +1392,7 @@ class Membership
             Logger::System(__CLASS__ . "::remLink() error: $sql");
             return false;
         } else {
+            Logger::Audit("Member $uid links removed");
             Cache::clear('members');
             return true;
         }
@@ -1540,9 +1550,8 @@ class Membership
         } else {
             $frmchk = '';
             $exp_query = sprintf(
-                "AND m.mem_status IN(%d, %d, %d) AND mem_expires >= '%s'",
+                "AND m.mem_status IN(%d, %d) AND mem_expires >= '%s'",
                 Status::ACTIVE,
-                Status::ENABLED,
                 Status::ARREARS,
                 Dates::expGraceEnded()
             );
@@ -1863,8 +1872,7 @@ class Membership
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
-        $stat = Status::ENABLED . ',' .
-            Status::ACTIVE . ',' .
+        $stat = Status::ACTIVE . ',' .
             Status::ARREARS;
 
         $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
@@ -1900,7 +1908,7 @@ class Membership
     {
         global $_TABLES;
 
-        $stat = Status::ENABLED . ',' . Status::ACTIVE;
+        $stat = Status::ACTIVE;
         $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['users']} u
@@ -1952,7 +1960,8 @@ class Membership
 
     /**
      * Notify users that have memberships soon to expire.
-     * This is in functions.inc so it can be called from runscheduledTask.
+     *
+     * @param   array   $ids    Optional specific IDs to notify
      */
     public static function notifyExpiration($ids = NULL)
     {
@@ -1968,15 +1977,20 @@ class Membership
             return;
         }
 
-        $stat = Status::ACTIVE . ',' . Status::ENABLED;
+        // By default only active members are notified.
+        $stat = Status::ACTIVE;
         $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
-                u.email, u.username, u.fullname, p.name, p.description
+                u.email, u.username, u.fullname, u.language,
+                p.name, p.description
             FROM {$_TABLES['membership_members']} m
             LEFT JOIN {$_TABLES['membership_plans']} p
                 ON p.plan_id = m.mem_plan_id
             LEFT JOIN {$_TABLES['users']} u
                 ON u.uid = m.mem_uid ";
-        if (is_array($ids)) {
+        if (!empty($ids)) {
+            if (!is_array($ids)) {
+                $ids = array($ids);
+            }
             // Force the notification and disregard the notification counter
             $sql .= "WHERE m.mem_uid IN (" . implode(',', $ids) . ")";
         } else {
@@ -1993,18 +2007,26 @@ class Membership
 
         $today = $_CONF['_now']->format('Y-m-d', true);
         $notified_ids = array();    // holds memberhsip IDs that get notified
-        $template_base = MEMBERSHIP_PI_PATH . '/templates/notify';
+        $T = new \Template(array(
+            $_CONF['path_layout'] . 'email/',
+            __DIR__ . '/../templates/notify/',
+        ) );
+        $T->set_file(array(
+            'html_msg' => 'mailtemplate_html.thtml',
+            'text_msg' => 'mailtemplate_text.thtml',
+            'message' => 'exp_message.thtml',
+        ) );
 
         while ($row = DB_fetchArray($r, false)) {
             if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_EMAIL) {
                 // Create a notification email message.
                 $username = COM_getDisplayName($row['mem_uid']);
+
                 $P = Plan::getInstance($row['mem_plan_id']);
                 if ($P->isNew() || !$P->notificationsEnabled()) {
                     // Do not send notifications for this plan
                     continue;
                 }
-
                 $is_expired = $row['mem_expires'] <= $today ? true : false;
                 $args = array(
                     'custom'    => array('uid'   => $row['mem_uid']),
@@ -2038,18 +2060,13 @@ class Membership
                 $button = ($status == PLG_RET_OK) ? $output[0] : '';
                 $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
 
-                $T = new \Template($template_base);
-                $T->set_file(array(
-                    'outer' => 'exp_outer.thtml',
-                    'message' => 'exp_message.thtml',
-                ) );
                 $T->set_var(array(
                     'site_name'     => $_CONF['site_name'],
                     'username'      => $username,
                     'pi_name'       => $_CONF_MEMBERSHIP['pi_name'],
                     'plan_id'       => $row['mem_plan_id'],
-                    'name'          => $row['name'],
-                    'description'   => $row['description'],
+                    'plan_name'     => $row['name'],
+                    'plan_dscp'     => $row['description'],
                     'detail_url'    => MEMBERSHIP_PI_URL .
                         '/index.php?detail=x&amp;plan_id=' .
                         urlencode($row['mem_plan_id']
@@ -2063,18 +2080,43 @@ class Membership
                     'is_expired'    => $is_expired,
                     'expire_eom'    => $_CONF_MEMBERSHIP['expires_eom'],
                 ) );
-
                 $T->parse('exp_msg', 'message');
-                $T->parse('output', 'outer');
-                $message = $T->finish($T->get_var('output'));
+
+                $html_content = $T->finish($T->get_var('exp_msg'));
+                $T->set_block('html_msg', 'content', 'contentblock');
+                $T->set_var('content_text', $html_content);
+                $T->parse('contentblock', 'content',true);
+
+                // Remove the button from the text version, HTML not supported.
+                $T->unset_var('buy_button');
+                $T->parse('exp_msg', 'message');
+                $html_content = $T->finish($T->get_var('exp_msg'));
+                $html2TextConverter = new \Html2Text\Html2Text($html_content);
+                $text_content = $html2TextConverter->getText();
+                $T->set_block('text_msg', 'contenttext', 'contenttextblock');
+                $T->set_var('content_text', $text_content);
+                $T->parse('contenttextblock', 'contenttext',true);
+
+                $T->parse('output', 'html_msg');
+                $html_msg = $T->finish($T->get_var('output'));
+                $T->parse('textoutput', 'text_msg');
+                $text_msg = $T->finish($T->get_var('textoutput'));
+
                 Logger::Audit("Notifying $username at {$row['email']}");
-                COM_mail(
-                    array($row['email'], $username),
-                    "{$LANG_MEMBERSHIP['exp_notice']}",
-                    $message,
-                    "{$_CONF['site_name']} <{$_CONF['site_mail']}>",
-                    true
+                $msgData = array(
+                    'htmlmessage' => $html_msg,
+                    'textmessage' => $text_msg,
+                    'subject' => $LANG_MEMBERSHIP['exp_notice'],
+                    'from' => array(
+                        'name' => $_CONF['site_name'],
+                        'email' => $_CONF['noreply_mail'],
+                    ),
+                    'to' => array(
+                        'name' => $username,
+                        'email' => $row['email'],
+                    ),
                 );
+                COM_emailNotification($msgData);
             }
 
             if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_MESSAGE) {
@@ -2122,4 +2164,3 @@ class Membership
 
 }
 
-?>

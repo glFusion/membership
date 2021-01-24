@@ -138,11 +138,17 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
 
+    if (!COM_checkVersion($current_ver, '0.2.3')) {
+        $current_ver = '0.2.3';
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
+    }
+
     // Final version update to catch updates that don't go through
     // any of the update functions, e.g. code-only updates
     if (!COM_checkVersion($current_ver, $installed_ver)) {
         if (!MEMBERSHIP_do_set_version($current_ver)) return false;
-    } 
+    }
 
     // Update the plugin configuration
     USES_lib_install();
@@ -169,7 +175,7 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
 
     // If no sql statements passed in, return success
     if (!isset($_UPGRADE_SQL[$version]) || !is_array($_UPGRADE_SQL[$version])) {
-        Membership\Logger::System("No SQL update for $current_ver");
+        Membership\Logger::System("No SQL update for $version");
         return true;
     }
     $sql_err_msg = 'SQL Error during Membership plugin update';

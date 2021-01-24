@@ -9,6 +9,7 @@ Release TBD
 - Correct namespace usage
 - Use Uikit datepicker
 - Change Paypal plugin to Shop
+- Change Mailchimp plugin to Mailer
 - Add a message to plan lists indicating the latest plan if expired.
 - Positions can be optionally shown on profile lists.
 - Separate position group table for more flexibility in position lists.

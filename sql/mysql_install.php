@@ -178,6 +178,9 @@ $_UPGRADE_SQL = array(
         ) ENGINE=MyISAM",
         "ALTER TABLE {$_TABLES['membership_positions']} DROP `type`",
     ),
+    '0.2.3' => array(
+        "UPDATE {$_TABLES['membership_members']} SET mem_status = 1 WHERE mem_status = 0",
+    ),
 );
 
 $_MEMBERSHIP_SAMPLEDATA = array(

@@ -45,7 +45,9 @@
     <td>{remit_to}</td>
   </tr>
 </table>
+<p>
 <i>{pmt_instructions}</i>
+</p>
 <p><input type="button" onclick="window.print()" value="{$LANG_MEMBERSHIP['print']}" /></p>
 {!else}
 <h2><i>Only online payments are accepted</i></h2>

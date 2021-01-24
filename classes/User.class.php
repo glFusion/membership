@@ -39,7 +39,7 @@ class User
         global $_USER;
 
         if ($uid == 0) {
-            $uid = $_USER['uid'];
+            $uid = (int)$_USER['uid'];
         }
         $this->Read($uid);
     }
@@ -74,10 +74,20 @@ class User
      */
     public function setVars($info)
     {
+        global $_CONF;
+
         foreach ($info as $key=>$value) {
+            if ($key == 'passwd') {
+                continue;
+            }
             $this->$key = $value;
         }
         if ($this->fullname == '') $this->fullname = $this->username;
+        if (isset($info['language']) && !empty($info['language'])) {
+            $this->language = $info['language'];
+        } else {
+            $this->language = $_CONF['language'];
+        }
     }
 
 
@@ -92,11 +102,12 @@ class User
         global $_TABLES;
 
         $uid = (int)$uid;
-        $cache_key = 'uid_' . $uid;
+        //$cache_key = 'uid_' . $uid;
         //$A = Cache::get($cache_key);
         $A = NULL;  // temp until user caching works
         if ($A === NULL) {
-            $sql = "SELECT * from {$_TABLES['users']} u
+            $sql = "SELECT u.*, m.terms_accept
+                FROM {$_TABLES['users']} u
                 LEFT JOIN {$_TABLES['membership_users']} m
                 ON m.uid = u.uid
                 WHERE u.uid=$uid";
@@ -131,6 +142,27 @@ class User
     }
 
 
+    /**
+     * Get the name of the current language, minus the character set.
+     * Same as COM_getLanguageName() but works on the current user language.
+     * Strips the character set from `$_CONF['language']`.
+     *
+     * @return  string  Language name, e.g. "english"
+     */
+    public static function getLanguageName($language)
+    {
+        global $_CONF;
+
+        $retval = '';
+
+        $charset = '_' . strtolower(COM_getCharset());
+        if (substr($language, -strlen($charset)) == $charset) {
+            $retval = substr($language, 0, -strlen($charset));
+        } else {
+            $retval = $language;
+        }
+        return $retval;
+    }
+
 }   // class User
 
-?>

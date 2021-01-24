@@ -423,20 +423,19 @@ function plugin_itemPreSave_membership($mode, $username)
  * Displays membership info in the user's profile.
  *
  * @param   integer  $uid   User ID whose profile is being displayed
- * @param   object   $T     Pointer to template object
  * @return  string          HTML to include in profile page
  */
-function plugin_profilevariablesdisplay_membership($uid, &$T)
+function plugin_profileblocksdisplay_membership($uid)
 {
     global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
 
     // non-admins can only see their own subscription.
-    if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager())
+    if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager()) {
         return '';
+    }
 
     $M = Membership\Membership::getInstance($uid);
-    $existingFields = $T->get_var('plugin_fields');
-    $T->set_var('plugin_fields', $existingFields . $M->showInfo(false, $uid));
+    return $M->showInfo(false, $uid);
 }
 
 
@@ -658,6 +657,28 @@ function plugin_runScheduledTask_membership()
 
 
 /**
+ * Get mailing list merge fields.
+ *
+ * @param   integer $uid    Member user ID
+ * @return  array       Array of name=>value pairs
+ */
+function plugin_getMergeFields_membership($uid)
+{
+    $properties = array(
+        'id',
+        'merge_fields',
+    );
+    $M = Membership\Membership::getInstance($uid);
+    $output = $M->getItemInfo($properties);
+    if (isset($output['merge_fields'])) {
+        return $output['merge_fields'];
+    } else {
+        return array();
+    }
+}
+
+
+/**
  * Provides the getItemInfo function for memberships.
  * The $id parameter may indicate a plan ID or a specific member ID,
  * depending on the fields in $options.
@@ -842,7 +863,7 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
         return 'membership';
         break;
     case 'tagusage':
-        return array('namespace' => 'membership', 'usage' => 'description');
+        return array(array('namespace' => 'membership', 'usage' => 'description'));
         break;
     case 'desc':
         switch ($content) {
@@ -916,8 +937,9 @@ function MEMBERSHIP_currentMembership()
 
 /**
  * Get the description for different member types.
- * Used with Mailchimp integration to set the group (segment) in the list.
- * The strings must match segments (groups) set up in Mailchimp.
+ * Used with Mailer integration to set the group/segment/merge field in
+ * the list. The strings must match segments (groups) set up with the
+ * mailing list provider.
  *
  * @return  array   array(int=>string) of membership statuses
  */

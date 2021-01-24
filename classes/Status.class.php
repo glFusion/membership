@@ -22,11 +22,7 @@ class Status
 {
     /** Member is active (current).
      */
-    public const ACTIVE = 0;
-
-    /** Member is enabled. Unused.
-     */
-    public const ENABLED = 1;
+    public const ACTIVE = 1;
 
     /** Member is in arrears.
      * Expired, but within the grace period for renewal.
@@ -43,8 +39,8 @@ class Status
 
     /**
      * Get the mailing list segment for different member statuses.
-     * Used with Mailchimp integration to set the group (segment) in the list.
-     * The strings must match segments (groups) set up in Mailchimp.
+     * Used with Mailer integration to set the group (segment) in the list.
+     * The strings must match segments (groups) set up in Mailer.
      *
      * @return  string      List segment matching the membership status
      */
@@ -92,14 +88,14 @@ class Status
 
 
     /**
-     * Get parameters for Mailchimp to update tags or merge fields.
+     * Get parameters for Mailer to update tags or merge fields.
      * Returns a merge field name=>value if a field name is configured,
      * otherwise returns an array of tags.
      *
      * @param   integer $status     Membership status
      * @return  array       Array of merge field or tag values
      */
-    public static function getMCparams($status)
+    public static function getMergeFields($status)
     {
         global $_CONF_MEMBERSHIP;
 
@@ -110,13 +106,7 @@ class Status
             !empty($segment)
         ) {
             $retval = array(
-                'merge_fields' => array(
-                    $_CONF_MEMBERSHIP['merge_fldname'] => $segment,
-                ),
-            );
-        } else {
-            $retval = array(
-                'tags' => self::getTags($segment),
+                $_CONF_MEMBERSHIP['merge_fldname'] => $segment,
             );
         }
         return $retval;

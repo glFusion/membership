@@ -85,7 +85,7 @@ class Position
     public function __construct($id=0)
     {
         if (is_array($id)) {
-            $this->setVars($id);
+            $this->setVars($id, false);
         } elseif ($id > 0) {
             if (!$this->Read($id)) {
                 $this->id = 0;
@@ -131,12 +131,12 @@ class Position
         if ($id == 0) return false;     // need a valid ID
         $id = (int) $id;
 
-        $r = DB_query("SELECT p.*, pg.pg_id, pg.pg_tag, pg.pg_title
+        $sql = "SELECT p.*, pg.pg_id, pg.pg_tag, pg.pg_title
             FROM {$_TABLES['membership_positions']} p
             LEFT JOIN {$_TABLES['membership_posgroups']} pg
             ON p.pg_id = pg.pg_id
-            WHERE p.id = $id"
-        );
+            WHERE p.id = $id";
+        $r = DB_query($sql);
         if ($r) {
             $A = DB_fetchArray($r, false);
             if (is_array($A)) {
@@ -229,7 +229,7 @@ class Position
         //echo $sql1 . $sql2 . $sql3;die;
         DB_query($sql1 . $sql2 . $sql3, 1);
         if (!DB_error()) {
-            self::Reorder($this->type);
+            self::Reorder($this->pg_id);
             // Check and change group memberships if necessary
             $this->_updateGroups();
             return true;
