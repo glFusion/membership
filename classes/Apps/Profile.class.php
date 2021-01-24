@@ -3,14 +3,15 @@
  * Class to handle membership applications provided by the Profile plugin.
  *
  * @author     Lee Garner <lee@leegarner.com>
- * @copyright  Copyright (c) 2018-2020 Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2018-2021 Lee Garner <lee@leegarner.com>
  * @package    membership
- * @version    0.2.0
+ * @version    0.3.0
  * @license    http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership\Apps;
+
 
 /**
  * Class for a membership application provided by the Custom Profile plugin.
@@ -18,13 +19,12 @@ namespace Membership\Apps;
  */
 class Profile extends \Membership\App
 {
-
     /**
      * Display an application saved by the Custom Profile plugin.
      *
      * @return  array   Array of field prompt=>value pairs
      */
-    protected function getDisplayValues()
+    public function getDisplayValues()
     {
         global $_USER, $_CONF;
 
