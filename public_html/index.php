@@ -204,7 +204,6 @@ default:
 }
 
 $display = \Membership\Menu::siteHeader($pageTitle);
-//$display .= LGLIB_showAllMessages();
 $display .= $content;
 $display .= \Membership\Menu::siteFooter();
 echo $display;
