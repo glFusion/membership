@@ -204,7 +204,10 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     // If posted variables are recieved, use them. Otherwise, use GET but only
     // if POST is empty. Otherwise the user may have just unchecked all the
     // options
-    if (isset($args['post']['mem_exp_status_flag'])) {
+    if (
+        isset($args['post']['mem_exp_status_flag']) &&
+        isset($args['post']['mem_exp_status'])
+    ) {
         $exp_stat = $args['post']['mem_exp_status'];
     } elseif (empty($args['post']) && isset($args['get']['mem_exp_status'])) {
         $exp_stat = explode(',', $args['get']['mem_exp_status']);
@@ -275,7 +278,10 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     }
 
     // Include the expiration status, if requested
-    if (isset($args['post']['mem_exp_status_flag'])) {
+    if (
+        isset($args['post']['mem_exp_status_flag']) &&
+        isset($args['post']['mem_exp_status'])
+    ) {
         $exp_stat = $args['post']['mem_exp_status'];
     } elseif (empty($args['post']) && isset($args['get']['mem_exp_status'])) {
         $exp_stat = explode(',', $args['get']['mem_exp_status']);
@@ -542,8 +548,11 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
     $uid = 0;
 
     if (isset($args['email']) && !empty($args['email'])) {
-        $uid = (int)DB_getItem($_TABLES['users'], 'uid',
-                "email = '" . DB_escapeString($args['email']) . "'");
+        $uid = (int)DB_getItem(
+            $_TABLES['users'],
+            'uid',
+            "email = '" . DB_escapeString($args['email']) . "'"
+        );
     } elseif (isset($args['uid']) && $args['uid'] > 1) {
         $uid = (int)$args['uid'];
     }
