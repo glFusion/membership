@@ -1,7 +1,7 @@
 # glFusion Membership Plugin - Change Log
 
 ## 0.3.0
-Release TBD
+Release 2021-01-24
 - Remove support for non-UIkit themes.
 - Members can always view their own application.
 - Applications can be provided by the Profile or Forms plugin.
