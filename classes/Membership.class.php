@@ -184,6 +184,17 @@ class Membership
 
 
     /**
+     * Get the glFusion user ID.
+     *
+     * @return  integer     User ID
+     */
+    public function getUid()
+    {
+        return (int)$this->uid;
+    }
+
+
+    /**
      * Get the Plan ID.
      *
      * @return  string      Plan ID
@@ -308,7 +319,6 @@ class Membership
     public function isExpired()
     {
         return Status::fromExpiration($this->expires) == Status::EXPIRED;
-        //return $this->expires < Dates::expGraceEnded();
     }
 
 
@@ -598,6 +608,8 @@ class Membership
             DB_query($sql, 1);
             if (DB_error()) {
                 Logger::System(__CLASS__ . '::Save() sql error: ' . $sql);
+            } else {
+                Logger::Audit("Member {$this->uid} updated.");
             }
 
             // Add the member to the groups if the status has changed,
@@ -698,15 +710,13 @@ class Membership
     {
         global $_TABLES, $_CONF;
 
-        $uid = (int)$uid;
         $sql = "UPDATE {$_TABLES['membership_members']} SET
             mem_expires = '" . $_CONF['_now']->format('Y-m-d') . "',
             mem_notified = 0 ";
         if ($cancel_relatives) {
-            $M = self::getInstance($uid);
-            $sql .= "WHERE mem_guid = '" . $M->getGuid() . "'";
+            $sql .= "WHERE mem_guid = '" . $this->getGuid() . "'";
         } else {
-            $sql .= " WHERE mem_uid = " . $uid;
+            $sql .= " WHERE mem_uid = " . $this->getUid();
         }
         DB_query($sql);
         $this->Expire($cancel_relatives, false);
@@ -726,7 +736,7 @@ class Membership
     public function Expire($cancel_relatives=true, $notify=true)
     {
         // Remove this member from any club positions held
-        foreach (Position::getByMember($uid) as $P) {
+        foreach (Position::getByMember($this->uid) as $P) {
             $P->setMember(0);
         }
         // Disable the account if so configured
@@ -1261,6 +1271,9 @@ class Membership
                 // Membership fields
                 $retval[$fld] = $this->$fld;
                 break;
+            case 'list_segment':
+                $retval[$fld] = Status::getSegment($this->status);
+                break;
             default:
                 // User fields
                 if (isset($U->$fld)) {
@@ -1349,6 +1362,7 @@ class Membership
             Logger::System(__CLASS__ . "/addLink() error: $sql");
             return false;
         } else {
+            Logger::Audit("Member $uid linked to member $uid1");
             Cache::clear('members');
             return true;
         }
@@ -1378,6 +1392,7 @@ class Membership
             Logger::System(__CLASS__ . "::remLink() error: $sql");
             return false;
         } else {
+            Logger::Audit("Member $uid links removed");
             Cache::clear('members');
             return true;
         }
@@ -1535,7 +1550,7 @@ class Membership
         } else {
             $frmchk = '';
             $exp_query = sprintf(
-                "AND m.mem_status IN(%d, %d, %d) AND mem_expires >= '%s'",
+                "AND m.mem_status IN(%d, %d) AND mem_expires >= '%s'",
                 Status::ACTIVE,
                 Status::ARREARS,
                 Dates::expGraceEnded()
