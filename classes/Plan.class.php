@@ -913,8 +913,8 @@ class Plan
             }
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
-            if ($_CONF_MEMBERSHIP['expire_eom']) {
-                $exp_day = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+            if ($_CONF_MEMBERSHIP['expires_eom']) {
+                $exp_day = cal_days_in_month(CAL_GREGORIAN, $exp_month, $exp_year);
             }
         } else {
             // If there's a fixed month for renewal, check if the membership
