@@ -6,12 +6,10 @@ function togglePmtDiv()
 {
     if (is_expanded) {
         document.getElementById('pmt_div').style.display="none";
-        document.getElementById('exp_col').className="uk-icon uk-icon-arrow-down";
         document.getElementById('exp_col').title="{$LANG_MEMBERSHIP['expand_pmt_div']}";
         is_expanded = 0;
     } else {
         document.getElementById('pmt_div').style.display="block";
-        document.getElementById('exp_col').className="uk-icon uk-icon-arrow-up";
         document.getElementById('exp_col').title="{$LANG_MEMBERSHIP['collapse_pmt_div']}";
         is_expanded = 1;
     }
@@ -27,9 +25,9 @@ function togglePmtDiv()
 {!endif}
   <input type="hidden" name="mem_old_links" value='{old_links}' />
   <fieldset>
-    <legend>{$LANG_MEMBERSHIP['pmt_info']}
-      <span class="uk-icon uk-icon-arrow-down" onclick="javascript:togglePmtDiv();" id="exp_col"
-        title="{$LANG_MEMBERSHIP['expand_pmt_div']}" data-uk-tooltip="{cls:'mbr-tooltip'}"></span>
+    <legend>
+        <button type="reset" class="uk-button uk-button-primary" id="exp_col"
+            onclick="javascript:togglePmtDiv();">{$LANG_MEMBERSHIP['pmt_info']}</button>
     </legend>
     <div style="display:none;" id="pmt_div">
       {!if is_member}
