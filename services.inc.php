@@ -115,10 +115,11 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         return PLG_RET_ERROR;
     }
     // User ID is returned in the 'custom' field, so make sure it's numeric.
-    if (is_numeric($ipn_data['custom']['uid']))
+    if (is_numeric($ipn_data['custom']['uid'])) {
         $uid = (int)$ipn_data['custom']['uid'];
-    else
+    } else {
         $uid = (int)DB_getItem($_TABLES['users'], 'email', $ipn_data['payer_email']);
+    }
     if ($uid < 2) {
         return PLG_RET_ERROR;
     }
@@ -148,14 +149,15 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     }
 
     // Initialize the return array
-    $output = array('product_id' => implode(':', $id),
-            'name' => $M->Plan->name,
-            'short_description' => $M->getPlan()->getName(),
-            'description' => $M->getPlan()->getName(),
-            'price' =>  $amount,
-            'expiration' => NULL,
-            'download' => 0,
-            'file' => '',
+    $output = array(
+        'product_id' => implode(':', $id),
+        'name' => $M->getPlan()->getName(),
+        'short_description' => $M->getPlan()->getName(),
+        'description' => $M->getPlan()->getName(),
+        'price' =>  $amount,
+        'expiration' => NULL,
+        'download' => 0,
+        'file' => '',
     );
 
     Logger::Audit(
