@@ -518,6 +518,7 @@ class Membership
         if ($quickrenew) {
             $this->istrial = 0;
             $this->expires = $this->Plan->calcExpiration($this->expires);
+            $this->notified = $_CONF_MEMBERSHIP['notifycount'];
         }
 
         // The first thing is to check to see if we're removing this account
@@ -603,7 +604,6 @@ class Membership
                         mem_number = '" . DB_EscapeString($this->mem_number) . "',
                         mem_notified = {$this->notified},
                         mem_istrial = {$this->istrial}";
-            //echo $sql;die;
             //Logger::System($sql);
             DB_query($sql, 1);
             if (DB_error()) {
