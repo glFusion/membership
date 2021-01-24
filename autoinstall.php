@@ -86,6 +86,12 @@ $INSTALL_plugin['membership'] = array(
     ),
 
     array(
+        'type'  => 'table',
+        'table' => $_TABLES['membership_users'],
+        'sql'   => $_SQL['membership_users'],
+    ),
+
+    array(
         'type'      => 'group',
         'group'     => 'membership Admin',
         'desc'      => 'Users in this group can administer the Membership plugin',

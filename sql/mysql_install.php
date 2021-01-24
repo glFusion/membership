@@ -181,6 +181,13 @@ $_UPGRADE_SQL = array(
     '0.2.3' => array(
         "UPDATE {$_TABLES['membership_members']} SET mem_status = 1 WHERE mem_status = 0",
     ),
+    '0.3.0' => array(
+        "CREATE TABLE `{$_TABLES['membership_users']}` (
+          `uid` int(11) unsigned NOT NULL,
+          `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
+          PRIMARY KEY (`uid`)
+        ) ENGINE=MyISAM",
+    ),
 );
 
 $_MEMBERSHIP_SAMPLEDATA = array(

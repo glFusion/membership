@@ -309,6 +309,7 @@ function plugin_autouninstall_membership ()
                 'membership_trans',
                 'membership_positions',
                 'membership_posgroups',
+                'membership_users',
         ),
         // give the full name of the group, as in the db.
         // Don't remove the membership group, it should be left alone or
