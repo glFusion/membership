@@ -121,7 +121,7 @@ class User
 
 
     /**
-     * Check if the terms acceptance is current.
+     * Check if the terms acceptance is current (within 1 year).
      *
      * @return  integer     1 if accepted, 0 if not
      */
@@ -132,9 +132,9 @@ class User
 
 
     /**
-     * Get the setting for whether the terms have been accepted.
+     * Get the timestamp when the terms were accepted.
      *
-     * @return  integer     1 if accepted, 0 if not
+     * @return  integer     Unix timestamp value
      */
     public function getTermsAccepted()
     {
