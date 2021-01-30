@@ -83,7 +83,6 @@ class Membership
         if ($this->uid > 1 && $this->Read($this->uid)) {
             $this->isNew = false;
         } else {
-            $this->expires = Dates::plusOneYear();
             $this->joined = Dates::Today();
             $this->notified = (int)$_CONF_MEMBERSHIP['notifycount'];
         }
@@ -517,7 +516,7 @@ class Membership
         $quickrenew = MEMB_getVar($A, 'mem_quickrenew', 'integer', 0);
         if ($quickrenew) {
             $this->istrial = 0;
-            $this->expires = $this->Plan->calcExpiration($this->expires);
+            $this->expires = Dates::calcExpiration($this->expires);
             $this->notified = $_CONF_MEMBERSHIP['notifycount'];
         }
 
@@ -809,7 +808,7 @@ class Membership
         $this->status = Status::ACTIVE;
         $this->istrial = 0;
         if ($exp == '')  {
-            $this->expires = $this->Plan->calcExpiration($this->expires);
+            $this->expires = Dates::calcExpiration($this->expires);
         } else {
             $this->expires = $exp;
         }
@@ -1020,17 +1019,17 @@ class Membership
 
     /**
      * Renew a membership.
-     * Calls the plan's CalcExpiration() function to get the correct
-     * expiration date.
+     * Calls Dates::calcExpiration() function to get the correct
+     * expiration date, then creates an array of args to simulate a POST.
      *
      * Argument array includes:
      * - exp         => New expiration date, calculated if omitted
      * - mem_pmttype => Payment type, no payment transaction if omitted
      * - mem_pmtamt  => Payment amount
      * - mem_pmtdate => Payment date
-     * - mem_pmtdesc => Paymetn description
+     * - mem_pmtdesc => Payment description
      *
-     * @uses    Plan::calcExpiration()
+     * @uses    Dates::calcExpiration()
      * @param   array   $args   Array of arguments
      * @return  boolean     True on success, False on failure
      */
@@ -1038,7 +1037,7 @@ class Membership
     {
         if (!$this->istrial && $this->Plan !== NULL && !$this->isNew) {
             $this->expires = isset($args['exp']) ? $args['exp'] :
-                    $this->Plan->calcExpiration($this->expires);
+                    Dates::calcExpiration($this->expires);
             // Set the plan ID so this isn't seen as a cancellation by Save()
             if (!isset($args['mem_plan_id'])) {
                 $args['mem_plan_id'] = $this->plan_id;
@@ -2163,4 +2162,3 @@ class Membership
     }
 
 }
-

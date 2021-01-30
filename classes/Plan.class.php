@@ -887,58 +887,6 @@ class Plan
 
 
     /**
-     * Get the next expiration date.
-     * If memberships are rolling and can be started in any month,
-     * then just add a year to today.
-     * If memberships are for a fixed period, like July - June, then
-     * get the month & day from this year or next
-     *
-     * @param   string  $exp    Current expiration date, default = today
-     * @return  string      New Expiration date (YYYY-MM-DD)
-     */
-    public static function calcExpiration($exp = '')
-    {
-        global $_CONF_MEMBERSHIP;
-
-        if ($exp == '') {
-            $exp = Dates::Today();
-        }
-
-        // If a rolling membership period, just add a year to today or
-        // the current expiration, whichever is greater.
-        if ($_CONF_MEMBERSHIP['period_start'] == 0) {
-            // Check if within the grace period.
-            if ($exp < Dates::expGraceEnded()) {
-                $exp = Dates::Today();
-            }
-            list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
-            $exp_year++;
-            if ($_CONF_MEMBERSHIP['expires_eom']) {
-                $exp_day = cal_days_in_month(CAL_GREGORIAN, $exp_month, $exp_year);
-            }
-        } else {
-            // If there's a fixed month for renewal, check if the membership
-            // is expired. If so, get the most recent past expiration date and
-            // add a year. If not yet expired, add a year to the current
-            // expiration.
-            list($year, $month, $day) = explode('-', $exp);
-            list($c_year, $c_month, $c_day) =
-                    explode('-', Dates::Today());
-            $exp_month = $_CONF_MEMBERSHIP['period_start'] - 1;
-            if ($exp_month == 0) $exp_month = 12;
-            $exp_year = $year;
-            if ($exp <= Dates::Today()) {
-                if ($exp_month > $c_month)
-                    $exp_year = $c_year - 1;
-            }
-            $exp_year += 1;
-            $exp_day = cal_days_in_month(CAL_GREGORIAN, $exp_month, $exp_year);
-        }
-        return sprintf('%d-%02d-%02d', $exp_year, $exp_month, $exp_day);
-    }
-
-
-    /**
      * Wrapper function for the Shop plugin's getCurrency() function.
      *
      * @return  string  Currency type, "USD" by default.
@@ -1344,5 +1292,3 @@ class Plan
     }
 
 }
-
-?>
