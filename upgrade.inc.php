@@ -3,7 +3,7 @@
  * Upgrade routines for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
  * @package     membership
  * @version     v0.3.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
@@ -228,7 +228,7 @@ function MEMBERSHIP_do_set_version($ver)
 /**
  * Check if a column exists in a table
  *
- * @param   string  $table      Table Key, defined in shop.php
+ * @param   string  $table      Table Key, defined in membership.php
  * @param   string  $col_name   Column name to check
  * @return  boolean     True if the column exists, False if not
  */
@@ -276,16 +276,21 @@ function _MEMB_remove_old_files()
     global $_CONF;
 
     $paths = array(
-        // private/plugins/shop
+        // private/plugins/membership
         __DIR__ => array(
             // 0.2.3
             'language/english.php',
+            // 0.3.0
+            'templates/editmember.uikit.thtml',
+            'templates/import_form.uikit.thtml',
+            'templates/plan_form.uikit.thtml',
+            'templates/position_form.uikit.thtml',
         ),
-        // public_html/shop
-        $_CONF['path_html'] . 'shop' => array(
+        // public_html/membership
+        $_CONF['path_html'] . 'membership' => array(
         ),
-        // admin/plugins/shop
-        $_CONF['path_html'] . 'admin/plugins/shop' => array(
+        // admin/plugins/membership
+        $_CONF['path_html'] . 'admin/plugins/membership' => array(
         ),
     );
 
@@ -296,6 +301,3 @@ function _MEMB_remove_old_files()
         }
     }
 }
-
-
-?>
