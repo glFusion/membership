@@ -258,7 +258,7 @@ function togglePmtDiv()
 {!if standalone}
   <button type="submit" class="uk-button uk-button-success" name="savemember" value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
   <button type="reset" class="uk-button uk-button-primary" name="reset" value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
-  <a class="uk-button" href="{action_url}/index.php?listmembers">{$LANG_MEMBERSHIP['cancel']}</a>
+  <a class="uk-button" href="{action_url}">{$LANG_MEMBERSHIP['cancel']}</a>
 </form>
 {!else}
   </div>
