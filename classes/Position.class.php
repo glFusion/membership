@@ -643,7 +643,7 @@ class Position
 
         case 'move':
             $base_url = MEMBERSHIP_ADMIN_URL .
-                '/index.php?type=' . urlencode($A['type']) .
+                '/index.php?type=' . urlencode($A['pg_id']) .
                 '&id=' . $A['id'] . '&reorderpos=';
             $retval .= COM_createLink(
                 $_CONF_MEMBERSHIP['icons']['arrow-up'],
