@@ -678,6 +678,7 @@ class Membership
         foreach ($groups as $group) {
             USER_delGroup($group, $uid);
         }
+        self::updatePlugins($uid, $old_status, $new_status);
 
         // Now do the same thing for all the relatives.
         if ($inc_relatives) {
@@ -686,9 +687,12 @@ class Membership
                 foreach ($groups as $group) {
                     USER_delGroup($group, $key);
                 }
-                DB_query("UPDATE {$_TABLES['membership_members']} SET
-                        mem_status = $new_status
-                        WHERE mem_uid = $key", 1);
+                DB_query(
+                    "UPDATE {$_TABLES['membership_members']} SET
+                    mem_status = $new_status
+                    WHERE mem_uid = $key",
+                    1
+                );
                 self::updatePlugins($key, $old_status, $new_status);
             }
         }
@@ -746,13 +750,13 @@ class Membership
             self::notifyExpiration(array($this->uid));
         }
 
+        Cache::clear('members');
         $this->_UpdateStatus(
             $this->uid,
             $cancel_relatives,
             Status::ARREARS,
             Status::EXPIRED
         );
-        Cache::clear('members');
         return $this;
     }
 
