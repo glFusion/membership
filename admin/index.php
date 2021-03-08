@@ -36,7 +36,7 @@ $footer = '';
 $action = $_CONF_MEMBERSHIP['adm_def_view'];
 $expected = array(
     // Actions to perform
-    'saveplan', 'deleteplan', 'renewmember', 'savemember',
+    'saveplan', 'deleteplan', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
     'savepg', 'notify',
     'renewbutton', 'deletebutton', 'regenbutton',
@@ -105,6 +105,7 @@ case 'importusers':
     break;
 
 case 'quickrenew':
+    echo "HERE";die;
     $M = new Membership\Membership($_POST['mem_uid']);
     $status = $M->Add($uid, $M->Plan->plan_id, 0);
     return $status == true ? PLG_RET_OK : PLG_RET_ERROR;
@@ -144,7 +145,7 @@ case 'deleteplan':
     if (!empty($plan_id)) {
         Plan::Delete($plan_id, $xfer_plan);
     }
-    $view = 'listplans';
+    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listplans');
     break;
 
 case 'saveplan':
@@ -152,7 +153,7 @@ case 'saveplan':
     $P = new Membership\Plan($plan_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        $view = 'listplans';
+        COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listplans');
     } else {
         $content .= Membership\Menu::Admin('editplan');
         $content .= $P->PrintErrors($LANG_MEMBERSHIP['error_saving']);
@@ -197,7 +198,7 @@ case 'reorderpg':
     if ($id > 0 && $where != '') {
         $msg = Membership\PosGroup::Move($id, $where);
     }
-    $view = 'posgroups';
+    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?posgroups');
     break;
 
 case 'reorderpos':
@@ -207,7 +208,7 @@ case 'reorderpos':
     if ($type != '' && $id > 0 && $where != '') {
         $msg = Membership\Position::Move($id, $type, $where);
     }
-    $view = 'positions';
+    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
     break;
 
 case 'deletepos':
