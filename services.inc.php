@@ -17,12 +17,13 @@ if (!defined ('GVERSION')) {
     die ('This file can not be used on its own!');
 }
 
-use Membership\Models\Config;
+use Membership\Config;
 use Membership\Status;
 use Membership\Plan;
 use Membership\Membership;
 use Membership\Logger;
 use Membership\Dates;
+use Membership\Models\ProductInfo;
 
 /**
  * Get information about a specific item.
@@ -55,18 +56,9 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     $plan_id = $A['item_id'][0];
     $plan_mod = isset($A['item_id'][1]) ? $A['item_id'][1] : '';
     // Create a return array with values to be populated later
-    $output = array(
-        'product_id'        => 'membership:' . implode(':', $A['item_id']),
-        'name'              => 'Unknown',
-        'short_description' => 'Unknown Membership Plan',
-        'short_dscp'        => 'Unknown Membership Plan',
-        'description'       => '',
-        'dscp'              => '',
-        'price'             => '0.00',
-        'fixed_q'           => 1,
-        'url'               => '',
-        'have_detail_svc' => true,  // Tell Shop to use it's detail page wrapper
-    );
+    $output = new ProductInfo(array(
+        'product_id' => 'membership:' . implode(':', $A['item_id']),
+    ));
     $retval = PLG_RET_OK;       // assume response will be OK
 
     $P = new Plan($plan_id);
@@ -83,6 +75,8 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     }
     return $retval;
 }
+
+
 /**
  * Non-service function to get product information.
  *
@@ -156,16 +150,13 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     }
 
     // Initialize the return array
-    $output = array(
+    $output = new ProductInfo(array(
         'product_id' => implode(':', $id),
         'name' => $M->getPlan()->getName(),
         'short_description' => $M->getPlan()->getName(),
         'description' => $M->getPlan()->getName(),
         'price' =>  $amount,
-        'expiration' => NULL,
-        'download' => 0,
-        'file' => '',
-    );
+    ));
 
     Logger::Audit(
         'Processing membership for ' . COM_getDisplayName($uid) . "($uid), plan {$id[1]}", true
@@ -230,12 +221,15 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     } else {
         // Use the default setting if no other options received
         $exp_stat = array();
-        if (Config::get('prflist_current') == 1)
+        if (Config::get('prflist_current') == 1) {
             $exp_stat[] = Status::ACTIVE;
-        if (Config::get('prflist_arrears') == 1)
+        }
+        if (Config::get('prflist_arrears') == 1) {
             $exp_stat[] = Status::ARREARS;
-        //if (Config::get('prflist_expired') == 1)
+        }
+        //if (Config::get('prflist_expired') == 1) {
         //    $exp_stat[] = Status::EXPIRED;
+        //}
     }
     if (!is_array($exp_stat)) {
         $exp_stat = array();
