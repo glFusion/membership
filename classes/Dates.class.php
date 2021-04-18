@@ -53,11 +53,9 @@ class Dates
      */
     public static function plusRenewal()
     {
-        global $_CONF_MEMBERSHIP;
-
         static $retval = NULL;
         if ($retval === NULL) {
-            $days = $_CONF_MEMBERSHIP['early_renewal'];
+            $days = Config::get('early_renewal');
             if ($days > 0) {
                 $retval = self::add("P{$days}D")->format('Y-m-d');
             } else {
@@ -76,11 +74,10 @@ class Dates
      */
     public static function expGraceEnded()
     {
-        global $_CONF_MEMBERSHIP;
         static $retval = NULL;
 
         if ($retval === NULL) {
-            $days = (int)$_CONF_MEMBERSHIP['grace_days'];
+            $days = (int)Config::get('grace_days');
             if ($days > 0) {
                 $retval = self::sub("P{$days}D")->format('Y-m-d');
             } else {
@@ -135,22 +132,20 @@ class Dates
      */
     public static function calcExpiration($exp = '')
     {
-        global $_CONF_MEMBERSHIP;
-
         if ($exp == '') {
             $exp = Dates::Today();
         }
 
         // If a rolling membership period, just add a year to today or
         // the current expiration, whichever is greater.
-        if ($_CONF_MEMBERSHIP['period_start'] == 0) {
+        if (Config::get('period_start') == 0) {
             // Check if within the grace period.
             if ($exp < Dates::expGraceEnded()) {
                 $exp = Dates::Today();
             }
             list($exp_year, $exp_month, $exp_day) = explode('-', $exp);
             $exp_year++;
-            if ($_CONF_MEMBERSHIP['expires_eom']) {
+            if (Config::get('expires_eom')) {
                 $exp_day = cal_days_in_month(CAL_GREGORIAN, $exp_month, $exp_year);
             }
         } else {
@@ -161,7 +156,7 @@ class Dates
             list($year, $month, $day) = explode('-', $exp);
             list($c_year, $c_month, $c_day) =
                     explode('-', Dates::Today());
-            $exp_month = $_CONF_MEMBERSHIP['period_start'] - 1;
+            $exp_month = Config::get('period_start') - 1;
             if ($exp_month == 0) $exp_month = 12;
             $exp_year = $year;
             if ($exp <= Dates::Today()) {

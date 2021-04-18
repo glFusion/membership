@@ -26,7 +26,7 @@ class Menu
      */
     public static function Admin($mode='')
     {
-        global $_CONF, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $LANG01;
+        global $_CONF, $LANG_MEMBERSHIP, $LANG01;
 
         USES_lib_admin();
 
@@ -58,34 +58,35 @@ class Menu
             break;
         }
 
+        $admin_url = Config::get('admin_url');
         $menu_arr = array(
             array(
-                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listplans=x',
+                'url' => $admin_url . '/index.php?listplans=x',
                 'text' => $LANG_MEMBERSHIP['list_plans'],
                 'active' => $plan_active,
             ),
             array(
-                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
+                'url' => $admin_url . '/index.php?listmembers',
                 'text' => $LANG_MEMBERSHIP['list_members'],
                 'active' => $members_active,
             ),
             array(
-                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
+                'url' => $admin_url . '/index.php?listtrans',
                 'text' => $LANG_MEMBERSHIP['transactions'],
                 'active' => $trans_active,
             ),
             array(
-                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?stats',
+                'url' => $admin_url . '/index.php?stats',
                 'text' => $LANG_MEMBERSHIP['member_stats'],
                 'active' => $stats_active,
             ),
             array(
-                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
+                'url' => $admin_url . '/index.php?positions',
                 'text' => $LANG_MEMBERSHIP['positions'],
                 'active' => $pos_active,
             ),
             array(
-                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?importform',
+                'url' => $admin_url . '/index.php?importform',
                 'text' => $LANG_MEMBERSHIP['import'],
                 'active' => $import_active,
             ),
@@ -106,7 +107,7 @@ class Menu
      */
     public static function adminPositions($view='')
     {
-        global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+        global $LANG_MEMBERSHIP;
 
         $menu_arr = array(
             array(
@@ -163,12 +164,12 @@ class Menu
      */
     public static function siteHeader($title='', $meta='')
     {
-        global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $LANG_MEMBERSHIP;
 
         $retval = '';
 
         $title = $LANG_MEMBERSHIP['block_title'];
-        switch($_CONF_MEMBERSHIP['displayblocks']) {
+        switch(Config::get('displayblocks')) {
         case 2:     // right only
         case 0:     // none
             $retval .= COM_siteHeader('none', $title, $meta);
@@ -190,11 +191,9 @@ class Menu
      */
     public static function siteFooter()
     {
-        global $_CONF_MEMBERSHIP;
-
         $retval = '';
 
-        switch($_CONF_MEMBERSHIP['displayblocks']) {
+        switch(Config::get('displayblocks')) {
         case 2 : // right only
         case 3 : // left and right
             $retval .= COM_siteFooter(true);

@@ -14,6 +14,7 @@
 /** Import core glFusion libraries */
 require_once '../../../lib-common.php';
 require_once '../../auth.inc.php';
+use Membership\Config;
 
 // Make sure the plugin is installed and enabled
 if (!in_array('membership', $_PLUGINS)) {
@@ -33,7 +34,7 @@ $footer = '';
 
 // so we'll check for it and see if we should use it, but by using $action
 // and $view we don't tend to conflict with glFusion's $mode.
-$action = $_CONF_MEMBERSHIP['adm_def_view'];
+$action = Config::get('adm_def_view');
 $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'savemember',
@@ -74,7 +75,7 @@ case 'regenbutton':
     // Only if configured and valid data is received in delitem variable.
     $view = 'listmembers';
     if (
-        $_CONF_MEMBERSHIP['use_mem_number'] != 2 ||
+        Config::get('use_mem_number') != 2 ||
         !is_array($_POST['delitem']) ||
         empty($_POST['delitem'])
     ) {
@@ -331,7 +332,7 @@ $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
 $T->set_file('page', 'admin_header.thtml');
 $T->set_var(array(
     'header'    => $LANG_MEMBERSHIP['admin_title'],
-    'version'   => $_CONF_MEMBERSHIP['pi_version'],
+    'version'   => Config::get('pi_version'),
 ) );
 $T->parse('output','page');
 $output .= $T->finish($T->get_var('output'));

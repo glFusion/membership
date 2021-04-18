@@ -12,6 +12,7 @@
  * @filesource
  */
 namespace Membership;
+use Membership\Config;
 
 
 /**
@@ -30,7 +31,7 @@ class Logger
      */
     private static function write($logentry, $logfile, $system=false)
     {
-        global $_CONF, $_USER, $LANG01, $_CONF_MEMBERSHIP;
+        global $_CONF, $_USER, $LANG01;
 
         if ($logentry == '') {
             return;
@@ -44,7 +45,7 @@ class Logger
         );
         $timestamp = strftime( '%c' );
         if ($logfile == '') {
-            $logfile = $_CONF_MEMBERSHIP['pi_name'] . '.log';
+            $logfile = Config::PI_NAME . '.log';
         }
         $logfile = $_CONF['path_log'] . $logfile;
 
@@ -95,9 +96,7 @@ class Logger
      */
     public static function Audit($msg, $system=false)
     {
-        global $_CONF_MEMBERSHIP;
-
-        $logfile = $_CONF_MEMBERSHIP['pi_name'] . '.log';
+        $logfile = Config::PI_NAME . '.log';
         self::write($msg, $logfile);
     }
 
@@ -122,9 +121,7 @@ class Logger
      */
     public static function Debug($msg)
     {
-        global $_CONF_MEMBERSHIP;
-
-        if (isset($_CONF_MEMBERSHIP['log_level']) && (int)$_CONF_MEMBERSHIP['log_level'] <= 100) {
+        if ((int)Config::get('log_level') <= 100) {
             self::System('DEBUG: ' . $msg);
         }
     }

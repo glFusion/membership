@@ -18,6 +18,7 @@ require_once '../lib-common.php';
 if (!in_array('membership', $_PLUGINS)) {
     COM_404();
 }
+use Membership\Config;
 
 $content = '';
 $expected = array(
@@ -47,7 +48,6 @@ if (empty($action)) {
 
 if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
     $uid = (int)$_GET['uid'];
-    //$_CONF_MEMBERSHIP['view_app'] = MEMBERSHIP_APP_ALLACCESS;
 } else {
     $uid = (int)$_USER['uid'];
 }
@@ -155,7 +155,7 @@ case 'pmtform':
         $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file('pmt', 'pmt_form.thtml');
         $price_actual = $P->Price($M->isNew(), 'actual');
-        if ($_CONF_MEMBERSHIP['ena_checkpay'] == 2) {
+        if (Config::get('ena_checkpay') == 2) {
             $fee = $P->Fee();
             $price_total = $price_actual + $fee;
         } else {
@@ -172,14 +172,16 @@ case 'pmtform':
             'price_actual'  => sprintf('%4.2f', $price_actual),
             'pmt_fee'       => $fee > 0 ? sprintf('%4.2f', $fee) : '',
             'currency'      => $P->getCurrency(),
-            'make_payable'  => sprintf($LANG_MEMBERSHIP['make_payable'],
-                    $_CONF_MEMBERSHIP['payable_to']),
-            'remit_to'      => $_CONF_MEMBERSHIP['remit_to'],
+            'make_payable'  => sprintf(
+                $LANG_MEMBERSHIP['make_payable'],
+                Config::get('payable_to')
+            ),
+            'remit_to'      => Config::get('remit_to'),
             'site_name'     => $_CONF['site_name'],
             'site_slogan'   => $_CONF['site_slogan'],
             // language string included here to allow html
             'pmt_instructions' => $LANG_MEMBERSHIP['pmt_instructions'],
-            'ena_checkpay'  => $_CONF_MEMBERSHIP['ena_checkpay'],
+            'ena_checkpay'  => Config::get('ena_checkpay'),
         ) );
         $T->parse('output', 'pmt');
         $content = $T->finish($T->get_var('output'));

@@ -33,25 +33,8 @@ $_TABLES['membership_positions'] = $prefix . 'positions';
 $_TABLES['membership_posgroups'] = $prefix . 'pos_groups';
 $_TABLES['membership_users']    = $prefix . 'users';
 
-/**
- * Global configuration array.
- * @global array $_CONF_MEMBERSHIP
- */
-global $_CONF_MEMBERSHIP;
-$_CONF_MEMBERSHIP['pi_name']           = 'membership';
-$_CONF_MEMBERSHIP['pi_version']        = '0.3.0';
-$_CONF_MEMBERSHIP['gl_version']        = '1.7.8';
-$_CONF_MEMBERSHIP['pi_url']            = 'http://www.leegarner.com';
-$_CONF_MEMBERSHIP['pi_display_name']   = 'Membership';
-
-$_CONF_MEMBERSHIP['icons'] = array(
-    'delete'    => '<i class="uk-icon uk-icon-remove uk-text-danger"></i>',
-    'copy'      => '<i class="uk-icon uk-icon-clone"></i>',
-    'edit'      => '<i class="uk-icon uk-icon-edit"></i>',
-    'arrow-up'  => '<i class="uk-icon uk-icon-arrow-up"></i>',
-    'arrow-down'=> '<i class="uk-icon uk-icon-arrow-down"></i>',
-    'reset'     => '<i class="uk-icon uk-icon-refresh"></i>',
-    'regen'     => '<i class="uk-icon uk-icon-cogs"></i>',
-);
-
-?>
+use Membership\Config;
+Config::set('pi_version', '0.3.0');
+Config::set('gl_version', '1.7.8');
+Config::set('pi_display_name', 'Membership');
+Config::set('pi_url', 'http://www.leegarner.com');

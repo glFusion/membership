@@ -35,11 +35,11 @@ class App
      */
     public function __construct($uid = 0)
     {
-        global $_USER, $_CONF_MEMBERSHIP;
+        global $_USER;
 
         if ($uid == 0 || !MEMBERSHIP_isManager()) $uid = $_USER['uid'];
         $this->uid = $uid;
-        $this->plugin = $_CONF_MEMBERSHIP['app_provider'];
+        $this->plugin = Config::get('app_provider');
     }
 
 
@@ -139,7 +139,7 @@ class App
      */
     public function Edit()
     {
-        global $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $_CONF, $LANG_MEMBERSHIP;
 
         $M = Membership::getInstance($this->uid);
         /*if (isset($_POST[$typeselect_var])) {
@@ -161,14 +161,17 @@ class App
         ) );
 
         // Add the checkbox to accept terms or waivers, if so configured
-        if ($_CONF_MEMBERSHIP['terms_url'] != '') {
-            $terms_url = str_replace('%site_url%', $_CONF['site_url'],
-                $_CONF_MEMBERSHIP['terms_url']);
+        if (Config::get('terms_url') != '') {
+            $terms_url = str_replace(
+                '%site_url%',
+                $_CONF['site_url'],
+                Config::get('terms_url')
+            );
             $T->set_var(array(
                 'terms_link' => sprintf($LANG_MEMBERSHIP['terms_link'], $terms_url),
             ) );
         }
-        if ($_CONF_MEMBERSHIP['terms_accept']) {
+        if (Config::get('terms_accept')) {
             $T->set_var(array(
                 'terms_required'    => true,
                 'terms_cls' => isset($_POST['app_errors']['terms_accept']) ? 'app_error' : '',
@@ -237,7 +240,7 @@ class App
      */
     public function Save()
     {
-        global $_TABLES, $_CONF_MEMBERSHIP, $_CONF, $_USER;
+        global $_TABLES, $_CONF, $_USER;
 
         $uid = (int)$_POST['mem_uid'];
 
@@ -296,7 +299,7 @@ class App
      */
     public function Validate($A = NULL)
     {
-        global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $LANG_MEMBERSHIP;
 
         if ($this->uid < 2 || !$this->isValidForm()) {
             return false;
@@ -306,7 +309,7 @@ class App
         // Check that the terms acceptance is supplied, or was done within a year
         // This is done if terms are enabled regardless of whether an app is
         // used.
-        if ($_CONF_MEMBERSHIP['terms_accept']) {
+        if (Config::get('terms_accept')) {
             $U = User::getInstance($this->uid);
             $terms_accept = $U->getTermsAccepted();
             if (is_array($A)) {
@@ -405,7 +408,6 @@ class App
      */
     public static function isRequired()
     {
-        global $_CONF_MEMBERSHIP;
         static $isRequired = NULL;
 
         if ($isRequired !== NULL) {
@@ -413,7 +415,7 @@ class App
         } elseif (!self::providerAvailable()) {
             // Don't require an app if the provider plugin is not available
             $isRequired = false;
-        } elseif ($_CONF_MEMBERSHIP['require_app'] < MEMBERSHIP_APP_REQUIRED) {
+        } elseif (Config::get('require_app') < MEMBERSHIP_APP_REQUIRED) {
             // App is not required
             $isRequired = false;
         } else {
@@ -430,12 +432,11 @@ class App
      */
     public static function providerAvailable()
     {
-        global $_CONF_MEMBERSHIP;
         static $isAvailable = NULL;
 
         if ($isAvailable === NULL) {
             $isAvailable = in_array(
-                $_CONF_MEMBERSHIP['app_provider'],
+                Config::get('app_provider'),
                 self::supportedPlugins()
             );
         }
@@ -450,10 +451,8 @@ class App
      */
     public static function getProvider()
     {
-        global $_CONF_MEMBERSHIP;
-
         if (self::providerAvailable()) {
-            return $_CONF_MEMBERSHIP['app_provider'];
+            return Config::get('app_provider');
         } else {
             return false;
         }

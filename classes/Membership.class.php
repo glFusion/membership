@@ -19,6 +19,10 @@ namespace Membership;
  */
 class Membership
 {
+    /** Membership action types */
+    const NEW = 1;
+    const RENEW = 2;
+
     /** Plan ID.
      * @var string */
     private $plan_id = '';
@@ -74,7 +78,7 @@ class Membership
      */
     public function __construct($uid=0)
     {
-        global $_USER, $_CONF_MEMBERSHIP;
+        global $_USER;
 
         if ($uid == 0) {
             $uid = (int)$_USER['uid'];
@@ -84,7 +88,7 @@ class Membership
             $this->isNew = false;
         } else {
             $this->joined = Dates::Today();
-            $this->notified = (int)$_CONF_MEMBERSHIP['notifycount'];
+            $this->notified = (int)Config::get('notifycount');
         }
     }
 
@@ -159,8 +163,6 @@ class Membership
      */
     public function setVars($A)
     {
-        global $_CONF_MEMBERSHIP;
-
         if (!is_array($A)) {
             return $this;
         }
@@ -173,7 +175,7 @@ class Membership
         if (isset($A['mem_expires'])) $this->expires = $A['mem_expires'];
         if (isset($A['mem_plan_id'])) $this->plan_id = $A['mem_plan_id'];
         if (isset($A['mem_status'])) $this->status = (int)$A['mem_status'];
-        $this->notified = MEMB_getVar($A, 'mem_notified', 'integer', $_CONF_MEMBERSHIP['notifycount']);
+        $this->notified = MEMB_getVar($A, 'mem_notified', 'integer', Config::get('notifycount'));
         if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
         $this->istrial = MEMB_getVar($A, 'mem_istrial', 'integer', 0);
         // This will never come from a form:
@@ -359,7 +361,7 @@ class Membership
      */
     public function EditForm($action_url = '')
     {
-        global $_CONF, $_TABLES, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+        global $_CONF, $_TABLES, $LANG_MEMBERSHIP;
 
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
         $T->set_file(array(
@@ -380,14 +382,14 @@ class Membership
             'is_member' => $this->isNew ? '' : 'true',
             'pmt_date'  => Dates::Today(),
             'mem_number' => $this->mem_number,
-            'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
+            'use_mem_number' => Config::get('use_mem_number') ? 'true' : '',
             'mem_istrial' => $this->istrial,
             'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
             'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
         ) );
         $T->set_block('editmember', 'expToSend', 'expTS');
 
-        for ($i = 0; $i <= $_CONF_MEMBERSHIP['notifycount']; $i++) {
+        for ($i = 0; $i <= Config::get('notifycount'); $i++) {
             $T->set_var(array(
                 'notify_val' => $i,
                 'sel' => $i == $this->notified ? 'selected="selected"' : '',
@@ -487,7 +489,7 @@ class Membership
      */
     public function Save($A = '')
     {
-        global $_TABLES, $_CONF_MEMBERSHIP;
+        global $_TABLES;
 
         $old_status = $this->status;  // track original status
         if (is_array($A) && !empty($A)) {
@@ -517,7 +519,7 @@ class Membership
         if ($quickrenew) {
             $this->istrial = 0;
             $this->expires = Dates::calcExpiration($this->expires);
-            $this->notified = $_CONF_MEMBERSHIP['notifycount'];
+            $this->notified = Config::get('notifycount');
         }
 
         // The first thing is to check to see if we're removing this account
@@ -572,12 +574,12 @@ class Membership
             $this->expires = DB_escapeString($this->expires);
 
             // Add this user to the membership group
-            Logger::debug("Adding user $key to group {$_CONF_MEMBERSHIP['member_group']}");
+            Logger::debug("Adding user $key to group " . Config::get('member_group'));
             // Create membership number if not already defined for the account
             // Include trailing comma, be sure to place it appropriately in
             // the sql statement that follows
             if (
-                $_CONF_MEMBERSHIP['use_mem_number'] &&
+                Config::get('use_mem_number') &&
                 $this->isNew &&
                 $this->mem_number == ''
             ) {
@@ -616,7 +618,7 @@ class Membership
             // date then the status and group changes will be handled by
             // runScheduledTask
             if ($this->status == Status::ACTIVE) {
-                USER_addGroup($_CONF_MEMBERSHIP['member_group'], $key);
+                USER_addGroup(Config::get('member_group'), $key);
             }
             self::updatePlugins($key, $old_status, $this->status);
         }
@@ -651,7 +653,7 @@ class Membership
      */
     private function _UpdateStatus($uid, $inc_relatives, $old_status, $new_status)
     {
-        global $_TABLES, $_CONF_MEMBERSHIP;
+        global $_TABLES;
 
         $uid = (int)$uid;
         if ($uid < 2) return false;
@@ -662,8 +664,8 @@ class Membership
         $groups = array();
         switch ($new_status) {
         case Status::EXPIRED:
-            if (!empty($_CONF_MEMBERSHIP['member_group'])) {
-                $groups[] = $_CONF_MEMBERSHIP['member_group'];
+            if (!empty(Config::get('member_group'))) {
+                $groups[] = Config::get('member_group');
             }
             break;
         }
@@ -796,8 +798,6 @@ class Membership
      */
     public function Add($uid = '', $plan_id = '', $exp = '', $joined = '')
     {
-        global $_CONF_MEMBERSHIP;
-
         if ($uid != '') {
             $this->Read($uid);
         }
@@ -852,7 +852,7 @@ class Membership
      */
     public function showInfo($panel = false, $uid = 0)
     {
-        global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_USER, $_TABLES, $_SYSTEM;
+        global $LANG_MEMBERSHIP, $_USER, $_TABLES, $_SYSTEM;
 
         if ($uid == 0) $uid = (int)$_USER['uid'];
         $mem_number = '';
@@ -876,7 +876,7 @@ class Membership
             $plan_id = $this->Plan->getPlanID();
             $relatives = $this->getLinks();
             //$relatives = Link::getRelatives($this->uid);
-            if ($_CONF_MEMBERSHIP['use_mem_number'] && SEC_hasRights('membership.admin')) {
+            if (Config::get('use_mem_number') && SEC_hasRights('membership.admin')) {
                 $mem_number = $this->mem_number;
             }
             $sql = "SELECT descr FROM {$_TABLES['membership_positions']}
@@ -912,7 +912,7 @@ class Membership
             //'old_links' => $old_links,
             'position' => $position,
             'mem_number' => $mem_number,
-            'use_mem_number' => $_CONF_MEMBERSHIP['use_mem_number'] ? 'true' : '',
+            'use_mem_number' => Config::get('use_mem_number') ? 'true' : '',
         ) );
 
         $LT->set_block('block', 'LinkBlock', 'lrow');
@@ -970,8 +970,6 @@ class Membership
      */
     public static function DaysToExpire($exp)
     {
-        global $_CONF_MEMBERSHIP;
-
         $days = COM_dateDiff('d', $exp, Dates::Today());
         if ($exp < Dates::Today()) $days *= -1;
         return $days;
@@ -987,8 +985,6 @@ class Membership
      */
     public static function DaysExpired($exp)
     {
-        global $_CONF_MEMBERSHIP;
-
         $days = COM_dateDiff('d', $exp, Dates::Today());
         // Undo absolute value conversion done in COM_dateDiff()
         if ($exp > Dates::Today()) $days *= -1;
@@ -1004,8 +1000,6 @@ class Membership
      */
     public function CanPurchase()
     {
-        global $_CONF_MEMBERSHIP;
-
         if (COM_isAnonUser()) {
             $canPurchase = MEMBERSHIP_NOPURCHASE;
         } else {
@@ -1062,14 +1056,14 @@ class Membership
      */
     public function Delete()
     {
-        global $_CONF_MEMBERSHIP, $_TABLES;
+        global $_TABLES;
         USES_lib_user();
 
         // Remove this user from the family
         self::remLink($this->uid);
 
         // Remove this user from the membership group
-        USER_delGroup($_CONF_MEMBERSHIP['member_group'], $this->uid);
+        USER_delGroup(Config::get('member_group'), $this->uid);
 
         // Delete this membership record
         DB_delete($_TABLES['membership_members'], 'mem_uid', $this->uid);
@@ -1118,26 +1112,26 @@ class Membership
      */
     public static function updatePlugins($uid, $old_status, $new_status)
     {
-        global $_TABLES, $_CONF_MEMBERSHIP, $_PLUGINS;
+        global $_TABLES, $_PLUGINS;
 
         // No change in status just return OK
         if ($old_status == $new_status) {
             return;
         }
 
-        PLG_itemSaved('membership:' . $uid, $_CONF_MEMBERSHIP['pi_name']);
+        PLG_itemSaved('membership:' . $uid, Config::PI_NAME);
 
         // Update the image quota in mediagallery.
         // Mediagallery doesn't have a service function, have to update the
         // database directly. Don't update users with unlimited quotas.
         if (
-            $_CONF_MEMBERSHIP['manage_mg_quota']  &&
+            Config::get('manage_mg_quota')  &&
             in_array('mediagallery', $_PLUGINS)
         ) {
             $quota = DB_getItem($_TABLES['mg_userprefs'], 'quota', "uid=$uid");
             if ($quota > 0) {
-                $max = (int)$_CONF_MEMBERSHIP['mg_quota_member'];
-                $min = (int)$_CONF_MEMBERSHIP['mg_quota_nonmember'];
+                $max = (int)Config::get('mg_quota_member');
+                $min = (int)Config::get('mg_quota_nonmember');
                 // sanity checking. Min must be positive to have an effect,
                 // zero is unlimited. Max can be zero but otherwise must be > min
                 if ($min < 1) $min = 1;
@@ -1178,12 +1172,10 @@ class Membership
      */
     public static function createMemberNumber($uid)
     {
-        global $_CONF_MEMBERSHIP;
-
         if (function_exists('CUSTOM_createMemberNumber')) {
             $retval = CUSTOM_createMemberNumber($uid);
         } else {
-            $fmt = $_CONF_MEMBERSHIP['mem_num_fmt'];
+            $fmt = Config::get('mem_num_fmt');
             if (empty($fmt)) {
                 $fmt = '%04d';
             }
@@ -1231,9 +1223,9 @@ class Membership
      */
     private function _disableAccount()
     {
-        global $_TABLES, $_CONF_MEMBERSHIP;
+        global $_TABLES;
 
-        if ($_CONF_MEMBERSHIP['disable_expired']) {
+        if (Config::get('disable_expired')) {
             // Disable the user account at expiration, if so configured
             DB_query("UPDATE {$_TABLES['users']}
                     SET status = " . USER_ACCOUNT_DISABLED .
@@ -1251,8 +1243,6 @@ class Membership
      */
     public function getItemInfo($what, $options = array())
     {
-        global $_CONF_MEMBERSHIP;
-
         $retval = array();
         $U = User::getInstance($this->uid);
 
@@ -1321,7 +1311,7 @@ class Membership
      */
     public static function addLink($uid1, $uid2)
     {
-        global $_TABLES, $_CONF_MEMBERSHIP;
+        global $_TABLES;
 
         $Mem1 = self::getInstance($uid1);
         if ($Mem1->isNew()) {
@@ -1334,7 +1324,7 @@ class Membership
 
         $Mem2 = self::getInstance($uid2);
         if ($Mem2->isNew()) {
-            if ($_CONF_MEMBERSHIP['use_mem_number']) {
+            if (Config::get('use_mem_number')) {
                 $mem_number = self::createMemberNumber($uid2);
             } else {
                 $mem_number = '';
@@ -1444,7 +1434,7 @@ class Membership
      */
     public static function summaryStats()
     {
-        global $_CONF_MEMBERSHIP, $_TABLES;
+        global $_TABLES;
 
         // The brute-force way to get summary stats.  There must be a better way.
         $sql = "SELECT mem_plan_id,
@@ -1492,8 +1482,7 @@ class Membership
      */
     public static function adminList()
     {
-        global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP,
-            $_CONF_MEMBERSHIP;
+        global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP;
 
         $retval = '';
 
@@ -1505,7 +1494,7 @@ class Membership
                 'align'=>'center',
             ),
         );
-        if ($_CONF_MEMBERSHIP['require_app']) {
+        if (Config::get('require_app')) {
             $header_arr[] = array(
                 'text' => $LANG_MEMBERSHIP['application'],
                 'field' => 'app_link',
@@ -1513,7 +1502,7 @@ class Membership
                 'align' => 'center',
             );
         }
-        if ($_CONF_MEMBERSHIP['use_mem_number'] > 0) {
+        if (Config::get('use_mem_number') > 0) {
             $header_arr[] = array(
                 'text' => $LANG_MEMBERSHIP['mem_number'],
                 'field' => 'mem_number',
@@ -1595,7 +1584,7 @@ class Membership
                 '&nbsp;&nbsp;' . $notify_action,
         );
 
-        if ($_CONF_MEMBERSHIP['use_mem_number'] == 2) {
+        if (Config::get('use_mem_number') == 2) {
             $options['chkactions'] .= '<button class="uk-button uk-button-mini" name="regenbutton" ' .
                 'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen'] . '\');">' .
                 '<i class="uk-icon uk-icon-cogs"></i> ' . $LANG_MEMBERSHIP['regen_mem_numbers'] . '</button>';
@@ -1622,8 +1611,7 @@ class Membership
      */
     public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
     {
-        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES,
-            $LANG_ADMIN;
+        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_TABLES, $LANG_ADMIN;
 
         $retval = '';
         $pi_admin_url = MEMBERSHIP_ADMIN_URL;
@@ -1632,7 +1620,7 @@ class Membership
         case 'edit':
             $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
             $retval = COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['edit'],
+                Icon::getHTML('edit'),
                 MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp
             );
             break;
@@ -1942,9 +1930,9 @@ class Membership
      */
     public static function batchPurge()
     {
-        global $_TABLES, $_CONF_MEMBERSHIP;
+        global $_TABLES;
 
-        $days = (int)$_CONF_MEMBERSHIP['drop_days'];
+        $days = (int)Config::get('drop_days');
         if ($days > -1) {
             $sql = "UPDATE {$_TABLES['membership_members']}
                 SET mem_status = " . Status::DROPPED . " WHERE
@@ -1968,14 +1956,14 @@ class Membership
      */
     public static function notifyExpiration($ids = NULL)
     {
-        global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $_TABLES, $_CONF, $LANG_MEMBERSHIP;
 
-        $interval = (int)$_CONF_MEMBERSHIP['notifydays'];
+        $interval = (int)Config::get('notifydays');
 
         // Return if we're not configured to notify users.
         if (
             $interval < 0 ||
-            $_CONF_MEMBERSHIP['notifymethod'] == MEMBERSHIP_NOTIFY_NONE
+            Config::get('notifymethod') == MEMBERSHIP_NOTIFY_NONE
         ) {
             return;
         }
@@ -2021,7 +2009,7 @@ class Membership
         ) );
 
         while ($row = DB_fetchArray($r, false)) {
-            if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_EMAIL) {
+            if (Config::get('notifymethod') & MEMBERSHIP_NOTIFY_EMAIL) {
                 // Create a notification email message.
                 $username = COM_getDisplayName($row['mem_uid']);
 
@@ -2034,7 +2022,7 @@ class Membership
                 $args = array(
                     'custom'    => array('uid'   => $row['mem_uid']),
                     'amount' => $P->Price(false),
-                    'item_number' => $_CONF_MEMBERSHIP['pi_name'] . ':' . $P->getPlanID() .
+                    'item_number' => Config::PI_NAME . ':' . $P->getPlanID() .
                         ':renewal',
                     'item_name' => $P->getName(),
                     'btn_type' => 'buy_now',
@@ -2066,7 +2054,7 @@ class Membership
                 $T->set_var(array(
                     'site_name'     => $_CONF['site_name'],
                     'username'      => $username,
-                    'pi_name'       => $_CONF_MEMBERSHIP['pi_name'],
+                    'pi_name'       => Config::PI_NAME,
                     'plan_id'       => $row['mem_plan_id'],
                     'plan_name'     => $row['name'],
                     'plan_dscp'     => $row['description'],
@@ -2081,7 +2069,7 @@ class Membership
                     'lastname'      => $lname,
                     'fullname'      => $row['fullname'],
                     'is_expired'    => $is_expired,
-                    'expire_eom'    => $_CONF_MEMBERSHIP['expires_eom'],
+                    'expire_eom'    => Config::get('expires_eom'),
                 ) );
                 $T->parse('exp_msg', 'message');
 
@@ -2122,7 +2110,7 @@ class Membership
                 COM_emailNotification($msgData);
             }
 
-            if ($_CONF_MEMBERSHIP['notifymethod'] & MEMBERSHIP_NOTIFY_MESSAGE) {
+            if (Config::get('notifymethod') & MEMBERSHIP_NOTIFY_MESSAGE) {
                 // Save a message for the next time they log in.
                 $msg = sprintf(
                     $LANG_MEMBERSHIP['you_expire'],
@@ -2132,7 +2120,7 @@ class Membership
                 $expire_msg = date(
                     'Y-m-d',
                     strtotime(
-                        '-' . $_CONF_MEMBERSHIP['grace_days'] . ' day',
+                        '-' . Config::get('grace_days') . ' day',
                         strtotime($row['mem_expires'])
                     )
                 );

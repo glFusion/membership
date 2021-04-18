@@ -39,9 +39,7 @@ class Forms extends \Membership\App
      */
     public function __construct($uid)
     {
-        global $_CONF_MEMBERSHIP;
-
-        $this->frm_id = $_CONF_MEMBERSHIP['app_form_id'];
+        $this->frm_id = Config::get('app_form_id');
         parent::__construct($uid);
 
         // Check that the form exists and can be filled out.
@@ -158,8 +156,6 @@ class Forms extends \Membership\App
      */
     protected function _Validate($A = NULL)
     {
-        global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
-
         $status = true;
         // todo: Add method to check new application from $_POST
         if ($A === NULL) {      // checking existing application

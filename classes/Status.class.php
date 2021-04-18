@@ -46,21 +46,19 @@ class Status
      */
     public static function getSegment($status)
     {
-        global $_CONF_MEMBERSHIP;
-
         $retval = '';
         switch ($status) {
         case self::ACTIVE:
-            $retval = $_CONF_MEMBERSHIP['segment_active'];
+            $retval = Config::get('segment_active');
             break;
         case self::ARREARS:
-            $retval = $_CONF_MEMBERSHIP['segment_arrears'];
+            $retval = Config::get('segment_arrears');
             break;
         case self::EXPIRED:
-            $retval = $_CONF_MEMBERSHIP['segment_expired'];
+            $retval = Config::get('segment_expired');
             break;
         case self::DROPPED:
-            $retval = $_CONF_MEMBERSHIP['segment_dropped'];
+            $retval = Config::get('segment_dropped');
             break;
         }
         return $retval;
@@ -69,15 +67,13 @@ class Status
 
     public static function getTags($segment)
     {
-        global $_CONF_MEMBERSHIP;
-
         $tags = array();
         foreach (array(
             'segment_active', 'segment_arrears', 'segment_expired', 'segment_dropped'
             ) as $key
         ) {
-            if (!empty($_CONF_MEMBERSHIP[$key])) {
-                $tags[$_CONF_MEMBERSHIP[$key]] = 'inactive';
+            if (!empty(Config::get($key))) {
+                $tags[Config::get($key)] = 'inactive';
             }
         }
         if (!empty($segment) && isset($tags[$segment])) {
@@ -97,16 +93,14 @@ class Status
      */
     public static function getMergeFields($status)
     {
-        global $_CONF_MEMBERSHIP;
-
         $retval = array();
         $segment = self::getSegment($status);
         if (
-            !empty($_CONF_MEMBERSHIP['merge_fldname']) &&
+            !empty(Config::get('merge_fldname')) &&
             !empty($segment)
         ) {
             $retval = array(
-                $_CONF_MEMBERSHIP['merge_fldname'] => $segment,
+                Config::get('merge_fldname') => $segment,
             );
         }
         return $retval;

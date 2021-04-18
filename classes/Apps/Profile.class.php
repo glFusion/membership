@@ -104,8 +104,6 @@ class Profile extends \Membership\App
      */
     protected function _Validate($A = NULL)
     {
-        global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
-
         $status = true;
         // todo: Add method to check new application from $_POST
         if ($A === NULL) {      // checking existing application

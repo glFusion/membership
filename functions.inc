@@ -14,69 +14,6 @@ if (!defined ('GVERSION')) {
     die ('This file can not be used on its own.');
 }
 
-/**  Check and see if we need to load the plugin configuration */
-if (!isset($_CONF_MEMBERSHIP['member_group'])) {
-    require_once $_CONF['path_system'] . 'classes/config.class.php';
-    $mem_config = config::get_instance();
-    $_CONF_MEMBERSHIP = $mem_config->get_config('membership');
-}
-
-/** Include static plugin config values */
-require_once 'membership.php';
-
-/** Define the absolute path to the plugin's directory */
-define('MEMBERSHIP_PI_PATH', __DIR__);
-/** Define the base public url for the plugin */
-define('MEMBERSHIP_PI_URL',
-        $_CONF['site_url'] . '/' . $_CONF_MEMBERSHIP['pi_name']);
-/** Define the administration url for the plugin */
-define('MEMBERSHIP_ADMIN_URL',
-        $_CONF['site_admin_url'] . '/plugins/' . $_CONF_MEMBERSHIP['pi_name']);
-
-// Define types of membership activity
-define('MEMBERSHIP_NEW', 1);
-define('MEMBERSHIP_RENEW', 2);
-
-// Settings for whether a membership app is available and required
-define('MEMBERSHIP_APP_DISABLED', 0);
-define('MEMBERSHIP_APP_OPTIONAL', 1);
-define('MEMBERSHIP_APP_REQUIRED', 2);
-
-// define values for whether a user can purchase memberships
-define('MEMBERSHIP_CANPURCHASE', 0);
-define('MEMBERSHIP_NOPURCHASE', 1);
-define('MEMBERSHIP_NEED_APP',   2);
-define('MEMBERSHIP_NO_RENEWAL', 3);
-
-// Code to identify messages saved by LGLIB_storeMessage()
-define('MEMBERSHIP_MSG_EXPIRING', 'memb_msg_expiring');
-
-// Define values for expiration notification method
-define('MEMBERSHIP_NOTIFY_NONE', 0);
-define('MEMBERSHIP_NOTIFY_EMAIL', 1);
-define('MEMBERSHIP_NOTIFY_MESSAGE', 2);
-define('MEMBERSHIP_NOTIFY_BOTH', 3);
-
-/** Determine the correct language file, falling back to English as default. */
-$langpath = MEMBERSHIP_PI_PATH . '/language';
-$langfile = $_CONF['language'] . '.php';
-if (!file_exists("$langpath/$langfile")) {
-    $langfile = 'english_utf-8.php';
-}
-
-/** Include plugin language file */
-require_once "$langpath/$langfile";
-if (file_exists("$langpath/custom/$langfile")) {
-    /** Include custom language file, if any */
-    include_once "$langpath/custom/$langfile";
-}
-
-// Import config.php last since the field definitions rely on the language.
-if (file_exists(MEMBERSHIP_PI_PATH . '/config.php')) {
-/** Include local config values and overrides */
-    include_once MEMBERSHIP_PI_PATH . '/config.php';
-}
-
 spl_autoload_register(function ($class)
 {
     // project-specific namespace prefix
@@ -105,8 +42,67 @@ spl_autoload_register(function ($class)
         require $file;
     }
 });
+use Membership\Config;
+Config::set('pi_path', __DIR__);
+Config::set('url', $_CONF['site_url'] . '/' . Config::PI_NAME);
+Config::set('admin_url', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAME);
 
-require_once MEMBERSHIP_PI_PATH . '/services.inc.php';
+/** Include static plugin config values */
+require_once 'membership.php';
+
+
+/** Define the absolute path to the plugin's directory */
+define('MEMBERSHIP_PI_PATH', __DIR__);
+/** Define the base public url for the plugin */
+define('MEMBERSHIP_PI_URL', $_CONF['site_url'] . '/' . Config::PI_NAME);
+/** Define the administration url for the plugin */
+define('MEMBERSHIP_ADMIN_URL', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAME);
+
+// Define types of membership activity
+define('MEMBERSHIP_NEW', 1);
+define('MEMBERSHIP_RENEW', 2);
+
+// Settings for whether a membership app is available and required
+define('MEMBERSHIP_APP_DISABLED', 0);
+define('MEMBERSHIP_APP_OPTIONAL', 1);
+define('MEMBERSHIP_APP_REQUIRED', 2);
+
+// define values for whether a user can purchase memberships
+define('MEMBERSHIP_CANPURCHASE', 0);
+define('MEMBERSHIP_NOPURCHASE', 1);
+define('MEMBERSHIP_NEED_APP',   2);
+define('MEMBERSHIP_NO_RENEWAL', 3);
+
+// Code to identify messages saved by LGLIB_storeMessage()
+define('MEMBERSHIP_MSG_EXPIRING', 'memb_msg_expiring');
+
+// Define values for expiration notification method
+define('MEMBERSHIP_NOTIFY_NONE', 0);
+define('MEMBERSHIP_NOTIFY_EMAIL', 1);
+define('MEMBERSHIP_NOTIFY_MESSAGE', 2);
+define('MEMBERSHIP_NOTIFY_BOTH', 3);
+
+/** Determine the correct language file, falling back to English as default. */
+$langpath = __DIR__ . '/language';
+$langfile = $_CONF['language'] . '.php';
+if (!file_exists("$langpath/$langfile")) {
+    $langfile = 'english_utf-8.php';
+}
+
+/** Include plugin language file */
+require_once "$langpath/$langfile";
+if (file_exists("$langpath/custom/$langfile")) {
+    /** Include custom language file, if any */
+    include_once "$langpath/custom/$langfile";
+}
+
+// Import config.php last since the field definitions rely on the language.
+if (file_exists(__DIR__ . '/config.php')) {
+/** Include local config values and overrides */
+    include_once __DIR__ . '/config.php';
+}
+
+require_once __DIR__ . '/services.inc.php';
 
 /**
  * Called by the plugin Editor to display the current plugin code version.
@@ -117,8 +113,7 @@ require_once MEMBERSHIP_PI_PATH . '/services.inc.php';
  */
 function plugin_chkVersion_membership()
 {
-    global $_CONF_MEMBERSHIP;
-    return $_CONF_MEMBERSHIP['pi_version'];
+    return Config::get('pi_version');
 }
 
 
@@ -129,11 +124,11 @@ function plugin_chkVersion_membership()
  */
 function plugin_getmenuitems_membership()
 {
-    global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+    global $LANG_MEMBERSHIP;
 
     $icon = '&nbsp;<i class="uk-icon uk-icon-group"></i>';
     $menuitems = array(
-        $LANG_MEMBERSHIP['block_title'] . $icon => MEMBERSHIP_PI_URL . '/index.php',
+        $LANG_MEMBERSHIP['block_title'] . $icon => Config::get('url') . '/index.php',
     );
     return $menuitems;
 }
@@ -146,12 +141,12 @@ function plugin_getmenuitems_membership()
  */
 function plugin_cclabel_membership()
 {
-    global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+    global $LANG_MEMBERSHIP;
 
     if (MEMBERSHIP_isManager()) {
         return array(
             $LANG_MEMBERSHIP['menu_title'],
-            MEMBERSHIP_ADMIN_URL . '/index.php',
+            Config::get('admin_url') . '/index.php',
             plugin_geticon_membership()
         );
     } else {
@@ -172,7 +167,7 @@ function plugin_getadminoption_membership()
     if (MEMBERSHIP_isManager()) {
         return array(
             $LANG_MEMBERSHIP['menu_title'],
-            MEMBERSHIP_ADMIN_URL . '/index.php',
+            Config::get('admin_url') . '/index.php',
         );
     } else {
         return false;
@@ -204,7 +199,7 @@ function plugin_getheadercss_membership()
     $styles = array();
     $files = array('style.css');
 
-    $defpath = MEMBERSHIP_PI_PATH . '/css';
+    $defpath = __DIR__ . '/css';
     $layoutpath = $_CONF['path_layout'] . 'plugins/membership';
     foreach ($files as $file) {
         $styles[] = $defpath . '/' . $file;
@@ -281,7 +276,7 @@ function plugin_upgrade_membership($dvlp=false)
 function plugin_geticon_membership ()
 {
     global $_CONF;
-    return MEMBERSHIP_PI_URL . '/images/membership.png';
+    return Config::get('url') . '/images/membership.png';
 }
 
 
@@ -298,7 +293,6 @@ function plugin_geticon_membership ()
  */
 function plugin_autouninstall_membership ()
 {
-    global $_CONF_MEMBERSHIP;
     $out = array (
         // give the name of the tables, without $_TABLES[]
         'tables' => array(
@@ -339,12 +333,12 @@ function plugin_autouninstall_membership ()
  */
 function phpblock_membership_memberinfo()
 {
-    global $_GROUPS, $_CONF_MEMBERSHIP;
+    global $_GROUPS;
 
     $retval = '';
 
     $curr = MEMBERSHIP_currentMembership();
-    if (in_array($_GROUPS, $_CONF_MEMBERSHIP['member_group'])) {
+    if (in_array($_GROUPS, Config::get('member_group'))) {
         $retval .= sprinf($LANG_MEMBERSHIP['blk_member_info'],
             $curr->plan_id, $curr->expires);
     } else {
@@ -428,7 +422,7 @@ function plugin_itemPreSave_membership($mode, $username)
  */
 function plugin_profileblocksdisplay_membership($uid)
 {
-    global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $_USER;
+    global $LANG_MEMBERSHIP, $_USER;
 
     // non-admins can only see their own subscription.
     if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager()) {
@@ -467,7 +461,7 @@ function plugin_getconfigelementhelp_membership($option, $doclang='english')
  */
 function plugin_getheaderjs_membership()
 {
-    $pi_dir = MEMBERSHIP_PI_PATH . '/js/';
+    $pi_dir = __DIR__ . '/js/';
     $files = array(
         $pi_dir . 'util.js',
     );
@@ -486,10 +480,10 @@ function plugin_getheaderjs_membership()
  */
 function MEMBERSHIP_getDocURL($file, $doclang='')
 {
-    global $_CONF, $_CONF_MEMBERSHIP;
+    global $_CONF;
 
     if ($doclang == '') $doclang = $_CONF['language'];
-    $doc_path = $_CONF['path_html'] . $_CONF_MEMBERSHIP['pi_name'] .
+    $doc_path = $_CONF['path_html'] . Config::PI_NAME .
                 "/docs/$doclang/";
     $doc_url = '';
 
@@ -497,12 +491,12 @@ function MEMBERSHIP_getDocURL($file, $doclang='')
         if (!is_file($doc_path . $file)) {
             $doclang = 'english';
         }
-        $doc_url = MEMBERSHIP_PI_URL . "/docs/$doclang/$file";
+        $doc_url = Config::get('url') . "/docs/$doclang/$file";
     } else {
         if (!is_dir($doc_path)) {
             $doclang = 'english';
         }
-        $doc_url = MEMBERSHIP_PI_URL . "/docs/$doclang/";
+        $doc_url = Config::get('url') . "/docs/$doclang/";
     }
 
     return $doc_url;
@@ -750,13 +744,11 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
  */
 function MEMBERSHIP_isManager()
 {
-    global $_CONF_MEMBERSHIP;
-
     static $isManager = -1;     // static since this can be called many times
     if ($isManager === -1) {
         if (
             MEMBERSHIP_isAdmin() ||
-            SEC_hasRights($_CONF_MEMBERSHIP['pi_name'] . '.manage')
+            SEC_hasRights(Config::PI_NAME . '.manage')
         ) {
             $isManager = true;
         } else {
@@ -774,11 +766,9 @@ function MEMBERSHIP_isManager()
  */
 function MEMBERSHIP_isAdmin()
 {
-    global $_CONF_MEMBERSHIP;
-
     static $isAdmin = -1;       // static since this can be called many times
     if ($isAdmin === -1) {
-        if (SEC_hasRights($_CONF_MEMBERSHIP['pi_name'] . '.admin')) {
+        if (SEC_hasRights(Config::PI_NAME . '.admin')) {
             $isAdmin = true;
         } else {
             $isAdmin = false;
@@ -946,12 +936,11 @@ function MEMBERSHIP_currentMembership()
  */
 function MEMBERSHIP_memberstatuses()
 {
-    global $_CONF_MEMBERSHIP;
     $types = array(
-        Membership\Status::ACTIVE => $_CONF_MEMBERSHIP['segment_active'],
-        Membership\Status::ARREARS => $_CONF_MEMBERSHIP['segment_arrears'],
-        Membership\Status::EXPIRED => $_CONF_MEMBERSHIP['segment_expired'],
-        Membership\Status::DROPPED => $_CONF_MEMBERSHIP['segment_dropped'],
+        Membership\Status::ACTIVE => Config::get('segment_active'),
+        Membership\Status::ARREARS => Config::get('segment_arrears'),
+        Membership\Status::EXPIRED => Config::get('segment_expired'),
+        Membership\Status::DROPPED => Config::get('segment_dropped'),
     );
     return $types;
 }

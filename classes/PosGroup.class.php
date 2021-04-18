@@ -505,7 +505,7 @@ class PosGroup
      */
     public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
     {
-        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP;
 
         $retval = '';
 
@@ -513,7 +513,7 @@ class PosGroup
         switch($fieldname) {
         case 'editpg':
             $retval = COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['edit'],
+                Icon::getHTML('edit'),
                 MEMBERSHIP_ADMIN_URL . '/index.php?editpg=' . $A['pg_id'],
                 array(
                     'class' => 'tooltip',
@@ -526,11 +526,11 @@ class PosGroup
             $base_url = MEMBERSHIP_ADMIN_URL .
                 '/index.php?id=' . $A['pg_id'] . '&reorderpg=';
             $retval .= COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['arrow-up'],
+                Icon::getHTML('arrow-up'),
                 $base_url . 'up'
             );
             $retval .= '&nbsp;' . COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['arrow-down'],
+                Icon::getHTML('arrow-down'),
                 $base_url . 'down'
             );
             break;

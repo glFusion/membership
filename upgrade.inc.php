@@ -12,7 +12,9 @@
  */
 
 // Required to get the config values
-global $_CONF, $_CONF_MEMBERSHIP, $_TABLES, $_UPGRADE_SQL;
+global $_CONF, $_TABLES, $_UPGRADE_SQL;
+
+use Membership\Config;
 
 /** Include database definitions */
 require_once __DIR__ . '/sql/mysql_install.php';
@@ -25,15 +27,15 @@ require_once __DIR__ . '/sql/mysql_install.php';
  */
 function MEMBERSHIP_do_upgrade($dvlp=false)
 {
-    global $_PLUGIN_INFO, $_CONF_MEMBERSHIP, $_UPGRADE_SQL, $_TABLES;
+    global $_PLUGIN_INFO, $_UPGRADE_SQL, $_TABLES;
 
-    if (isset($_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']])) {
-        if (is_array($_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']])) {
+    if (isset($_PLUGIN_INFO[Config::PI_NAME])) {
+        if (is_array($_PLUGIN_INFO[Config::PI_NAME])) {
             // glFusion > 1.6.5
-            $current_ver = $_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']]['pi_version'];
+            $current_ver = $_PLUGIN_INFO[Config::PI_NAME]['pi_version'];
         } else {
             // legacy
-            $current_ver = $_PLUGIN_INFO[$_CONF_MEMBERSHIP['pi_name']];
+            $current_ver = $_PLUGIN_INFO[Config::PI_NAME];
         }
     } else {
         return false;
@@ -83,10 +85,14 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         $current_ver = '0.1.1';
         // Get the membership admin group ID if available
         // to set the access code for admin-only plans
-        $gid = (int)DB_getItem($_TABLES['groups'], 'grp_id',
-                "grp_name='{$_CONF_MEMBERSHIP['pi_name']} Admin'");
-        if ($gid < 1)
+        $gid = (int)DB_getItem(
+            $_TABLES['groups'],
+            'grp_id',
+            "grp_name='": . Config::PI_NAME. " Admin'"
+        );
+        if ($gid < 1) {
             $gid = 1;        // default to Root if group not found
+        }
 
         // Admin-only changes from 0 to the admin GID
         $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_plans']}
@@ -157,7 +163,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     _update_config('membership', $membershipConfigData);
     _MEMB_remove_old_files();
     Membership\Cache::clear();
-    Membership\Logger::System("Successfully updated the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin", 1);
+    Membership\Logger::System("Successfully updated the " . Config::get('pi_display_name') . ' Plugin', 1);
     return true;
 }
 
@@ -171,7 +177,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
  */
 function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
 {
-    global $_TABLES, $_CONF_MEMBERSHIP, $_UPGRADE_SQL;
+    global $_TABLES, $_UPGRADE_SQL;
 
     // If no sql statements passed in, return success
     if (!isset($_UPGRADE_SQL[$version]) || !is_array($_UPGRADE_SQL[$version])) {
@@ -206,18 +212,18 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
  */
 function MEMBERSHIP_do_set_version($ver)
 {
-    global $_TABLES, $_CONF_MEMBERSHIP;
+    global $_TABLES;
 
     // now update the current version number.
     $sql = "UPDATE {$_TABLES['plugins']} SET
-            pi_version = '{$_CONF_MEMBERSHIP['pi_version']}',
-            pi_gl_version = '{$_CONF_MEMBERSHIP['gl_version']}',
-            pi_homepage = '{$_CONF_MEMBERSHIP['pi_url']}'
-        WHERE pi_name = '{$_CONF_MEMBERSHIP['pi_name']}'";
+            pi_version = '" . Config::get('pi_version') . "',
+            pi_gl_version = '" . Config::get('gl_version') . "',
+            pi_homepage = '" . Config::get('pi_url') . "'
+        WHERE pi_name = '" . Config::PI_NAME . "'";
 
     $res = DB_query($sql, 1);
     if (DB_error()) {
-        Membership\Logger::System("Error updating the {$_CONF_MEMBERSHIP['pi_display_name']} Plugin version",1);
+        Membership\Logger::System("Error updating the " . Config::get('pi_display_name') . " Plugin version",1);
         return false;
     } else {
         return true;

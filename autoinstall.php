@@ -24,6 +24,8 @@ require_once $_CONF['path'].'plugins/membership/functions.inc';
 /** Include database definitions */
 require_once $_CONF['path'].'plugins/membership/sql/'. $_DB_dbms. '_install.php';
 
+use Membership\Config;
+
 /** Plugin installation options
  * @global array $INSTALL_plugin['membership']
  */
@@ -36,11 +38,11 @@ $INSTALL_plugin['membership'] = array(
 
     'plugin' => array(
         'type'      => 'plugin',
-        'name'      => $_CONF_MEMBERSHIP['pi_name'],
-        'ver'       => $_CONF_MEMBERSHIP['pi_version'],
-        'gl_ver'    => $_CONF_MEMBERSHIP['gl_version'],
-        'url'       => $_CONF_MEMBERSHIP['pi_url'],
-        'display'   => $_CONF_MEMBERSHIP['pi_display_name'],
+        'name'      => Config::PI_NAME,
+        'ver'       => Config::get('pi_version'),
+        'gl_ver'    => Config::get('gl_version'),
+        'url'       => Config::get('pi_url'),
+        'display'   => Config::get('pi_display_name'),
     ),
 
     array(
@@ -164,11 +166,11 @@ if ($c == 0) {
 */
 function plugin_install_membership()
 {
-    global $INSTALL_plugin, $_CONF_MEMBERSHIP;
+    global $INSTALL_plugin;
 
-    COM_errorLog("Attempting to install the {$_CONF_MEMBERSHIP['pi_display_name']} plugin", 1);
+    COM_errorLog("Attempting to install the " . Config::get('pi_display_name') . " plugin", 1);
 
-    $ret = INSTALLER_install($INSTALL_plugin[$_CONF_MEMBERSHIP['pi_name']]);
+    $ret = INSTALLER_install($INSTALL_plugin[Config::PI_NAME]);
     if ($ret > 0) {
         return false;
     }
@@ -184,14 +186,16 @@ function plugin_install_membership()
  */
 function plugin_load_configuration_membership()
 {
-    global $_CONF, $_CONF_MEMBERSHIP, $_TABLES, $group_id;
+    global $_CONF, $_TABLES, $group_id;
 
-    require_once MEMBERSHIP_PI_PATH . '/install_defaults.php';
+    require_once __DIR__ . '/install_defaults.php';
 
     // Get the member group ID that was saved previously.
-    $group_id = (int)DB_getItem($_TABLES['groups'], 'grp_id',
-            "grp_name='{$_CONF_MEMBERSHIP['pi_name']} Members'");
-
+    $group_id = (int)DB_getItem(
+        $_TABLES['groups'],
+        'grp_id',
+        "grp_name='" . Config::PI_NAME . " Members'"
+    );
     return plugin_initconfig_membership($group_id);
 }
 
@@ -201,7 +205,7 @@ function plugin_load_configuration_membership()
  */
 function plugin_postinstall_membership()
 {
-    global $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP, $group_id,
+    global $_CONF, $LANG_MEMBERSHIP, $group_id,
         $_MEMBERSHIP_SAMPLEDATA;
 
     // Create the application form.  Set a form ID so the form won't be
@@ -307,7 +311,7 @@ function plugin_postinstall_membership()
     );*/
 
     // Create an empty log file
-    $filename = $_CONF_MEMBERSHIP['pi_name'] . '.log';
+    $filename = Config::PI_NAME . '.log';
     if (!file_exists($_CONF['path_log'] . $filename)) {
         $fp = fopen($_CONF['path_log'] . $filename, 'w+');
         if (!$fp) {

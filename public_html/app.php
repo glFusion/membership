@@ -80,7 +80,7 @@ case 'edit':
 
 $display = \Membership\Menu::siteHeader();
 if (!empty($msg)) {
-    $display .= COM_showMessage($msg, $_CONF_MEMBERSHIP['pi_name']);
+    $display .= COM_showMessage($msg, Config::PI_NAME);
 }
 $display .= $content;
 $display .= \Membership\Menu::siteFooter();

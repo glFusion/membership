@@ -11,6 +11,7 @@
  * @filesource
  */
 namespace Membership;
+use Membership\Models\ItemInfo;
 
 
 /**
@@ -75,7 +76,7 @@ class Plan
      */
     public function __construct($id = '')
     {
-        global $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $LANG_MEMBERSHIP;
 
         $this->plan_id = $id;
         if ($this->plan_id != '') {
@@ -290,8 +291,6 @@ class Plan
      */
     public function setVars($row, $fromDB=false)
     {
-        global $_CONF_MEMBERSHIP;
-
         if (!is_array($row)) return;
 
         $this->plan_id = $row['plan_id'];
@@ -305,7 +304,7 @@ class Plan
         if ($fromDB) {
             $this->fees = @unserialize($row['fees']);
         } elseif (is_array($row['fee'])) {  // should always be an array from the form
-            if ($_CONF_MEMBERSHIP['period_start'] > 0) {
+            if (Config::get('period_start') > 0) {
                 // Each month has a specified new and renewal fee
                 $this->fees = $row['fee'];
             } else {
@@ -474,7 +473,7 @@ class Plan
      */
     public function Delete($id = '', $xfer_plan='')
     {
-        global $_TABLES, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $_TABLES, $LANG_MEMBERSHIP;
 
         if ($id == '' && is_object($this)) {
             $id = $this->plan_id;
@@ -542,7 +541,7 @@ class Plan
      */
     public function Edit()
     {
-        global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
+        global $_TABLES, $_CONF, $LANG_MEMBERSHIP,
                 $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH;
 
         $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
@@ -569,7 +568,7 @@ class Plan
                                     'checked="checked"' : '',
             'notify_chk'    => $this->notify_exp == 1 ?
                                     'checked="checked"' : '',
-            'period_start'  => $_CONF_MEMBERSHIP['period_start'],
+            'period_start'  => Config::get('period_start'),
             'group_options' => COM_optionList(
                 $_TABLES['groups'],
                 'grp_id,grp_name',
@@ -587,7 +586,7 @@ class Plan
             $T->set_var('fixed_fee', sprintf('%.2f', $this->fees['fixed']));
         }
 
-        if ($_CONF_MEMBERSHIP['period_start'] > 0) {
+        if (Config::get('period_start') > 0) {
             $fee_rows = 12;
             $text_1 = $LANG_MONTH[1];
         } else {
@@ -673,7 +672,7 @@ class Plan
      */
     public function Detail()
     {
-        global $_TABLES, $_CONF, $_USER, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP;
+        global $_TABLES, $_CONF, $_USER, $LANG_MEMBERSHIP;
 
         $currency = self::getCurrency();
         $buttons = '';
@@ -807,8 +806,6 @@ class Plan
      */
     public function MakeButton($price, $isnew = false, $return='')
     {
-        global $_CONF_MEMBERSHIP;
-
         $retval = array();
         $is_renewal = $isnew ? 'new' : 'renewal';
 
@@ -843,7 +840,7 @@ class Plan
                 $retval = $output;
             }
         }
-        if ($_CONF_MEMBERSHIP['ena_checkpay']) {
+        if (Config::get('ena_checkpay')) {
             $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
             $T->set_file('checkpay', 'pmt_check_btn.thtml');
             $T->set_var('plan_id', $this->plan_id);
@@ -893,14 +890,13 @@ class Plan
      */
     public static function getCurrency()
     {
-        global $_CONF_MEMBERSHIP;
         static $currency = NULL;
         if ($currency === NULL) {
             if (self::ShopEnabled()) {
                 $currency = PLG_callFunctionForOnePlugin('plugin_getCurrency_shop');
             }
             if ($currency === false) {
-                $currency = $_CONF_MEMBERSHIP['currency'];
+                $currency = Config::get('currency');
             }
             if (empty($currency)) $currency = 'USD';
         }
@@ -957,8 +953,7 @@ class Plan
      */
     public static function listPlans($show_plan = '')
     {
-        global $_TABLES, $_CONF, $_CONF_MEMBERSHIP, $LANG_MEMBERSHIP,
-                $_USER;
+        global $_TABLES, $_CONF, $LANG_MEMBERSHIP, $_USER;
 
         $have_app = App::getInstance($_USER['uid'])->Validate();
         /*if (!$have_app) {
@@ -1005,11 +1000,11 @@ class Plan
                     $M->getExpires()
                 )
             );
-            if ($_CONF_MEMBERSHIP['early_renewal'] > 0) {
+            if (Config::get('early_renewal') > 0) {
                 $T->set_var(
                     'early_renewal', sprintf(
                         $LANG_MEMBERSHIP['renew_within'],
-                        $_CONF_MEMBERSHIP['early_renewal']
+                        Config::get('early_renewal')
                     )
                 );
             }
@@ -1018,12 +1013,12 @@ class Plan
         if (COM_isAnonUser()) {
             $T->set_var('app_msg', $LANG_MEMBERSHIP['must_login']);
         } elseif (App::isRequired() > MEMBERSHIP_APP_DISABLED) {
-            if ($_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_OPTIONAL) {
+            if (Config::get('require_app') == MEMBERSHIP_APP_OPTIONAL) {
                 $T->set_var('app_msg',
                     sprintf($LANG_MEMBERSHIP['please_complete_app'],
                             MEMBERSHIP_PI_URL . '/index.php?editapp'));
             } elseif (
-                $_CONF_MEMBERSHIP['require_app'] == MEMBERSHIP_APP_REQUIRED &&
+                Config::get('require_app') == MEMBERSHIP_APP_REQUIRED &&
                 !$have_app
             ) {
                 $T->set_var('app_msg',
@@ -1066,8 +1061,11 @@ class Plan
                 $exp_ts = strtotime($M->getExpires());
                 $exp_format = strftime($_CONF['shortdate'], $exp_ts);
                 if ($have_app) {
-                    $output = $P->MakeButton($price_total, $M->isNew(),
-                        $_CONF_MEMBERSHIP['redir_after_purchase']);
+                    $output = $P->MakeButton(
+                        $price_total,
+                        $M->isNew(),
+                        Config::get('redir_after_purchase')
+                    );
                     if (!empty($output)) {
                         $buttons = implode('', $output);
                     }
@@ -1109,20 +1107,29 @@ class Plan
      */
     public function getItemInfo($what, $options = array())
     {
-        $retval = array();
+        $retval = new ItemInfo;
         foreach ($what as $fld) {
             switch ($fld) {
             case 'id':
                 $retval[$fld] = $this->plan_id;
                 break;
+            case 'short_description':
+                $retval[$fld] = $this->name;
+                break;
+            case 'description':
+                $retval[$fld] = $this->dscp;
+                break;
             default:
-                $retval[$fld] = $this->$fld;
+                if (isset($this->$fld)) {
+                    $retval[$fld] = $this->$fld;
+                }
                 if ($retval[$fld] === NULL) {
                     $retval[$fld] = '';
                 }
                 break;
             }
         }
+        var_dump($retval);die;
         return $retval;
     }
 
@@ -1134,14 +1141,14 @@ class Plan
      */
     public static function ShopEnabled()
     {
-        global $_PLUGINS, $_CONF_MEMBERSHIP;
+        global $_PLUGINS;
 
         static $enabled = NULL;
 
         if ($enabled !== NULL) {
             return $enabled;
         }
-        $enabled = $_CONF_MEMBERSHIP['enable_shop'];
+        $enabled = Config::get('enable_shop');
         if ($enabled) {
             if (!is_array($_PLUGINS) || !in_array('shop', $_PLUGINS)) {
                 $enabled = false;
@@ -1240,7 +1247,7 @@ class Plan
      */
     public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
     {
-        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP;
 
         $retval = '';
 
@@ -1248,7 +1255,7 @@ class Plan
         switch($fieldname) {
         case 'edit':
             $retval = COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['edit'],
+                Icon::getHTML('edit'),
                 MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
             );
             break;

@@ -17,6 +17,7 @@ if (!defined ('GVERSION')) {
     die ('This file can not be used on its own!');
 }
 
+use Membership\Models\Config;
 use Membership\Status;
 use Membership\Plan;
 use Membership\Membership;
@@ -42,7 +43,13 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     //      'uid' => user ID
     //  ),
     //  );
-    if (!is_array($A) || !isset($A['item_id']) || !is_array($A['item_id'])) return PLG_RET_ERROR;
+    if (
+        !is_array($A) ||
+        !isset($A['item_id']) ||
+        !is_array($A['item_id'])
+    ) {
+        return PLG_RET_ERROR;
+    }
     unset($A['gl_svc']);    // not used
 
     $plan_id = $A['item_id'][0];
@@ -100,7 +107,7 @@ function plugin_productinfo_membership($args)
  */
 function service_handlePurchase_membership($args, &$output, &$svc_msg)
 {
-    global $_TABLES, $_CONF_MEMBERSHIP;
+    global $_TABLES;
 
     // Called by Shop IPN, so $args should be an array, but just in case...
     if (!is_array($args)) return PLG_RET_ERROR;
@@ -132,7 +139,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         $M->setPlan($id[1]);
     }
 
-    if ($M->getPlan() === NULL && MEMB_getVar($_CONF_MEMBERSHIP, 'use_mem_number', 'integer') == 2) {
+    if ($M->getPlan() === NULL && Config::get('use_mem_number') == 2) {
         // New member, apply membership number if configured
         $M->setMemNumber(Membership::createMemberNumber($uid));
     }
@@ -191,7 +198,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
  */
 function service_profilefilter_membership($args, &$output, &$svc_msg)
 {
-    global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+    global $LANG_MEMBERSHIP;
 
     // Non-managers don't get access to view other members' expiration
     if (!MEMBERSHIP_isManager()) return PLG_RET_PERMISSION_DENIED;
@@ -223,11 +230,11 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     } else {
         // Use the default setting if no other options received
         $exp_stat = array();
-        if ($_CONF_MEMBERSHIP['prflist_current'] == 1)
+        if (Config::get('prflist_current') == 1)
             $exp_stat[] = Status::ACTIVE;
-        if ($_CONF_MEMBERSHIP['prflist_arrears'] == 1)
+        if (Config::get('prflist_arrears') == 1)
             $exp_stat[] = Status::ARREARS;
-        //if ($_CONF_MEMBERSHIP['prflist_expired'] == 1)
+        //if (Config::get('prflist_expired') == 1)
         //    $exp_stat[] = Status::EXPIRED;
     }
     if (!is_array($exp_stat)) {
@@ -264,9 +271,9 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
  */
 function service_profilefields_membership($args, &$output, &$svc_msg)
 {
-    global $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP, $_TABLES;
+    global $LANG_MEMBERSHIP, $_TABLES;
 
-    $pi = $_CONF_MEMBERSHIP['pi_name'];
+    $pi = Config::PI_NAME;
     $plans = $_TABLES['membership_plans'];
     $members = $_TABLES['membership_members'];
     $positions = $_TABLES['membership_positions'];
@@ -318,7 +325,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
 
         if ($incl_exp_stat > 0 && $incl_exp_stat < 7) {
             // Only create sql if filtering on some expiration status
-            $grace = (int)$_CONF_MEMBERSHIP['grace_days'];
+            $grace = (int)Config::get('grace_days');
             $exp_arr = array();
             if ($incl_exp_stat & Status::ACTIVE == Status::ACTIVE) {
                 $exp_arr[] = "$members.mem_expires >= '" . Dates::Today() . "'";
@@ -416,8 +423,6 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
 function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
     $extras)
 {
-    global $_CONF_MEMBERSHIP;
-
     if ($fieldvalue >= Dates::Today()) {
         $cls = 'member_current';
     } elseif ($fieldvalue >= Dates::expGraceEnded()) {
@@ -441,7 +446,7 @@ function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
  */
 function service_status_membership($args, &$output, &$svc_msg)
 {
-    global $_TABLES, $_USER, $_CONF_MEMBERSHIP;
+    global $_TABLES, $_USER;
 
     static $info = array();
     $uid = isset($args['uid']) ? (int)$args['uid'] : (int)$_USER['uid'];

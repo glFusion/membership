@@ -624,7 +624,7 @@ class Position
      */
     public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
     {
-        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_CONF_MEMBERSHIP;
+        global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP;
 
         $retval = '';
 
@@ -632,7 +632,7 @@ class Position
         switch($fieldname) {
         case 'editpos':
             $retval = COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['edit'],
+                Icon::getHTML('edit'),
                 MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'],
                 array(
                     'class' => 'tooltip',
@@ -646,18 +646,18 @@ class Position
                 '/index.php?type=' . urlencode($A['pg_id']) .
                 '&id=' . $A['id'] . '&reorderpos=';
             $retval .= COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['arrow-up'],
+                Icon::getHTML('arrow-up'),
                 $base_url . 'up'
             );
             $retval .= '&nbsp;' . COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['arrow-down'],
+                Icon::getHTML('arrow-down'),
                 $base_url . 'down'
             );
             break;
 
         case 'deletepos':
             $retval = COM_createLink(
-                $_CONF_MEMBERSHIP['icons']['delete'],
+                Icon::getHTML('delete'),
                 MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
                 array(
                     'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');",
