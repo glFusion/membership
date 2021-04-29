@@ -1,5 +1,9 @@
 # glFusion Membership Plugin - Change Log
 
+## 0.3.1
+Release TBD
+- Use list description from Position List as Group List title
+
 ## 0.3.0
 Release 2021-01-30
 - Remove support for non-UIkit themes.

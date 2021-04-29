@@ -40,6 +40,11 @@ class GroupList
      * @var array */
     private $groups = array();
 
+    /** Primary posigion group, in case there is more than one selected.
+     * Used to create the page title.
+     * @var object */
+    private $PosGroup = NULL;
+
 
     /**
      * Constructor. Set the group name to list.
@@ -66,6 +71,12 @@ class GroupList
             $groups = explode(',', $groups);
         }
         $this->groups = $groups;
+        if (!empty($this->groups)) {
+            $this->PosGroup = PosGroup::getByTag($this->groups[0]);
+            if ($this->PosGroup->getID() > 0) {
+                $this->setTitle($this->PosGroup->getPageTitle());
+            }
+        }
         return $this;
     }
 
