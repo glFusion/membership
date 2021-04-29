@@ -13,7 +13,7 @@
 </div>
 {!endif}
 {!if app_msg}
-<div id="pluginMembershipAppMsg" class="uk-alert">{app_msg}</div>
+<div id="pluginMembershipAppMsg" class="uk-alert mbr-alert">{app_msg}</div>
 {!endif}
 <hr />
 <!-- BEGIN PlanBlock -->
