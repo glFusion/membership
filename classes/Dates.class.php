@@ -113,9 +113,13 @@ class Dates
      * @param   object  $dtobj      Optional date object, default = Now()
      * @return      Updated date object
      */
-    public static function sub($interval, $dtobj = NULL)
+    public static function sub($interval, $dt = NULL)
     {
-        $dtobj = clone self::Now();
+        if ($dt === NULL) {
+            $dtobj = clone self::Now();
+        } else {
+            $dtobj = clone $dt;
+        }
         return $dtobj->sub(new \DateInterval($interval));
     }
 
