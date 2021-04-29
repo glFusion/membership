@@ -167,8 +167,9 @@ class Menu
         global $LANG_MEMBERSHIP;
 
         $retval = '';
-
-        $title = $LANG_MEMBERSHIP['block_title'];
+        if (empty($title)) {
+            $title = $LANG_MEMBERSHIP['block_title'];
+        }
         switch(Config::get('displayblocks')) {
         case 2:     // right only
         case 0:     // none

@@ -96,7 +96,7 @@ class GroupList
      * @param   boolean $flag   True to show the title, False to not
      * @return  object  $this
      */
-    public function ehowTitle($flag)
+    public function showTitle($flag)
     {
         $this->show_title = $flag ? 1 : 0;
         return $this;
@@ -110,7 +110,14 @@ class GroupList
      */
     public function getPageTitle()
     {
-        return $this->page_title;
+        global $LANG_MEMBERSHIP;
+
+        if (!empty($this->title)) {
+            $page_title = $this->title;
+        } else {
+            $page_title = sprintf($LANG_MEMBERSHIP['title_positionpage'], ucfirst($this->groups[0]));
+        }
+        return $page_title;
     }
 
 
@@ -162,11 +169,7 @@ class GroupList
                 $show_vacant = '';
             }
             if ($this->show_title) {
-                if (!empty($this->title)) {
-                    $page_title = $this->title;
-                } else {
-                    $page_title = sprintf($LANG_MEMBERSHIP['title_positionpage'], ucfirst($this->groups[0]));
-                }
+                $page_title = $this->getPageTitle();
             } else {
                 $page_title = '';
             }
