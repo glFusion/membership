@@ -4,291 +4,268 @@
 var is_expanded = 0;
 function togglePmtDiv()
 {
-    if (is_expanded) {
-        document.getElementById('pmt_div').style.display="none";
-        document.getElementById('exp_col').title="{$LANG_MEMBERSHIP['expand_pmt_div']}";
-        is_expanded = 0;
-    } else {
-        document.getElementById('pmt_div').style.display="block";
-        document.getElementById('exp_col').title="{$LANG_MEMBERSHIP['collapse_pmt_div']}";
-        is_expanded = 1;
-    }
+	if (is_expanded) {
+		document.getElementById('pmt_div').style.display="none";
+		document.getElementById('exp_col').title="{$LANG_MEMBERSHIP['expand_pmt_div']}";
+		is_expanded = 0;
+	} else {
+		document.getElementById('pmt_div').style.display="block";
+		document.getElementById('exp_col').title="{$LANG_MEMBERSHIP['collapse_pmt_div']}";
+		is_expanded = 1;
+	}
 }
 </script>
 {!if standalone}
 {# This is a standalone form called from the member list #}
 <form class="uk-form uk-form-horizontal" action="{action_url}" method="post">
-  <input type="hidden" name="mem_uid" value="{my_uid}" />
+	<input type="hidden" name="mem_uid" value="{my_uid}" />
 {!else}
 {# This is part of the user profile editing #}
-  <div id="pe_membership" class="jsenabled_hide">
+<div id="pe_membership" class="jsenabled_hide">
 {!endif}
-  <input type="hidden" name="mem_old_links" value='{old_links}' />
-  <fieldset>
-    <legend>
-        <button type="reset" class="uk-button uk-button-primary" id="exp_col"
-            onclick="javascript:togglePmtDiv();">{$LANG_MEMBERSHIP['pmt_info']}</button>
-    </legend>
-    <div style="display:none;" id="pmt_div">
-      {!if is_member}
-      <div class="uk-form-row">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['quickrenew']}
-          <span id="qrenew" class="tooltip_cfg tooltipstered"></span>
-        </label>
-        <div class="uk-form-controls">
-          <input id="quickrenew" type="checkbox" value="1" name="mem_quickrenew" />
-        </div>
-      </div>
-      {!endif}
-
-      <div class="uk-form-row">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_date']}:
-          <span id="dtpaid" class="tooltip_cfg tooltipstered"></span>
-        </label>
-        <div class="uk-form-controls">
-        <input type="text" id="f_dtpaid" name="mem_pmtdate" size="25" data-uk-datepicker
-              value="{pmt_date}" maxlength="30" />
-{!if 0}
-        <i class="uk-icon uk-icon-calendar tooltip"
-              id="dtpaid_trigger"
-              style="cursor: pointer;"
-              alt="Date Selector"
-              title="Date Selector"></i>
+	<input type="hidden" name="mem_old_links" value='{old_links}' />
+	<fieldset>
+		<legend>
+			<button type="reset" class="uk-button uk-button-primary" id="exp_col"
+				onclick="javascript:togglePmtDiv();">{$LANG_MEMBERSHIP['pmt_info']}</button>
+		</legend>
+		<div style="display:none;" id="pmt_div">
+{!if is_member}
+			<div class="uk-form-row">
+				<label class="uk-form-label">{$LANG_MEMBERSHIP['quickrenew']}
+					<span id="qrenew" class="tooltip_cfg tooltipstered"></span>
+				</label>
+				<div class="uk-form-controls">
+					<input id="quickrenew" type="checkbox" value="1" name="mem_quickrenew" />
+				</div>
+			</div>
 {!endif}
-        </div>
-      </div>
 
-      <div class="uk-form-row">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_amount']}:
-          <span id="amtpaid" class="tooltip_cfg tooltipstered"></span>
-        </label>
-        <div class="uk-form-controls">
-          <input type="text" id="pmtamt" name="mem_pmtamt" value="" />
-        </div>
-      </div>
+			<div class="uk-form-row">
+				<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_date']}:
+					<span id="dtpaid" class="tooltip_cfg tooltipstered"></span>
+				</label>
+				<div class="uk-form-controls">
+					<input type="text" id="f_dtpaid" name="mem_pmtdate" size="25" data-uk-datepicker
+						value="{pmt_date}" maxlength="30" />
+				</div>
+			</div>
 
-      <div class="uk-form-row">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_method']}:
-          <span id="method" class="tooltip_cfg tooltipstered"></span>
-        </label>
-        <div class="uk-form-controls">
-          <select id="pmttype" name="mem_pmttype">
-            <option value="" selected="selected">--{$LANG_MEMBERSHIP['select']}--</option>
-            <option value="check">{$LANG_MEMBERSHIP['check']}</option>
-            <option value="cash">{$LANG_MEMBERSHIP['cash']}</option>
-            <option value="cc">{$LANG_MEMBERSHIP['cc']}</option>
-          </select>
-        </div>
-      </div>
+			<div class="uk-form-row">
+				<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_amount']}:
+					<span id="amtpaid" class="tooltip_cfg tooltipstered"></span>
+				</label>
+				<div class="uk-form-controls">
+					<input type="text" id="pmtamt" name="mem_pmtamt" value="" />
+				</div>
+			</div>
 
-      <div class="uk-form-row">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_desc']}:
-          <span id="comment" class="tooltip_cfg tooltipstered"></span>
-        </label>
-        <div class="uk-form-controls">
-          <input id="pmt_desc" type="text" name="mem_pmtdesc" size="30" />
-        </div>
-      </div>
-    </div>
-  <br />
-  </fieldset>
-  {# End payment section #}
+			<div class="uk-form-row">
+				<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_method']}:
+					<span id="method" class="tooltip_cfg tooltipstered"></span>
+				</label>
+				<div class="uk-form-controls">
+					<select id="pmttype" name="mem_pmttype">
+						<option value="" selected="selected">--{$LANG_MEMBERSHIP['select']}--</option>
+						<option value="check">{$LANG_MEMBERSHIP['check']}</option>
+						<option value="cash">{$LANG_MEMBERSHIP['cash']}</option>
+						<option value="cc">{$LANG_MEMBERSHIP['cc']}</option>
+					</select>
+				</div>
+			</div>
 
-  <fieldset style="margin-bottom: 18px;">
-    <legend>{$LANG_MEMBERSHIP['block_title']}</legend>
+			<div class="uk-form-row">
+				<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_desc']}:
+					<span id="comment" class="tooltip_cfg tooltipstered"></span>
+				</label>
+				<div class="uk-form-controls">
+					<input id="pmt_desc" type="text" name="mem_pmtdesc" size="30" />
+				</div>
+			</div>
+		</div>
+		<br />
+	</fieldset>
+{# End payment section #}
 
-    {!if standalone}
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['updating_member']}:</label>
-      <div class="uk-form-controls">{member_name}
-        {!if viewApp}
-        &nbsp;&nbsp;<a href="{site_url}/membership/app.php?uid={my_uid}&amp;prt" target="_new" class="toolbar">{$LANG_MEMBERSHIP['view_app']}</a>
-        {!endif}
-      </div>
-    </div>
-    {!endif}
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['plan']}:
-        <span id="plan_id" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <input type="hidden" name="mem_plan_id_orig" value="{plan_id_orig}" />
-        <select id="mem_plan_id" name="mem_plan_id" onchange="memUpdateLinkText(this);">
-          <option value="">--{$LANG_MEMBERSHIP['select']}--</option>
-          <!-- BEGIN PlanBlock -->
-          <option value="{plan_id}" {plan_sel}>{plan_name}</option>
-          <!-- END PlanBlock -->
-        </select><br /><span id="upd_link_txt">{upd_link_text}</span>
-      </div>
-    </div>
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['joined']}:
-        <span id="joined" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <input type="hidden" name="mem_joined_orig" value="{joined}" />
-        <input type="text" id="f_dtjoined" name="mem_joined" size="15" data-uk-datepicker
-            value="{joined}" maxlength="15" />
-{!if 0}
-        <i class="uk-icon uk-icon-calendar tooltip"
-            id="dtjoin_trigger"
-            style="cursor: pointer;"
-            alt="Date Selector"
-            title="Date Selector"
-            ></i>
-{!endif}
-      </div>
-    </div>
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['expires']}:
-        <span id="expires" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <input type="hidden" name="mem_expires_orig"  value="{expires}"/>
-        <input type="text" id="f_dtexpire" name="mem_expires" size="15" data-uk-datepicker
-            value="{expires}" maxlength="15" />
-{!if 0}
-        <i class="uk-icon uk-icon-calendar tooltip"
-            id="dtexpire_trigger"
-            style="cursor: pointer;"
-            alt="Date Selector"
-            title="Date Selector"
-            ></i>
-{!endif}
-      </div>
-    </div>
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['notified']}:
-        <span id="notified" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <select name="mem_notified">
-<!-- BEGIN expToSend -->
-            <option value="{notify_val}" {sel}>{notify_val}</option>
-<!-- END expToSend -->
-        </select>
-      </div>
-    </div>
-
-    {!if use_mem_number}
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['mem_number']}:
-        <span id="mem_number" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <input type="hidden" name="mem_number_orig" value="{mem_number}" />
-        <input id="f_mem_number" type="text" size="40" maxlength="40" name="mem_number" value="{mem_number}" />
-      </div>
-    </div>
-    {!endif}
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['istrial']}:
-        <span id="is_trial" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <input type="hidden" name="mem_istrial_orig" value="{mem_istrial}" />
-        <input type="checkbox" name="mem_istrial" value="1" {mem_istrial_chk} />
-      </div>
-    </div>
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['cancel']}:
-        <span id="cancel" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <input id="mem_cancel" type="checkbox" name="mem_cancel" value="1" />
-      </div>
-    </div>
-  </fieldset>
-
-  <fieldset id="family_fields" style="display:{family_display};">
-    <legend>{$LANG_MEMBERSHIP['linked_accounts']}</legend>
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['linked_accounts']}:
-        <span id="links" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <ul id="linklist">
-          <!-- BEGIN LinkBlock -->
-          <input type="hidden" name="mem_orig_links[]" value="{uid}" />
-          <li id="link{uid}">
-            <input type="hidden" name="mem_links[]" value="{uid}" />
-            <a href="{site_url}/users.php?mode=profile&amp;uid={uid}">{uname}</a>&nbsp;&nbsp;
-            <a href="#!" onclick='MEMremoveElement({uid},"{uname}")'>
-              <i class="uk-icon uk-icon-trash uk-text-danger"
-                title="{$LANG_MEMBERSHIP['rem_this_item']}" data-uk-tooltip></i>
-            </a>
-          </li>
-          <!-- END LinkBlock -->
-        </ul>
-      </div>
-    </div>
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['add_link']}:
-        <span id="add_link" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <select id="linkselect" name="add_link" onchange="MEMaddElement(this)">
-          <option value="0">--{$LANG_MEMBERSHIP['none']}--</option>
-          <!-- BEGIN linkSelect -->
-          <option value="{link_id}">{link_name}</option>
-          <!-- END linkSelect -->
-        </select>
-      </div>
-    </div>
-
-    <div class="uk-form-row">
-      <label class="uk-form-label">{$LANG_MEMBERSHIP['emancipate']}?
-        <span id="emancipate" class="tooltip_cfg tooltipstered"></span>
-      </label>
-      <div class="uk-form-controls">
-        <input id="emancipate" type="checkbox" value="1" name="emancipate" />
-      </div>
-    </div>
-    {hlp_member_edit}
-  </fieldset>
+	<fieldset style="margin-bottom: 18px;">
+		<legend>{$LANG_MEMBERSHIP['block_title']}</legend>
 
 {!if standalone}
-  <button type="submit" class="uk-button uk-button-success" name="savemember" value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
-  <button type="reset" class="uk-button uk-button-primary" name="reset" value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
-  <a class="uk-button" href="{action_url}">{$LANG_MEMBERSHIP['cancel']}</a>
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['updating_member']}:</label>
+			<div class="uk-form-controls">{member_name}
+{!if viewApp}
+				&nbsp;&nbsp;<a href="{site_url}/membership/app.php?uid={my_uid}&amp;prt" target="_new" class="toolbar">{$LANG_MEMBERSHIP['view_app']}</a>
+{!endif}
+			</div>
+		</div>
+{!endif}
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['plan']}:
+				<span id="plan_id" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<input type="hidden" name="mem_plan_id_orig" value="{plan_id_orig}" />
+				<select id="mem_plan_id" name="mem_plan_id" onchange="memUpdateLinkText(this);">
+					<option value="">--{$LANG_MEMBERSHIP['select']}--</option>
+<!-- BEGIN PlanBlock -->
+					<option value="{plan_id}" {plan_sel}>{plan_name}</option>
+<!-- END PlanBlock -->
+				</select><br /><span id="upd_link_txt">{upd_link_text}</span>
+			</div>
+		</div>
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['joined']}:
+				<span id="joined" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<input type="hidden" name="mem_joined_orig" value="{joined}" />
+				<input type="text" id="f_dtjoined" name="mem_joined" size="15" data-uk-datepicker
+					value="{joined}" maxlength="15" />
+			</div>
+		</div>
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['expires']}:
+				<span id="expires" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<input type="hidden" name="mem_expires_orig" value="{expires}"/>
+				<input type="text" id="f_dtexpire" name="mem_expires" size="15" data-uk-datepicker
+					value="{expires}" maxlength="15" />
+			</div>
+		</div>
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['notified']}:
+				<span id="notified" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<select name="mem_notified">
+<!-- BEGIN expToSend -->
+					<option value="{notify_val}" {sel}>{notify_val}</option>
+<!-- END expToSend -->
+				</select>
+			</div>
+		</div>
+
+{!if use_mem_number}
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['mem_number']}:
+				<span id="mem_number" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<input type="hidden" name="mem_number_orig" value="{mem_number}" />
+				<input id="f_mem_number" type="text" size="40" maxlength="40" name="mem_number" value="{mem_number}" />
+			</div>
+		</div>
+{!endif}
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['istrial']}:
+				<span id="is_trial" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<input type="hidden" name="mem_istrial_orig" value="{mem_istrial}" />
+				<input type="checkbox" name="mem_istrial" value="1" {mem_istrial_chk} />
+			</div>
+		</div>
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['cancel']}:
+				<span id="cancel" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<input id="mem_cancel" type="checkbox" name="mem_cancel" value="1" />
+			</div>
+		</div>
+	</fieldset>
+
+	<fieldset id="family_fields" style="display:{family_display};">
+		<legend>{$LANG_MEMBERSHIP['linked_accounts']}</legend>
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['linked_accounts']}:
+				<span id="links" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<ul id="linklist">
+<!-- BEGIN LinkBlock -->
+					<input type="hidden" name="mem_orig_links[]" value="{uid}" />
+					<li id="link{uid}">
+						<input type="hidden" name="mem_links[]" value="{uid}" />
+						<a href="{site_url}/users.php?mode=profile&amp;uid={uid}">{uname}</a>&nbsp;&nbsp;
+						<a href="#!" onclick='MEMremoveElement({uid},"{uname}")'>
+							<i class="uk-icon uk-icon-trash uk-text-danger"
+								title="{$LANG_MEMBERSHIP['rem_this_item']}" data-uk-tooltip></i>
+						</a>
+					</li>
+<!-- END LinkBlock -->
+				</ul>
+			</div>
+		</div>
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['add_link']}:
+				<span id="add_link" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<select id="linkselect" name="add_link" onchange="MEMaddElement(this)">
+					<option value="0">--{$LANG_MEMBERSHIP['none']}--</option>
+<!-- BEGIN linkSelect -->
+					<option value="{link_id}">{link_name}</option>
+<!-- END linkSelect -->
+				</select>
+			</div>
+		</div>
+
+		<div class="uk-form-row">
+			<label class="uk-form-label">{$LANG_MEMBERSHIP['emancipate']}?
+				<span id="emancipate" class="tooltip_cfg tooltipstered"></span>
+			</label>
+			<div class="uk-form-controls">
+				<input id="emancipate" type="checkbox" value="1" name="emancipate" />
+			</div>
+		</div>
+		{hlp_member_edit}
+	</fieldset>
+
+{!if standalone}
+	<button type="submit" class="uk-button uk-button-success" name="savemember" value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
+	<button type="reset" class="uk-button uk-button-primary" name="reset" value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
+	<a class="uk-button" href="{action_url}">{$LANG_MEMBERSHIP['cancel']}</a>
 </form>
 {!else}
-  </div>
+</div>
 {!endif}
 
 <script type="text/javascript">
 function memUpdateLinkText(selid)
 {
-    var family_ids = new Array({family_plans});
-    var plan_id = selid.options[selid.selectedIndex].value;
-    // default if no family plans
-    var text = "{$LANG_MEMBERSHIP['no_upd_links']}";
-    var show_family = false;
+	var family_ids = new Array({family_plans});
+	var plan_id = selid.options[selid.selectedIndex].value;
+	// default if no family plans
+	var text = "{$LANG_MEMBERSHIP['no_upd_links']}";
+	var show_family = false;
 
-    if (plan_id == '') {
-        text = '';
-    } else {
-        for (var i=0; i<family_ids.length; i++) {
-            if (family_ids[i] == plan_id) {
-                text = "{$LANG_MEMBERSHIP['does_upd_links']}";
-                show_family = true;
-            }
-        }
-    }
-    document.getElementById("upd_link_txt").innerHTML = text;
-    if (show_family) {
-        document.getElementById("family_fields").style.display = 'block';
-    } else {
-        document.getElementById("family_fields").style.display = 'none';
-    }
+	if (plan_id == '') {
+		text = '';
+	} else {
+		for (var i=0; i<family_ids.length; i++) {
+			if (family_ids[i] == plan_id) {
+				text = "{$LANG_MEMBERSHIP['does_upd_links']}";
+				show_family = true;
+			}
+		}
+	}
+	document.getElementById("upd_link_txt").innerHTML = text;
+	if (show_family) {
+		document.getElementById("family_fields").style.display = 'block';
+	} else {
+		document.getElementById("family_fields").style.display = 'none';
+	}
 }
 </script>
 {tooltipster_js}
