@@ -706,23 +706,23 @@ function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
         }
         foreach ($plans as $plan) {
             $props = $plan->getItemInfo($properties, $options);
-        }
-        $mapped = array();
-        foreach ($props as $key => $value) {
-            if ($id == '*') {
-                if ($value != '') {
+            $mapped = array();
+            foreach ($props as $key => $value) {
+                if ($id == '*') {
+                    if ($value != '') {
+                        $mapped[$key] = $value;
+                    }
+                } else {
                     $mapped[$key] = $value;
                 }
-            } else {
-                $mapped[$key] = $value;
             }
-        }
 
-        if ($id == '*') {
-            $retval[] = $mapped;
-        } else {
-            $retval = $mapped;
-            break;
+            if ($id == '*') {
+                $retval[] = $mapped;
+            } else {
+                $retval = $mapped;
+                break;
+            }
         }
         break;
     case 'membership':
