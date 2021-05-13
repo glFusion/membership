@@ -11,7 +11,6 @@
  * @filesource
  */
 namespace Membership;
-use Membership\Models\ItemInfo;
 
 
 /**
@@ -1101,13 +1100,13 @@ class Plan
     /**
      * Return plan information for the getItemInfo function in functions.inc.
      *
-     * @param   string  $what   Array of field names, already exploded
+     * @param   array $what   Array of field names, already exploded
      * @param   array   $options    Additional options
      * @return  array       Array of fieldname=>value
      */
     public function getItemInfo($what, $options = array())
     {
-        $retval = new ItemInfo;
+        $retval = array();
         foreach ($what as $fld) {
             switch ($fld) {
             case 'id':
@@ -1129,7 +1128,6 @@ class Plan
                 break;
             }
         }
-        var_dump($retval);die;
         return $retval;
     }
 
