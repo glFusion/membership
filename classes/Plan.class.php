@@ -496,7 +496,7 @@ class Plan
                 }
             } else {
                 LGLIB_storeMessage(array(
-                        'message' => $LANG_MEMBERSHIP['msg_plan_has_members'],
+                    'message' => $LANG_MEMBERSHIP['msg_plan_has_members'],
                 ) );
                 return false;
             }
