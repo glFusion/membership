@@ -175,7 +175,7 @@ class Membership
         if (isset($A['mem_expires'])) $this->expires = $A['mem_expires'];
         if (isset($A['mem_plan_id'])) $this->plan_id = $A['mem_plan_id'];
         if (isset($A['mem_status'])) $this->status = (int)$A['mem_status'];
-        $this->notified = MEMB_getVar($A, 'mem_notified', 'integer', Config::get('notifycount'));
+        if (isset($A['mem_notified'])) $this->notified = (int)$A['mem_notified'];
         if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
         $this->istrial = MEMB_getVar($A, 'mem_istrial', 'integer', 0);
         // This will never come from a form:
@@ -407,6 +407,7 @@ class Membership
                 'standalone' => 'true',
                 'member_name' => COM_getDisplayName($this->uid),
                 'action_url' => $action_url,
+                'renew_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?quickrenew',
             ) );
         }
 
@@ -1041,6 +1042,7 @@ class Membership
                 $args['mem_plan_id'] = $this->plan_id;
             }
             $args['mem_expires'] = $this->expires;
+            $this->notified = (int)Config::get('notifycount');
             $this->Save($args);
             return true;
         } else {
@@ -2130,8 +2132,8 @@ class Membership
                     'uid' => $row['mem_uid'],
                     'persist' => true,
                     'pi_code' => MEMBERSHIP_MSG_EXPIRING,
-                    'use_sess_id' => false)
-                );
+                    'use_sess_id' => false
+                ) );
             }
 
             // Record that we've notified this member

@@ -39,7 +39,7 @@ $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
-    'savepg', 'notify',
+    'savepg', 'notify', 'quickrenew',
     'renewbutton', 'deletebutton', 'regenbutton',
     'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
     'reorderpg', 'deletepos', 'deletepg',
@@ -106,10 +106,10 @@ case 'importusers':
     break;
 
 case 'quickrenew':
-    echo "HERE";die;
     $M = new Membership\Membership($_POST['mem_uid']);
-    $status = $M->Add($uid, $M->Plan->plan_id, 0);
-    return $status == true ? PLG_RET_OK : PLG_RET_ERROR;
+    $status = $M->Renew();
+    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $_POST['mem_uid']);
+    break;
 
 case 'savemember':
     // Call plugin API function to save the membership info, if changed.
@@ -340,5 +340,3 @@ $output .= $content;
 if ($footer != '') $output .= '<p>' . $footer . '</p>' . LB;
 $output .= Membership\Menu::siteFooter();
 echo $output;
-
-?>

@@ -405,9 +405,14 @@ function plugin_user_changed_membership($uid=0)
  */
 function plugin_itemPreSave_membership($mode, $username)
 {
-    if ($mode == 'useredit' &&
-            isset($_POST['mem_quickrenew']) && empty($_POST['mem_plan_id'])) {
-        return 97;
+    global $LANG_MEMBERSHIP;
+
+    if (
+        $mode == 'useredit' &&
+        isset($_POST['mem_quickrenew']) &&
+        empty($_POST['mem_plan_id'])
+    ) {
+        return $LANG_MEMBERSHIP['err_plan_id'];
     } else {
         return '';
     }
@@ -422,7 +427,7 @@ function plugin_itemPreSave_membership($mode, $username)
  */
 function plugin_profileblocksdisplay_membership($uid)
 {
-    global $LANG_MEMBERSHIP, $_USER;
+    global $_USER;
 
     // non-admins can only see their own subscription.
     if ($uid != $_USER['uid'] && !MEMBERSHIP_isManager()) {
@@ -553,7 +558,7 @@ function MEMBERSHIP_errorMessage($msg, $type = '', $header = '')
  */
 function plugin_configmanager_select_app_form_id_membership()
 {
-    global $_TABLES, $LANG_MEMBERSHIP;
+    global $LANG_MEMBERSHIP;
 
     $status = PLG_invokeService('forms', 'getFormInfo',
         array(),
@@ -686,8 +691,6 @@ function plugin_getMergeFields_membership($uid)
  */
 function plugin_getiteminfo_membership($id, $what, $uid=0, $options=array())
 {
-    global $_TABLES, $_CONF;
-
     $parts = explode(':', $id);
     $type = $parts[0];
     $id = isset($parts[1]) ? $parts[1] : 0;
@@ -793,11 +796,11 @@ function plugin_user_create_membership($uid)
     $uid = (int)$uid;
     if (empty($LANG_MEMBERSHIP['new_acct_msg']) || $uid < 3) return;
     LGLIB_storeMessage(array(
-            'message' => $LANG_MEMBERSHIP['new_acct_msg'],
-            'uid' => $uid,
-            'persist' => true,
-            'use_sess_id' => false,
-        ) );
+        'message' => $LANG_MEMBERSHIP['new_acct_msg'],
+        'uid' => $uid,
+        'persist' => true,
+        'use_sess_id' => false,
+    ) );
 }
 
 
@@ -809,8 +812,6 @@ function plugin_user_create_membership($uid)
  */
 function plugin_user_delete_membership($uid)
 {
-    global $_TABLES;
-
     Membership\Logger::Audit(
         'Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.'
@@ -847,7 +848,7 @@ function plugin_user_move_membership($origUID, $destUID)
  */
 function plugin_autotags_membership($op, $content = '', $autotag = '')
 {
-    global $_TABLES, $LANG_MEMBERSHIP;
+    global $LANG_MEMBERSHIP;
 
     switch ($op) {
     case 'tagname':
