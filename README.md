@@ -10,7 +10,7 @@ Some of the characteristics of this plugin are:
   settings are saved, the membership data is updated. Any member who was
   linked to the account being saved is also updated.
 
-- When a new site user logs in for the first time, a system message is
+- When a new site user logs in for the first time, a system message can be
   displayed encouraging them to visit the membership area to join the
   organization. To disable this behavior, create custom language files and set
   `$LANG_MEMBERSHIP['new_acct_msg']` to `''` (empty string).
@@ -44,6 +44,11 @@ Some of the characteristics of this plugin are:
 can provide the application (Profile is recommended).
 
 - Memberships can be paid via the Shop plugin or by check.
+
+- Members who are current or in arrears are placed in a designated glFusion group.
+  Beginning with version 0.3.0 that group is not created automatically. You will
+  want to assign an existing group in the plugin's configuration, or create a new
+  group such as "Club Members".
 
 ## REQUIREMENTS:
 - lgLib plugin 1.0.9 or later for core functions

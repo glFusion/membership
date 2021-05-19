@@ -94,24 +94,6 @@ $INSTALL_plugin['membership'] = array(
     ),
 
     array(
-        'type'      => 'group',
-        'group'     => 'membership Admin',
-        'desc'      => 'Users in this group can administer the Membership plugin',
-        'variable'  => 'admin_group_id',
-        'admin'     => true,
-        'addroot'   => true,
-    ),
-
-    array(
-        'type'      => 'group',
-        'group'     => 'membership Manage',
-        'desc'      => 'Users in this group can manage memberships',
-        'variable'  => 'manage_group_id',
-        'admin'     => true,
-        'addroot'   => true,
-    ),
-
-    array(
         'type'      => 'feature',
         'feature'   => 'membership.admin',
         'desc'      => 'Membership Administration access',
@@ -127,36 +109,18 @@ $INSTALL_plugin['membership'] = array(
 
     array(
         'type'      => 'mapping',
-        'group'     => 'admin_group_id',
+        'findgroup' => 'Root',
         'feature'   => 'admin_feature_id',
         'log'       => 'Adding Admin feature to the admin group',
     ),
 
     array(
         'type'      => 'mapping',
-        'group'     => 'manage_group_id',
+        'findgroup' => 'Root',
         'feature'   => 'manage_feature_id',
         'log'       => 'Adding Manager feature to the admin group',
     ),
-
 );
-// A little trickery. If the plugin has been installed, the default membership
-// group name left as "membership Members", then uninstalled, the group is
-// left in place since it might still be used for access control for members.
-// This causes an error if the plugin is later reinstalled, so we need to check
-// for the existence of the membership group before trying to create it.
-$c = DB_count($_TABLES['groups'], 'grp_name', 'membership Members');
-if ($c == 0) {
-    $INSTALL_plugin['membership'][] = array(
-        'type'      => 'group',
-        'group'     => 'membership Members',
-        'desc'      => 'Members are added to this group by default',
-        'variable'  => 'members_group_id',
-        'admin'     => false,
-        'addroot'   => false,
-    );
-}
-
 
 /**
 * Puts the datastructures for this plugin into the glFusion database.
