@@ -1,0 +1,59 @@
+{# begin {templatename} #}
+
+<!-- BEGIN field-view -->
+    <a href="{edit_url}"
+    <!-- BEGIN attr -->
+        {name}="{value}"
+    <!-- END attr -->
+    ><i class="uk-icon uk-icon-hover uk-icon-justifiy uk-icon-eye uk-text-primary"></i></a>
+<!-- END field-view -->
+
+<!-- BEGIN field-delete-button -->
+    <button name="{button_name}" class="uk-button uk-button-mini uk-button-danger"
+    <!-- BEGIN attr -->
+        {name}="{value}"
+    <!-- END attr -->
+    ><i class="uk-icon uk-icon-remove"></i>
+{!if text}
+    &nbsp;{text}
+{!endif}
+    </button>
+<!-- END field-delete-button -->
+
+<!-- BEGIN field-renew-button -->
+    <button name="{button_name}" class="uk-button uk-button-mini uk-button-success"
+    <!-- BEGIN attr -->
+        {name}="{value}"
+    <!-- END attr -->
+    ><i class="uk-icon uk-icon-refresh"></i>
+{!if text}
+    &nbsp;{text}
+{!endif}
+    </button>
+<!-- END field-renew-button -->
+
+<!-- BEGIN field-notify-button -->
+    <button name="{button_name}" class="uk-button uk-button-mini uk-button-primary"
+    <!-- BEGIN attr -->
+        {name}="{value}"
+    <!-- END attr -->
+    ><i class="uk-icon uk-icon-envelope"></i>
+{!if text}
+    &nbsp;{text}
+{!endif}
+    </button>
+<!-- END field-notify-button -->
+
+<!-- BEGIN field-regen-button -->
+    <button name="{button_name}" class="uk-button uk-button-mini uk-button-default"
+    <!-- BEGIN attr -->
+        {name}="{value}"
+    <!-- END attr -->
+    ><i class="uk-icon uk-icon-cogs"></i>
+{!if text}
+    &nbsp;{text}
+{!endif}
+    </button>
+<!-- END field-regen-button -->
+
+{# begin {templatename} #}
