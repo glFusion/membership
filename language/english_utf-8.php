@@ -104,6 +104,7 @@ $LANG_MEMBERSHIP = array(
 'check'         => 'Check',
 'cash'          => 'Cash',
 'cc'            => 'Credit Card',
+'transfer'      => 'Transfer',
 'from'          => 'From',
 'to'            => 'To',
 'pmt_form'      => 'Remittance Coupon',

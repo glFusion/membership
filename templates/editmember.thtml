@@ -206,6 +206,7 @@ function togglePmtDiv()
 						<option value="check">{$LANG_MEMBERSHIP['check']}</option>
 						<option value="cash">{$LANG_MEMBERSHIP['cash']}</option>
 						<option value="cc">{$LANG_MEMBERSHIP['cc']}</option>
+						<option value="transfer">{$LANG_MEMBERSHIP['transfer']}</option>
 					</select>
 				</div>
 			</div>
