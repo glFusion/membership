@@ -1,7 +1,7 @@
 {# begin {templatelocation} #}
 <h1 class="aligncenter">{$LANG_MEMBERSHIP['app_header']}</h1>
 <div class="uk-overflow-container">
-    <table class="uk-table uk-table-condensed">
+    <table class="uk-table uk-table-condensed uk-table-small">
         <tbody>
         <tr>
             <td class="uk-text-bold uk-width-1-3">{$LANG_MEMBERSHIP['member_name']}</td>
