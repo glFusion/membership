@@ -88,7 +88,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         $gid = (int)DB_getItem(
             $_TABLES['groups'],
             'grp_id',
-            "grp_name='": . Config::PI_NAME. " Admin'"
+            "grp_name='" . Config::PI_NAME. " Admin'"
         );
         if ($gid < 1) {
             $gid = 1;        // default to Root if group not found
@@ -146,6 +146,12 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
 
     if (!COM_checkVersion($current_ver, '0.2.3')) {
         $current_ver = '0.2.3';
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
+    }
+
+    if (!COM_checkVersion($current_ver, '0.3.0')) {
+        $current_ver = '0.3.0';
         if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
