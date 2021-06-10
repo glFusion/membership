@@ -1286,6 +1286,14 @@ class Plan
                 "id=\"{$fieldname}_{$A['plan_id']}\" ".
                 "type=\"checkbox\" $chk " .
                 "onclick='MEMB_toggle(this, \"{$A['plan_id']}\", \"plan\", \"{$fieldname}\", \"{$pi_admin_url}\");' />\n";
+            /* TODO: glFusion 2.0
+            $retval = FieldList::checkbox(array(
+                'name' => "{$fieldname}_{$A['plan_id']}",
+                'id' => "{$fieldname}_{$A['plan_id']}",
+                'checked' => $fieldvalue == 1,
+                'onclick' => "MEMB_toggle(this, '{$A['plan_id']}', 'plan', '{$fieldname}', '{$pi_admin_url}');",
+            ) );
+             */
             break;
 
         default:

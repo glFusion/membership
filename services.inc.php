@@ -192,8 +192,11 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     global $LANG_MEMBERSHIP;
 
     // Non-managers don't get access to view other members' expiration
-    if (!MEMBERSHIP_isManager()) return PLG_RET_PERMISSION_DENIED;
+    if (!MEMBERSHIP_isManager()) {
+        return PLG_RET_PERMISSION_DENIED;
+    }
 
+    // Allow managers to filter by status
     $opts = array(
         Status::ACTIVE => $LANG_MEMBERSHIP['current'],
         Status::ARREARS => $LANG_MEMBERSHIP['arrears'],
@@ -240,12 +243,23 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     foreach ($opts as $stat=>$txt) {
         if (in_array($stat, $exp_stat)) {
             $sel =  'checked="checked"';
+            $checked = true;
             $get_parms[] = $stat;
         } else {
             $sel = '';
+            $checked = false;
         }
         $output['filter'] .= '<input type="checkbox" name="mem_exp_status[]" value="' .
-                $stat . '" ' . $sel . ' />' . $txt . '&nbsp;';
+            $stat . '" ' . $sel . ' />' . $txt . '&nbsp;';
+
+        /* TODO - glFusion 2.0
+        $output['filter'] .= FieldList::checkbox(array(
+            'name' => 'mem_exp_status[]',
+            'value' => $stat,
+            'checked' => $checked,
+        ) ) . $txt . '&nbsp;';
+         */
+
     }
     $output['filter'] .= '<input type="hidden" name="mem_exp_status_flag" value="1" />';
     $output['get'] = 'mem_exp_status=' . implode(',', $get_parms);
@@ -271,8 +285,8 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     $plans = $_TABLES['membership_plans'];
     $members = $_TABLES['membership_members'];
     $positions = $_TABLES['membership_positions'];
-    $where = '';
-    $exp_stat = array();
+    $where = " $members.mem_expires IS NOT NULL ";  // get only membership records
+    $exp_stat = array(1, 2);        // Current and Arrears checked by default
     $incl_exp_stat = 0;
 
     // Does not support remote web services, must be local only.
@@ -281,7 +295,9 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     }
 
     // Include the expiration status, if requested
-    if (
+    if (!MEMBERSHIP_isManager()) {
+        $exp_stat = array(Status::ACTIVE, Status::ARREARS);
+    } elseif (
         isset($args['post']['mem_exp_status_flag']) &&
         isset($args['post']['mem_exp_status'])
     ) {
@@ -332,7 +348,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                 $exp_arr[] = "$members.mem_expires < '" . Dates::expGraceEnded() . "'";
             }
             if (!empty($exp_arr)) {
-                $where = "$members.mem_expires > '0000-00-00' AND (" .
+                $where .= " AND $members.mem_expires > '0000-00-00' AND (" .
                         implode(' OR ', $exp_arr) . ')';
             }
         }

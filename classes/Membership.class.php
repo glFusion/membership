@@ -494,7 +494,7 @@ class Membership
 
         $old_status = $this->status;  // track original status
         if (is_array($A) && !empty($A)) {
-            if ($A['mem_plan_id'] == '') {
+            if (isset($A['mem_plan_id']) && $A['mem_plan_id'] == '') {
                 // remove membership, leave record
                 $this->Cancel();
                 return true;        // cancellation is a valid operation
@@ -1540,9 +1540,11 @@ class Membership
         $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'asc');
         if (isset($_REQUEST['showexp'])) {
             $frmchk = 'checked="checked"';
+            $showexp_chk = true;
             $exp_query = '';
         } else {
             $frmchk = '';
+            $showexp_chk = false;
             $exp_query = sprintf(
                 "AND m.mem_status IN(%d, %d) AND mem_expires >= '%s'",
                 Status::ACTIVE,
@@ -1566,18 +1568,36 @@ class Membership
             'has_extras' => true,
             'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
         );
+        /* TODO: glFusion 2.0
+        $filter = FieldList::checkbox(array(
+            'name' => 'showexp',
+            'checked' => $showexp_chk,
+        ) );
+         */
         $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>&nbsp;' .
             $LANG_MEMBERSHIP['show_expired'] . '&nbsp;&nbsp;';
 
-        $del_action = '<button class="uk-button uk-button-mini uk-button-danger" name="deletebutton" ' .
-            'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen'] . '\');">' .
-            '<i class="uk-icon uk-icon-remove"></i> ' . $LANG_ADMIN['delete']. '</button>';
-        $renew_action = '<button class="uk-button uk-button-mini" name="renewbutton" ' .
-            'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_renew'] . '\');">' .
-            '<i class="uk-icon uk-icon-refresh"></i> ' . $LANG_MEMBERSHIP['renew'] . '</button>';
-        $notify_action = '<button class="uk-button uk-button-mini" name="notify" ' .
-            'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_notify'] . '\');">' .
-            '<i class="uk-icon uk-icon-envelope"></i> ' . $LANG_MEMBERSHIP['notify'] . '</button>';
+        $del_action = FieldList::deleteButton(array(
+            'name' => 'deletebutton',
+            'text' => $LANG_ADMIN['delete'],
+            'attr' => array(
+                'onclick' => "return confirm('{$LANG_MEMBERSHIP['confirm_regen']}');",
+            ),
+        ) );
+        $renew_action = FieldList::renewButton(array(
+            'name' => 'renewbutton',
+            'text' => $LANG_MEMBERSHIP['renew'],
+            'attr' => array(
+                'onclick' => "return confirm('{$LANG_MEMBERSHIP['confirm_renew']}');",
+            ),
+        ) );
+        $notify_action = FieldList::notifyButton(array(
+            'name' => 'notify',
+            'text' => $LANG_MEMBERSHIP['notify'],
+            'attr' => array(
+                'onclick' => "return confirm('{$LANG_MEMBERSHIP['confirm_notify']}');",
+            ),
+        ) );
 
         $options = array(
             'chkdelete' => 'true',
@@ -1587,9 +1607,13 @@ class Membership
         );
 
         if (Config::get('use_mem_number') == 2) {
-            $options['chkactions'] .= '<button class="uk-button uk-button-mini" name="regenbutton" ' .
-                'onclick="return confirm(\'' . $LANG_MEMBERSHIP['confirm_regen'] . '\');">' .
-                '<i class="uk-icon uk-icon-cogs"></i> ' . $LANG_MEMBERSHIP['regen_mem_numbers'] . '</button>';
+            $options['chkactions'] .= FieldList::regenButton(array(
+                'name' => 'regenbutton',
+                'text' => $LANG_MEMBERSHIP['regen_mem_numbers'],
+                'attr' => array(
+                    'onclick' => "return confirm('{$LANG_MEMBERSHIP['confirm_regen']}');",
+                ),
+            ) );
         }
         $form_arr = array();
         $retval .= ADMIN_list(
@@ -1622,22 +1646,25 @@ class Membership
         case 'edit':
             $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
             $retval = COM_createLink(
-                Icon::getHTML('edit'),
-                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp
+                '<i class="uk-icon uk-icon-edit"></i>',
+                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
             );
+            /* TODO: glFusion 2.0
+            $retval = FieldList::edit(array(
+                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
+            ) );
+             */
             break;
 
         case 'app_link':
             $url = MEMBERSHIP_PI_URL . '/app.php?prt&uid=' . $A['mem_uid'];
-            $retval = COM_createLink(
-                '<i class="uk-icon uk-icon-eye"></i>',
-                '#!',
-                array(
+            $retval = FieldList::view(array(
+                'attr' => array(
                     'onclick' => "popupWindow('{$url}', 'Help', 640, 480, 1)",
                     'title' => $LANG_MEMBERSHIP['view_app'],
                     'class' => 'tooltip',
                 )
-            );
+            ) );
             break;
 
         case 'tx_fullname':
