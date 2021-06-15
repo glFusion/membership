@@ -100,6 +100,7 @@ $_SQL['membership_positions'] = "CREATE TABLE {$_TABLES['membership_positions']}
 
 $_SQL['membership_users'] = "CREATE TABLE `{$_TABLES['membership_users']}` (
   `uid` int(11) unsigned NOT NULL,
+  `initials` varchar(10) NOT NULL DEFAULT '',
   `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`uid`)
 ) ENGINE=MyISAM";
@@ -184,6 +185,7 @@ $_UPGRADE_SQL = array(
     '0.3.0' => array(
         "CREATE TABLE `{$_TABLES['membership_users']}` (
           `uid` int(11) unsigned NOT NULL,
+          `initials` varchar(10) NOT NULL DEFAULT '',
           `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
           PRIMARY KEY (`uid`)
         ) ENGINE=MyISAM",

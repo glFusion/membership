@@ -18,6 +18,10 @@ namespace Membership;
  */
 class App
 {
+    const DISABLED = 0;
+    const OPTIONAL = 1;
+    const REQUIRED = 2;
+
     /** User ID.
      * @var integer */
     protected $uid = 0;
@@ -89,7 +93,7 @@ class App
     {
         global $_CONF;
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('app', 'application.thtml');
         $T->set_block('app', 'DataRow', 'row');
         $values = $this->getDisplayValues();
@@ -149,12 +153,12 @@ class App
         } else {*/
             $sel = $M->getPlanID();
         //}
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('app', 'app_form.thtml');
         $T->set_var(array(
             'form_id'       => 'membership_forms_form',
             'mem_uid'       => $this->uid,
-            'purch_url'     => MEMBERSHIP_PI_URL . '/index.php?list1',
+            'purch_url'     => Config::get('url') . '/index.php?list1',
             'profile_fields' => $this->getEditForm(),
             'exp_msg'       => $M->isNew() ? '' :
                 sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlanID(), $M->getExpires()),
@@ -243,6 +247,7 @@ class App
         global $_TABLES, $_CONF, $_USER;
 
         $uid = (int)$_POST['mem_uid'];
+        $initials = DB_escapeString(trim(substr($_POST['terms_initial'], 0, 10)));
 
         if (MEMB_getVar($_POST, 'terms_accept', 'integer') > 0) {
             // Update the terms-accepted checkbox first since it will
@@ -252,8 +257,10 @@ class App
             $data = 'Initial by ' . DB_escapeString(MEMB_getVar($_POST, 'terms_initial'));
             $sql = "INSERT INTO {$_TABLES['membership_users']} SET
                 uid = $this->uid,
+                initials = '$initials',
                 terms_accept = UNIX_TIMESTAMP()
                 ON DUPLICATE KEY UPDATE
+                initials = '$initials',
                 terms_accept = UNIX_TIMESTAMP()";
             //echo $sql;die;
             DB_query($sql);
@@ -415,7 +422,7 @@ class App
         } elseif (!self::providerAvailable()) {
             // Don't require an app if the provider plugin is not available
             $isRequired = false;
-        } elseif (Config::get('require_app') < MEMBERSHIP_APP_REQUIRED) {
+        } elseif (Config::get('require_app') < self::REQUIRED) {
             // App is not required
             $isRequired = false;
         } else {
