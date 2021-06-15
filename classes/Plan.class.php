@@ -543,7 +543,7 @@ class Plan
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP,
                 $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH;
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('product', 'plan_form.thtml');
         if ($this->plan_id != '') {
             $T->set_var('plan_id', $this->plan_id);
@@ -557,8 +557,8 @@ class Plan
             'old_plan_id'   => $this->plan_id,
             'name'          => $this->name,
             'description'   => $this->dscp,
-            'pi_admin_url'  => MEMBERSHIP_ADMIN_URL,
-            'pi_url'        => MEMBERSHIP_PI_URL,
+            'pi_admin_url'  => Config::get('admin_url'),
+            'pi_url'        => Config::get('url'),
             'doc_url'       => MEMBERSHIP_getDocURL('plan_form.html',
                                             $_CONF['language']),
             'ena_chk'       => $this->enabled == 1 ?
@@ -677,7 +677,7 @@ class Plan
         $buttons = '';
 
         // Create product template
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('detail', 'plan_detail.thtml');
 
         $M = Membership::getInstance($_USER['uid']);
@@ -691,7 +691,7 @@ class Plan
         }
 
         $T->set_var(array(
-            'pi_url'        => MEMBERSHIP_PI_URL,
+            'pi_url'        => Config::get('url'),
             'user_id'       => $_USER['uid'],
             'plan_id'       => $this->plan_id,
             'name'          => $this->name,
@@ -840,7 +840,7 @@ class Plan
             }
         }
         if (Config::get('ena_checkpay')) {
-            $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+            $T = new \Template(Config::get('pi_path') . '/templates');
             $T->set_file('checkpay', 'pmt_check_btn.thtml');
             $T->set_var('plan_id', $this->plan_id);
             $retval[] = $T->parse('output', 'checkpay');
@@ -956,9 +956,9 @@ class Plan
 
         $have_app = App::getInstance($_USER['uid'])->Validate();
         /*if (!$have_app) {
-            COM_refresh(MEMBERSHIP_PI_URL . '/index.php?editapp');
+            COM_refresh(Config::get('url') . '/index.php?editapp');
         }*/
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('planlist', 'plan_list.thtml');
         if (0) {
         if (COM_isAnonUser()) {
@@ -1011,19 +1011,19 @@ class Plan
         }
         if (COM_isAnonUser()) {
             $T->set_var('app_msg', $LANG_MEMBERSHIP['must_login']);
-        } elseif (App::isRequired() > MEMBERSHIP_APP_DISABLED) {
-            if (Config::get('require_app') == MEMBERSHIP_APP_OPTIONAL) {
+        } elseif (App::isRequired() > App::DISABLED) {
+            if (Config::get('require_app') == App::OPTIONAL) {
                 $T->set_var('app_msg',
                     sprintf($LANG_MEMBERSHIP['please_complete_app'],
-                            MEMBERSHIP_PI_URL . '/index.php?editapp'));
+                            Config::get('url') . '/index.php?editapp'));
             } elseif (
-                Config::get('require_app') == MEMBERSHIP_APP_REQUIRED &&
+                Config::get('require_app') == App::REQUIRED &&
                 !$have_app
             ) {
                 $T->set_var('app_msg',
                     sprintf(
                         $LANG_MEMBERSHIP['plan_list_app_footer'],
-                        MEMBERSHIP_PI_URL . '/index.php?editapp'
+                        Config::get('url') . '/index.php?editapp'
                     )
                 );
             }
@@ -1056,7 +1056,7 @@ class Plan
             }
             $buttons = '';
             switch($M->CanPurchase()) {
-            case MEMBERSHIP_CANPURCHASE:
+            case Membership::CANPURCHASE:
                 $exp_ts = strtotime($M->getExpires());
                 $exp_format = strftime($_CONF['shortdate'], $exp_ts);
                 if ($have_app) {
@@ -1070,8 +1070,12 @@ class Plan
                     }
                 }
                 break;
-            case MEMBERSHIP_NEED_APP:
-                 $buttons = sprintf($LANG_MEMBERSHIP['app_required'], MEMBERSHIP_PI_URL . '/app.php');
+            case Membership::NEED_APP:
+                echo "NEED_APP required";die;
+                $buttons = sprintf(
+                    $LANG_MEMBERSHIP['app_required'],
+                    Config::get('url') . '/app.php'
+                );
                 break;
             default:
                 $exp_format = '';
@@ -1212,13 +1216,13 @@ class Plan
         );
         $text_arr = array(
             //'has_extras' => true,
-            //'form_url'   => MEMBERSHIP_ADMIN_URL . '/index.php',
+            //'form_url'   => Config::get('admin_url') . '/index.php',
             'help_url'   => ''
         );
         $form_arr = array();
         $retval .= COM_createLink(
             $LANG_MEMBERSHIP['new_plan'],
-            MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x',
+            Config::get('admin_url') . '/index.php?editplan=x',
             array(
                 'class' => 'uk-button uk-button-success',
                 'style' => 'float:left',
@@ -1249,12 +1253,12 @@ class Plan
 
         $retval = '';
 
-        $pi_admin_url = MEMBERSHIP_ADMIN_URL;
+        $pi_admin_url = Config::get('admin_url');
         switch($fieldname) {
         case 'edit':
             $retval = COM_createLink(
                 Icon::getHTML('edit'),
-                MEMBERSHIP_ADMIN_URL . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
+                Config::get('admin_url') . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
             );
             break;
 
@@ -1266,7 +1270,7 @@ class Plan
                     height=\"16\" width=\"16\" border=\"0\"
                     onclick=\"return confirm('{$LANG_MEMBERSHIP['q_del_member']}');\"
                     >",
-                    MEMBERSHIP_ADMIN_URL . '/index.php?deleteplan=x&plan_id=' .
+                    Config::get('admin_url') . '/index.php?deleteplan=x&plan_id=' .
                     $A['plan_id']
                 );
             } else {

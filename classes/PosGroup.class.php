@@ -182,7 +182,7 @@ class PosGroup
     {
         global $_TABLES;
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('editform', 'pg_form.thtml');
         if ($this->pg_orderby > 0) {
             $orderby_sel = $this->pg_orderby - 10;
@@ -190,7 +190,7 @@ class PosGroup
             $orderby_sel = 1;
         }
         $T->set_var(array(
-            'action_url'    => MEMBERSHIP_ADMIN_URL,
+            'action_url'    => Config::get('admin_url'),
             'pg_id'         => $this->pg_id,
             'pg_tag'        => $this->pg_tag,
             'pg_title'      => $this->pg_title,
@@ -372,7 +372,7 @@ class PosGroup
         //echo $sql;die;
         $res = DB_query($sql);
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T ->set_file(array(
             'groups' => 'groups.thtml',
         ));
@@ -464,7 +464,7 @@ class PosGroup
         );
         $filter = '';
         $text_arr = array(
-            'form_url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
+            'form_url' => Config::get('admin_url') . '/index.php?positions',
         );
         $options = array(
             'chkdelete' => true,
@@ -477,7 +477,7 @@ class PosGroup
         $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
         $display .= COM_createLink(
             $LANG_MEMBERSHIP['new_pg'],
-            MEMBERSHIP_ADMIN_URL . '/index.php?editpg=0',
+            Config::get('admin_url') . '/index.php?editpg=0',
             array(
                 'class' => 'uk-button uk-button-success',
                 'style' => 'float:left',
@@ -509,12 +509,12 @@ class PosGroup
 
         $retval = '';
 
-        $pi_admin_url = MEMBERSHIP_ADMIN_URL;
+        $pi_admin_url = Config::get('admin_url');
         switch($fieldname) {
         case 'editpg':
             $retval = COM_createLink(
                 Icon::getHTML('edit'),
-                MEMBERSHIP_ADMIN_URL . '/index.php?editpg=' . $A['pg_id'],
+                Config::get('admin_url') . '/index.php?editpg=' . $A['pg_id'],
                 array(
                     'class' => 'tooltip',
                     'title' => $LANG_MEMBERSHIP['edit'],
@@ -523,7 +523,7 @@ class PosGroup
             break;
 
         case 'move':
-            $base_url = MEMBERSHIP_ADMIN_URL .
+            $base_url = Config::get('admin_url') .
                 '/index.php?id=' . $A['pg_id'] . '&reorderpg=';
             $retval .= COM_createLink(
                 Icon::getHTML('arrow-up'),

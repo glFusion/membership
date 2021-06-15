@@ -182,7 +182,7 @@ function plugin_postinstall_membership()
         'introtext' => 'Please fill out the following information',
         'submit_msg' => '',
         'noaccess_msg' => '',
-        'redirect' => MEMBERSHIP_PI_URL,
+        'redirect' => $_CONF['site_url'] . '/membership/',
         'enabled' => '1',
         'onsubmit' => array (
             'store' => '1',

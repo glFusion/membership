@@ -92,7 +92,7 @@ default:
         '<p>This function will import records from the Subscription plugin into the Membership plugin, and will remove the old Subscription records.</p>' . LB;
     $content .= '<p><span class="alert">Be sure that you have a good backup of your database!</span></p>' . LB ;
     $content .= '<p>For each Subscription type shown, select the Membership Plan that will take its place. Multiple Subscription types can be consolidated into a single Membership plan.</p><hr/>' . LB;
-    $content .= '<form id="sub_import" action="' . MEMBERSHIP_ADMIN_URL .
+    $content .= '<form id="sub_import" action="' . Membership\Config::get('admin_url') .
         '/importsub.php" method="post">';
     $content .= '<table border="0" width="80%"><tr><th>Subscription Plan</th>
 <th>Membership Plan</th></tr>' . LB;

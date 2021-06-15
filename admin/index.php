@@ -66,7 +66,7 @@ case 'notify':      // Force-send expiration reminders
     if (isset($_POST['delitem']) && !empty($_POST['delitem'])) {
         Membership\Membership::notifyExpiration($_POST['delitem']);
     }
-    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listmembers');
+    COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
 case 'genmembernum':
 case 'regenbutton_x':
@@ -96,11 +96,11 @@ case 'regenbutton':
             DB_query($sql);
         }
     }
-    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?' . $view);
+    COM_refresh(Config::get('admin_url') . '/index.php?' . $view);
     break;
 
 case 'importusers':
-    require_once MEMBERSHIP_PI_PATH . '/import_members.php';
+    require_once Config::get('pi_path') . '/import_members.php';
     $view = 'importform';
     $footer .= MEMBERSHIP_import();
     break;
@@ -108,13 +108,13 @@ case 'importusers':
 case 'quickrenew':
     $M = new Membership\Membership($_POST['mem_uid']);
     $status = $M->Renew();
-    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $_POST['mem_uid']);
+    COM_refresh(Config::get('admin_url') . '/index.php?editmember=' . $_POST['mem_uid']);
     break;
 
 case 'savemember':
     // Call plugin API function to save the membership info, if changed.
     plugin_user_changed_membership($_POST['mem_uid']);
-    echo COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listmembers');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     exit;
     break;
 
@@ -125,7 +125,7 @@ case 'deletebutton':
             $status = Membership\Membership::Delete($mem_uid);
         }
     }
-    echo COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listmembers');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     exit;
 
 case 'renewbutton_x':
@@ -136,7 +136,7 @@ case 'renewbutton':
             $M->Renew();
         }
     }
-    echo COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listmembers');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     exit;
     break;
 
@@ -146,7 +146,7 @@ case 'deleteplan':
     if (!empty($plan_id)) {
         Plan::Delete($plan_id, $xfer_plan);
     }
-    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listplans');
+    COM_refresh(Config::get('admin_url') . '/index.php?listplans');
     break;
 
 case 'saveplan':
@@ -154,7 +154,7 @@ case 'saveplan':
     $P = new Membership\Plan($plan_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?listplans');
+        COM_refresh(Config::get('admin_url') . '/index.php?listplans');
     } else {
         $content .= Membership\Menu::Admin('editplan');
         $content .= $P->PrintErrors($LANG_MEMBERSHIP['error_saving']);
@@ -168,7 +168,7 @@ case 'savepg':
     $P = new Membership\PosGroup($pg_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?posgroups');
+        COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
         exit;
     } else {
         // Redisplay the edit form in case of error, keeping $_POST vars
@@ -183,7 +183,7 @@ case 'saveposition':
     $P = new Membership\Position($pos_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
+        COM_refresh(Config::get('admin_url') . '/index.php?positions');
         exit;
     } else {
         // Redisplay the edit form in case of error, keeping $_POST vars
@@ -199,7 +199,7 @@ case 'reorderpg':
     if ($id > 0 && $where != '') {
         $msg = Membership\PosGroup::Move($id, $where);
     }
-    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?posgroups');
+    COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
     break;
 
 case 'reorderpos':
@@ -209,13 +209,13 @@ case 'reorderpos':
     if ($type != '' && $id > 0 && $where != '') {
         $msg = Membership\Position::Move($id, $type, $where);
     }
-    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
+    COM_refresh(Config::get('admin_url') . '/index.php?positions');
     break;
 
 case 'deletepos':
     $P = new Membership\Position($actionval);
     $P->Delete();
-    COM_refresh(MEMBERSHIP_ADMIN_URL . '/index.php?positions');
+    COM_refresh(Config::get('admin_url') . '/index.php?positions');
     exit;
     break;
 
@@ -228,7 +228,7 @@ default:
 switch ($view) {
 case 'importform':
     $content .= Membership\Menu::Admin('importform');
-    $LT = new Template(MEMBERSHIP_PI_PATH . '/templates');
+    $LT = new Template(Config::get('pi_path') . '/templates');
     $LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
         $content .= "Imported $successes successfully<br />\n";
@@ -250,7 +250,7 @@ case 'importform':
     $LT->set_var(array(
         'frm_grp_options' => $grp_options,
         'plan_sel'      => $plan_sel,
-        'mem_admin_url' => MEMBERSHIP_ADMIN_URL,
+        'mem_admin_url' => Config::get('admin_url'),
     ) );
     $LT->parse('import_form','form');
     $content .= $LT->finish($LT->get_var('import_form'));
@@ -260,7 +260,7 @@ case 'editmember':
     $M = new Membership\Membership($actionval);
     $showexp = isset($_GET['showexp']) ? '?showexp' : '';
     $content .= Membership\Menu::Admin('listmembers');
-    $content .= $M->Editform(MEMBERSHIP_ADMIN_URL . '/index.php' . $showexp);
+    $content .= $M->Editform(Config::get('admin_url') . '/index.php' . $showexp);
     break;
 
 case 'editplan':
@@ -328,7 +328,7 @@ default:
 
 }
 $output = Membership\Menu::siteHeader();
-$T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+$T = new Template(Config::get('pi_path') . '/templates');
 $T->set_file('page', 'admin_header.thtml');
 $T->set_var(array(
     'header'    => $LANG_MEMBERSHIP['admin_title'],

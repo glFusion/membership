@@ -23,6 +23,21 @@ class Membership
     const NEW = 1;
     const RENEW = 2;
 
+    // define values for whether a user can purchase memberships
+    const CANPURCHASE = 0;
+    const NOPURCHASE = 1;
+    const NEED_APP = 2;
+    const NO_RENEWAL = 3;
+
+    // Define values for expiration notification method
+    const NOTIFY_NONE = 0;
+    const NOTIFY_EMAIL = 1;
+    const NOTIFY_MESSAGE = 2;
+    const NOTIFY_BOTH = 3;
+
+    // Message code for expiring messags, used by LGLIB_setMsg()
+    const MSG_EXPIRING_CODE = 'memb_msg_expiring';
+
     /** Plan ID.
      * @var string */
     private $plan_id = '';
@@ -363,7 +378,7 @@ class Membership
     {
         global $_CONF, $_TABLES, $LANG_MEMBERSHIP;
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file(array(
             'editmember' => 'editmember.thtml',
             'tips' => 'tooltipster.thtml',
@@ -407,7 +422,7 @@ class Membership
                 'standalone' => 'true',
                 'member_name' => COM_getDisplayName($this->uid),
                 'action_url' => $action_url,
-                'renew_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?quickrenew',
+                'renew_url'  => Config::get('admin_url') . '/index.php?quickrenew',
             ) );
         }
 
@@ -637,7 +652,7 @@ class Membership
         }
 
         // Remove the renewal popup message
-        LGLIB_deleteMessage($this->uid, MEMBERSHIP_MSG_EXPIRING);
+        LGLIB_deleteMessage($this->uid, self::MSG_EXPIRING_CODE);
         Cache::clear('members');
         return true;
     }   // function Save
@@ -889,14 +904,14 @@ class Membership
         }
         $position = implode(', ', $positions);
         if (!$this->isNew &&
-            App::isRequired() > MEMBERSHIP_APP_DISABLED &&
+            App::isRequired() > App::DISABLED &&
             App::getInstance($uid)->Exists()
         ) {
             $app_link = true;
         } else {
             $app_link = false;
         }
-        $LT = new \Template(MEMBERSHIP_PI_PATH . '/templates/');
+        $LT = new \Template(Config::get('pi_path') . '/templates/');
         $LT->set_file(array(
             'block' => 'profileblock.thtml',
         ));
@@ -999,17 +1014,17 @@ class Membership
      *
      * @return  boolean     True if purchase is OK, False if not.
      */
-    public function CanPurchase()
+    public function canPurchase()
     {
         if (COM_isAnonUser()) {
-            $canPurchase = MEMBERSHIP_NOPURCHASE;
+            $canPurchase = self::NOPURCHASE;
         } else {
             if ($this->isNew()) {
-                $canPurchase = MEMBERSHIP_CANPURCHASE;
+                $canPurchase = self::CANPURCHASE;
             } elseif ($this->expires > Dates::plusRenewal()) {
-                $canPurchase = MEMBERSHIP_NO_RENEWAL;
+                $canPurchase = self::NO_RENEWAL;
             } else {
-                $canPurchase = MEMBERSHIP_CANPURCHASE;
+                $canPurchase = self::CANPURCHASE;
             }
         }
         return $canPurchase;
@@ -1447,7 +1462,7 @@ class Membership
             GROUP BY mem_plan_id";
         $rAll = DB_query($sql);
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('stats', 'admin_stats.thtml');
         $linetotal = 0;
         $tot_current = 0;
@@ -1566,7 +1581,7 @@ class Membership
         );
         $text_arr = array(
             'has_extras' => true,
-            'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listmembers',
+            'form_url'  => Config::get('admin_url') . '/index.php?listmembers',
         );
         /* TODO: glFusion 2.0
         $filter = FieldList::checkbox(array(
@@ -1640,24 +1655,24 @@ class Membership
         global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_TABLES, $LANG_ADMIN;
 
         $retval = '';
-        $pi_admin_url = MEMBERSHIP_ADMIN_URL;
+        $pi_admin_url = Config::get('admin_url');
 
         switch($fieldname) {
         case 'edit':
             $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
             $retval = COM_createLink(
                 '<i class="uk-icon uk-icon-edit"></i>',
-                MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
+                Config::get('admin_url') . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
             );
             /* TODO: glFusion 2.0
             $retval = FieldList::edit(array(
-                'url' => MEMBERSHIP_ADMIN_URL . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
+                'url' => Config::get('admin_url') . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
             ) );
              */
             break;
 
         case 'app_link':
-            $url = MEMBERSHIP_PI_URL . '/app.php?prt&uid=' . $A['mem_uid'];
+            $url = Config::get('url') . '/app.php?prt&uid=' . $A['mem_uid'];
             $retval = FieldList::view(array(
                 'attr' => array(
                     'onclick' => "popupWindow('{$url}', 'Help', 640, 480, 1)",
@@ -1669,7 +1684,7 @@ class Membership
 
         case 'tx_fullname':
             $retval = COM_createLink($fieldvalue,
-                MEMBERSHIP_ADMIN_URL . '/index.php?listtrans&amp;uid=' . $A['tx_uid']);
+                Config::get('admin_url') . '/index.php?listtrans&amp;uid=' . $A['tx_uid']);
             break;
 
         case 'fullname':
@@ -1830,7 +1845,7 @@ class Membership
         );
         $text_arr = array(
             'has_extras' => true,
-            'form_url'  => MEMBERSHIP_ADMIN_URL . '/index.php?listtrans',
+            'form_url'  => Config::get('admin_url') . '/index.php?listtrans',
         );
         $tx_from = MEMB_getVar($_POST, 'tx_from');
         $tx_to = MEMB_getVar($_POST, 'tx_to');
@@ -1992,7 +2007,7 @@ class Membership
         // Return if we're not configured to notify users.
         if (
             $interval < 0 ||
-            Config::get('notifymethod') == MEMBERSHIP_NOTIFY_NONE
+            Config::get('notifymethod') == self::NOTIFY_NONE
         ) {
             return;
         }
@@ -2038,7 +2053,7 @@ class Membership
         ) );
 
         while ($row = DB_fetchArray($r, false)) {
-            if (Config::get('notifymethod') & MEMBERSHIP_NOTIFY_EMAIL) {
+            if (Config::get('notifymethod') & self::NOTIFY_EMAIL) {
                 // Create a notification email message.
                 $username = COM_getDisplayName($row['mem_uid']);
 
@@ -2087,7 +2102,7 @@ class Membership
                     'plan_id'       => $row['mem_plan_id'],
                     'plan_name'     => $row['name'],
                     'plan_dscp'     => $row['description'],
-                    'detail_url'    => MEMBERSHIP_PI_URL .
+                    'detail_url'    => Config::get('url') .
                         '/index.php?detail=x&amp;plan_id=' .
                         urlencode($row['mem_plan_id']
                     ),
@@ -2139,7 +2154,7 @@ class Membership
                 COM_emailNotification($msgData);
             }
 
-            if (Config::get('notifymethod') & MEMBERSHIP_NOTIFY_MESSAGE) {
+            if (Config::get('notifymethod') & self::NOTIFY_MESSAGE) {
                 // Save a message for the next time they log in.
                 $msg = sprintf(
                     $LANG_MEMBERSHIP['you_expire'],
@@ -2158,7 +2173,7 @@ class Membership
                     'expires' => $expire_msg,
                     'uid' => $row['mem_uid'],
                     'persist' => true,
-                    'pi_code' => MEMBERSHIP_MSG_EXPIRING,
+                    'pi_code' => self::MSG_EXPIRING_CODE,
                     'use_sess_id' => false
                 ) );
             }

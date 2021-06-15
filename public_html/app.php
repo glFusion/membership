@@ -18,6 +18,8 @@ require_once '../lib-common.php';
 // No application available for anonymous users
 if (COM_isAnonUser()) COM_404();
 
+use Membership\Config;
+
 $msg = '';
 $content = '';
 $expected = array(
@@ -70,7 +72,10 @@ default:
     // Display the application within the normal glFusion site.
     $content .= \Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
-        $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/app.php?editapp">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
+        $content .= sprintf(
+            $LANG_MEMBERSHIP['click_to_update_app',
+            Config::get('url') . '/app.php?editapp',
+        );
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'edit':

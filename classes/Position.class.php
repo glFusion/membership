@@ -335,10 +335,10 @@ class Position
     {
         global $_TABLES;
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T->set_file('editform', 'position_form.thtml');
         $T->set_var(array(
-            'action_url'    => MEMBERSHIP_ADMIN_URL,
+            'action_url'    => Config::get('admin_url'),
             'id'            => $this->id,
             'description'   => $this->dscp,
             'option_user_select' => COM_optionList(
@@ -582,7 +582,7 @@ class Position
         );
         $filter = '';
         $text_arr = array(
-            'form_url' => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
+            'form_url' => Config::get('admin_url') . '/index.php?positions',
         );
 
         $options = array(
@@ -596,7 +596,7 @@ class Position
         $display = COM_startBlock('', '', COM_getBlockTemplate('_admin_block', 'header'));
         $display .= COM_createLink(
             $LANG_MEMBERSHIP['new_position'],
-            MEMBERSHIP_ADMIN_URL . '/index.php?editpos=0',
+            Config::get('admin_url') . '/index.php?editpos=0',
             array(
                 'class' => 'uk-button uk-button-success',
                 'style' => 'float:left',
@@ -628,12 +628,12 @@ class Position
 
         $retval = '';
 
-        $pi_admin_url = MEMBERSHIP_ADMIN_URL;
+        $pi_admin_url = Config::get('admin_url');
         switch($fieldname) {
         case 'editpos':
             $retval = COM_createLink(
                 Icon::getHTML('edit'),
-                MEMBERSHIP_ADMIN_URL . '/index.php?editpos=' . $A['id'],
+                Config::get('admin_url') . '/index.php?editpos=' . $A['id'],
                 array(
                     'class' => 'tooltip',
                     'title' => $LANG_MEMBERSHIP['edit'],
@@ -642,7 +642,7 @@ class Position
             break;
 
         case 'move':
-            $base_url = MEMBERSHIP_ADMIN_URL .
+            $base_url = Config::get('admin_url') .
                 '/index.php?type=' . urlencode($A['pg_id']) .
                 '&id=' . $A['id'] . '&reorderpos=';
             $retval .= COM_createLink(
@@ -658,7 +658,7 @@ class Position
         case 'deletepos':
             $retval = COM_createLink(
                 Icon::getHTML('delete'),
-                MEMBERSHIP_ADMIN_URL . '/index.php?deletepos=' . $A['id'],
+                Config::get('admin_url') . '/index.php?deletepos=' . $A['id'],
                 array(
                     'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');",
                     'class' => 'tooltip',
@@ -670,7 +670,7 @@ class Position
         case 'pg_tag':
             $retval = COM_createLink(
                 $fieldvalue,
-                MEMBERSHIP_PI_URL . '/group.php?type=' . $fieldvalue
+                Config::get('url') . '/group.php?type=' . $fieldvalue
             );
             break;
 

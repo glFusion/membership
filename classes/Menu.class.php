@@ -111,12 +111,12 @@ class Menu
 
         $menu_arr = array(
             array(
-                'url'  => MEMBERSHIP_ADMIN_URL . '/index.php?positions',
+                'url'  => Config::get('admin_url') . '/index.php?positions',
                 'text' => $LANG_MEMBERSHIP['positions'],
                 'active' => $view == 'positions' ? true : false,
             ),
             array(
-                'url'  => MEMBERSHIP_ADMIN_URL . '/index.php?posgroups',
+                'url'  => Config::get('admin_url') . '/index.php?posgroups',
                 'text' => $LANG_MEMBERSHIP['posgroups'],
                 'active' => $view == 'posgroups' ? true : false,
             ),

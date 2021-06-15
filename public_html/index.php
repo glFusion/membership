@@ -39,11 +39,7 @@ foreach($expected as $provided) {
 }
 
 if (empty($action)) {
-/*    if (!\Membership\App::getInstance($_USER['uid'])->Validate()) {
-        $action = 'editapp';
-} else {*/
-        $action = 'list';
-//    }
+    $action = 'list';
 }
 
 if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
@@ -73,8 +69,8 @@ case 'saveapp':
                 $url_extra = '';
             }
             // only redirect members to purchase, not admins.
-            $M = new \Membership\Membership();
-            if ($M->canPurchase() == MEMBERSHIP_CANPURCHASE) {
+            $M = new Membership\Membership();
+            if ($M->canPurchase() == Membership\Membership::CANPURCHASE) {
                 echo COM_refresh($_POST['purch_url'] . $url_extra);
                 exit;
             }
@@ -104,17 +100,17 @@ default:
 switch ($view) {
 case 'detail':
     if (!empty($_GET['plan_id'])) {
-        $P = new \Membership\Plan($_GET['plan_id']);
+        $P = new Membership\Plan($_GET['plan_id']);
         if ($P->getPlanID() == '') {
             $content .= COM_showMessageText($LANG_MEMBERSHIP['err_plan_id']);
-            $content .= \Membership\Plan::listPlans();
+            $content .= Membership\Plan::listPlans();
         } elseif ($P->hasErrors()) {
             $content .= COM_showMessageText($P->PrintErrors(), '', true);
         } else {
             $content .= $P->Detail();
         }
     } else {
-        $content .= \Membership\Plan::listPlans();
+        $content .= Membership\Plan::listPlans();
     }
     break;
 
@@ -123,7 +119,10 @@ case 'view':
     // Display the application within the normal glFusion site.
     $content .= Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
-        $content .= '<hr /><p>Click <a href="'.MEMBERSHIP_PI_URL . '/index.php?editapp">here</a> to update your profile. Some fields can be updated only by an administrator.</p>';
+        $content .= sprintf(
+            $LANG_MEMBERSHIP['click_to_update_app',
+            Config::get('url') . '/app.php?editapp',
+        );
         break;
     }   // else, if content is empty, an app wasn't found so fall through.
 case 'editapp':
@@ -142,7 +141,7 @@ case 'editapp':
 
 case 'prt':
     // Create a printable view of the application
-    $content .= \Membership\App::getInstance($uid)->Display();
+    $content .= Membership\App::getInstance($uid)->Display();
     if (empty($content)){
         COM_404();
     } else {
@@ -152,10 +151,10 @@ case 'prt':
     break;
 
 case 'pmtform':
-    $M = \Membership\Membership::getInstance();
-    $P = \Membership\Plan::getInstance($_GET['plan_id']);
+    $M = Membership\Membership::getInstance();
+    $P = Membership\Plan::getInstance($_GET['plan_id']);
     if (!$P->isNew() && $P->canPurchase()) {
-        $T = new Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new Template(Config::get('pi_path') . '/templates');
         $T->set_file('pmt', 'pmt_form.thtml');
         $price_actual = $P->Price($M->isNew(), 'actual');
         if (Config::get('ena_checkpay') == 2) {
@@ -198,19 +197,19 @@ case 'pmtform':
 case 'list1':
     // Show the plan list when coming from the app submission
     $show_plan = isset($_GET['plan_id']) ? $_GET['plan_id'] : '';
-    $content .= \Membership\Plan::listPlans($show_plan);
+    $content .= Membership\Plan::listPlans($show_plan);
     break;
 
 case 'list':
 default:
     // Show the plan list via direct entry.
-    $content .= \Membership\Plan::listPlans();
+    $content .= Membership\Plan::listPlans();
     break;
 }
 
-$display = \Membership\Menu::siteHeader($pageTitle);
+$display = Membership\Menu::siteHeader($pageTitle);
 $display .= $content;
-$display .= \Membership\Menu::siteFooter();
+$display .= Membership\Menu::siteFooter();
 echo $display;
 exit;
 

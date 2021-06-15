@@ -159,7 +159,7 @@ class GroupList
         //echo $sql;die;
         $res = DB_query($sql);
 
-        $T = new \Template(MEMBERSHIP_PI_PATH . '/templates');
+        $T = new \Template(Config::get('pi_path') . '/templates');
         $T ->set_file(array(
             'groups' => 'groups.thtml',
         ));
