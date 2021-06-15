@@ -171,8 +171,6 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         // expiration message.
         $M->AddTrans($ipn_data['gw_name'], $ipn_data['pmt_gross'],
             $ipn_data['txn_id'], '', 0);
-        // Not needed, added message removal to $M->Save()
-        //LGLIB_deleteMessage($uid, MEMBERSHIP_MSG_EXPIRING);
     }
     return $status == true ? PLG_RET_OK : PLG_RET_ERROR;
 }
@@ -200,8 +198,12 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     $opts = array(
         Status::ACTIVE => $LANG_MEMBERSHIP['current'],
         Status::ARREARS => $LANG_MEMBERSHIP['arrears'],
-        Status::EXPIRED => $LANG_MEMBERSHIP['expired'],
     );
+    if (isset($args['incl_grp']) && $args['incl_grp'] != Config::get('member_group')) {
+        // If the list isn't limited to current members,
+        // show the expired option
+        $opts[Status::EXPIRED] = $LANG_MEMBERSHIP['expired'];
+    }
 
     $output = array();
     // If posted variables are recieved, use them. Otherwise, use GET but only
@@ -557,9 +559,6 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
 {
     global $_TABLES;
 
-    // Get the current statuses
-    //$statuses = MEMBERSHIP_memberstatuses();
-
     // Set a default return value
     $output = Status::getSegment(Status::DROPPED);
     $uid = 0;
@@ -576,13 +575,6 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
 
     if ($uid > 0) {
         $output = plugin_getiteminfo_membership('membership:' . $uid, 'id,merge_fields');
-        /*
-        $myargs = array('uid' => $uid);
-        $code = service_status_membership($myargs, $myout, $svc_msg);
-        if ($code == PLG_RET_OK && isset($statuses[$myout['status']])) {
-            $output = Status::getSegment($myout['status']);
-        }
-         */
     }
     return PLG_RET_OK;
 }
