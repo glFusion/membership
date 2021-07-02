@@ -3,9 +3,9 @@
  * Public API functions for the Membership plugin for glFusion.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.2
+ * @version     v0.3.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -49,38 +49,6 @@ Config::set('admin_url', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAM
 
 /** Include static plugin config values */
 require_once 'membership.php';
-
-
-/** Define the absolute path to the plugin's directory */
-define('MEMBERSHIP_PI_PATH', __DIR__);
-/** Define the base public url for the plugin */
-define('MEMBERSHIP_PI_URL', $_CONF['site_url'] . '/' . Config::PI_NAME);
-/** Define the administration url for the plugin */
-define('MEMBERSHIP_ADMIN_URL', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAME);
-
-// Define types of membership activity
-define('MEMBERSHIP_NEW', 1);
-define('MEMBERSHIP_RENEW', 2);
-
-// Settings for whether a membership app is available and required
-define('MEMBERSHIP_APP_DISABLED', 0);
-define('MEMBERSHIP_APP_OPTIONAL', 1);
-define('MEMBERSHIP_APP_REQUIRED', 2);
-
-// define values for whether a user can purchase memberships
-define('MEMBERSHIP_CANPURCHASE', 0);
-define('MEMBERSHIP_NOPURCHASE', 1);
-define('MEMBERSHIP_NEED_APP',   2);
-define('MEMBERSHIP_NO_RENEWAL', 3);
-
-// Code to identify messages saved by LGLIB_storeMessage()
-define('MEMBERSHIP_MSG_EXPIRING', 'memb_msg_expiring');
-
-// Define values for expiration notification method
-define('MEMBERSHIP_NOTIFY_NONE', 0);
-define('MEMBERSHIP_NOTIFY_EMAIL', 1);
-define('MEMBERSHIP_NOTIFY_MESSAGE', 2);
-define('MEMBERSHIP_NOTIFY_BOTH', 3);
 
 /** Determine the correct language file, falling back to English as default. */
 $langpath = __DIR__ . '/language';
@@ -928,26 +896,6 @@ function MEMBERSHIP_currentMembership()
 
 
 /**
- * Get the description for different member types.
- * Used with Mailer integration to set the group/segment/merge field in
- * the list. The strings must match segments (groups) set up with the
- * mailing list provider.
- *
- * @return  array   array(int=>string) of membership statuses
- */
-function MEMBERSHIP_memberstatuses()
-{
-    $types = array(
-        Membership\Status::ACTIVE => Config::get('segment_active'),
-        Membership\Status::ARREARS => Config::get('segment_arrears'),
-        Membership\Status::EXPIRED => Config::get('segment_expired'),
-        Membership\Status::DROPPED => Config::get('segment_dropped'),
-    );
-    return $types;
-}
-
-
-/**
  * Get an array variable, first checking whether it's set.
  *
  * @param   array   $A          Array where var should be
@@ -977,5 +925,3 @@ function MEMB_getVar($A, $varname, $type = 'string')
         break;
     }
 }
-
-?>
