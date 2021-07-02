@@ -3,9 +3,9 @@
  * Class to handle membership records.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.2
+ * @version     v0.3.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -626,7 +626,7 @@ class Membership
             if (DB_error()) {
                 Logger::System(__CLASS__ . '::Save() sql error: ' . $sql);
             } else {
-                Logger::Audit("Member {$this->uid} updated.");
+                Logger::Audit("Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated.");
             }
 
             // Add the member to the groups if the status has changed,
@@ -2052,6 +2052,11 @@ class Membership
             'message' => 'exp_message.thtml',
         ) );
 
+        // Flag to get a payment button. If the first button is false,
+        // the flag will be reset to avoid wasting cycles for subsequent
+        // members.
+        $get_pmt_btn = true;
+
         while ($row = DB_fetchArray($r, false)) {
             if (Config::get('notifymethod') & self::NOTIFY_EMAIL) {
                 // Create a notification email message.
@@ -2063,21 +2068,32 @@ class Membership
                     continue;
                 }
                 $is_expired = $row['mem_expires'] <= $today ? true : false;
-                $args = array(
-                    'custom'    => array('uid'   => $row['mem_uid']),
-                    'amount' => $P->Price(false),
-                    'item_number' => Config::PI_NAME . ':' . $P->getPlanID() .
-                        ':renewal',
-                    'item_name' => $P->getName(),
-                    'btn_type' => 'buy_now',
-                );
-                $status = LGLIB_invokeService(
-                    'shop',
-                    'genButton',
-                    $args,
-                    $output,
-                    $msg
-                );
+
+                if ($get_pmt_button) {
+                    $args = array(
+                        'custom'    => array('uid'   => $row['mem_uid']),
+                        'amount' => $P->Price(false),
+                        'item_number' => Config::PI_NAME . ':' . $P->getPlanID() .
+                            ':renewal',
+                        'item_name' => $P->getName(),
+                        'btn_type' => 'buy_now',
+                    );
+                    $status = LGLIB_invokeService(
+                        'shop',
+                        'genButton',
+                        $args,
+                        $output,
+                        $msg
+                    );
+                    $button = ($status == PLG_RET_OK) ? $output[0] : '';
+                    if (empty($button)) {
+                        // Don't keep trying
+                        $get_pmt_btn = false;
+                    }
+                } else {
+                    $button = '';
+                }
+
                 $nameparts = PLG_callFunctionForOnePlugin(
                     'plugin_parseName_lglib',
                     array(
@@ -2092,7 +2108,6 @@ class Membership
                     $lname = '';
                 }
 
-                $button = ($status == PLG_RET_OK) ? $output[0] : '';
                 $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
 
                 $T->set_var(array(
@@ -2120,7 +2135,7 @@ class Membership
                 $html_content = $T->finish($T->get_var('exp_msg'));
                 $T->set_block('html_msg', 'content', 'contentblock');
                 $T->set_var('content_text', $html_content);
-                $T->parse('contentblock', 'content',true);
+                $T->parse('contentblock', 'content');
 
                 // Remove the button from the text version, HTML not supported.
                 $T->unset_var('buy_button');
@@ -2130,7 +2145,7 @@ class Membership
                 $text_content = $html2TextConverter->getText();
                 $T->set_block('text_msg', 'contenttext', 'contenttextblock');
                 $T->set_var('content_text', $text_content);
-                $T->parse('contenttextblock', 'contenttext',true);
+                $T->parse('contenttextblock', 'contenttext');
 
                 $T->parse('output', 'html_msg');
                 $html_msg = $T->finish($T->get_var('output'));
