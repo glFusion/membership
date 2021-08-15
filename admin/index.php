@@ -64,7 +64,7 @@ foreach($expected as $provided) {
 switch ($action) {
 case 'notify':      // Force-send expiration reminders
     if (isset($_POST['delitem']) && !empty($_POST['delitem'])) {
-        Membership\Membership::notifyExpiration($_POST['delitem']);
+        Membership\Membership::notifyExpiration($_POST['delitem'], true);
     }
     COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;

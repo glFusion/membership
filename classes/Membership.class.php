@@ -1995,10 +1995,13 @@ class Membership
 
     /**
      * Notify users that have memberships soon to expire.
+     * If $manual is true to indicate an admin-initiated action, then the
+     * notification counter is not decremented.
      *
      * @param   array   $ids    Optional specific IDs to notify
+     * @param   boolean $manual True if an admin-initiated notification
      */
-    public static function notifyExpiration($ids = NULL)
+    public static function notifyExpiration($ids = NULL, $manual = false)
     {
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP;
 
@@ -2029,6 +2032,7 @@ class Membership
             // Force the notification and disregard the notification counter
             $sql .= "WHERE m.mem_uid IN (" . implode(',', $ids) . ")";
         } else {
+            // Get the members based on notification counter and expiration
             $sql .= "WHERE m.mem_notified > 0
             AND m.mem_expires < DATE_ADD(now(), INTERVAL (m.mem_notified * $interval) DAY)
             AND m.mem_status IN ($stat)";
@@ -2069,7 +2073,7 @@ class Membership
                 }
                 $is_expired = $row['mem_expires'] <= $today ? true : false;
 
-                if ($get_pmt_button) {
+                if ($get_pmt_btn) {
                     $args = array(
                         'custom'    => array('uid'   => $row['mem_uid']),
                         'amount' => $P->Price(false),
@@ -2173,7 +2177,7 @@ class Membership
                 // Save a message for the next time they log in.
                 $msg = sprintf(
                     $LANG_MEMBERSHIP['you_expire'],
-                    $row['plan_id'],
+                    $row['mem_plan_id'],
                     $row['mem_expires']
                 ) . ' ' . $LANG_MEMBERSHIP['renew_link'];
                 $expire_msg = date(
@@ -2198,12 +2202,14 @@ class Membership
         }
 
         // Mark that the expiration notification has been sent, if not forced
-        // or triggered by self::Expires() or self::Arrears()
-        if (!is_array($ids) && !empty($notified_ids)) {
-            $ids = implode(',', $notified_ids);
+        // or triggered by self::Expires() or self::Arrears().
+        // Checking for is_array() is to catch where $ids is null
+        if (!$manual && !empty($notified_ids)) {
+            echo "here";die;
+            $notified_ids = implode(',', $notified_ids);
             $sql = "UPDATE {$_TABLES['membership_members']}
                 SET mem_notified = mem_notified - 1
-                WHERE mem_uid IN ($ids)";
+                WHERE mem_uid IN ($notified_ids)";
             DB_query($sql, 1);
             if (DB_error()) {
                 Logger::System("membership: error executing $sql");
