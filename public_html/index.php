@@ -120,7 +120,7 @@ case 'view':
     $content .= Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
         $content .= sprintf(
-            $LANG_MEMBERSHIP['click_to_update_app',
+            $LANG_MEMBERSHIP['click_to_update_app'],
             Config::get('url') . '/app.php?editapp',
         );
         break;
