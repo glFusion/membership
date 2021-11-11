@@ -352,9 +352,9 @@ class Position
             'ena_chk'       => $this->enabled ? 'checked="checked"' : '',
             'position_type_select' => COM_optionList(
                 $_TABLES['membership_posgroups'],
-                'pg_id,pg_tag',
+                'pg_id,pg_tag,pg_orderby',
                 $this->pg_id,
-                1
+                2
             ),
             'contact'       => $this->contact,
             'grp_select'    => COM_optionList($_TABLES['groups'],
@@ -741,5 +741,3 @@ class Position
         return $retval;
     }
 }
-
-?>
