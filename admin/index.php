@@ -302,6 +302,12 @@ case 'listtrans':
     break;
 
 case 'posgroups':
+    if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
+        // Delete some checked attributes
+        foreach ($_POST['delitem'] as $id) {
+            Membership\PosGroup::Delete($id);
+        }
+    }
     $content .= Membership\Menu::Admin($view);
     $content .= Membership\Menu::adminPositions($view);
     $content .= Membership\PosGroup::adminList();
@@ -311,7 +317,8 @@ case 'positions':
     if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
         // Delete some checked attributes
         foreach ($_POST['delitem'] as $id) {
-            Membership\Position::Delete($id);
+            $P = new Membership\Position($id);
+            $P->Delete();
         }
     }
     $content .= Membership\Menu::Admin($view);

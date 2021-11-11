@@ -131,7 +131,7 @@ class PosGroup
      *
      * @return  integer     Record ID
      */
-    public function getID()
+    public function getID() : int
     {
         return (int)$this->pg_id;
     }
@@ -143,7 +143,7 @@ class PosGroup
      * @param   string  $tag    Group tag
      * @return  object  $this
      */
-    public function setTag($tag)
+    public function setTag(string $tag) : self
     {
         $this->pg_tag = $tag;
         return $this;
@@ -352,62 +352,23 @@ class PosGroup
 
 
     /**
-     * Render the listing.
-     *
-     * @return  string      Formatted group list
+     * Remove the current position group, and all related positions.
      */
-    public static function RenderList()
+    public static function Delete(int $pg_id) : void
     {
-        global $_TABLES, $LANG_MEMBERSHIP;
+        global $_TABLES;
 
-        USES_lib_user();
-
-        $sql = "SELECT p.*,u.username,u.fullname,u.email
-            FROM {$_TABLES['membership_positions']} p
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = p.uid
-            WHERE p.type ='" .
-            DB_escapeString($this->grpname) . "'
-            ORDER BY p.orderby";
-        //echo $sql;die;
+        $sql = "SELECT * FROM {$_TABLES['membership_positions']}
+            WHERE pg_id = {$pg_id}";
         $res = DB_query($sql);
-
-        $T = new \Template(Config::get('pi_path') . '/templates');
-        $T ->set_file(array(
-            'groups' => 'groups.thtml',
-        ));
-        //$T->set_var('list_name', $poslist);
-
-        while ($A = DB_fetchArray($res, false)) {
-            $T->set_block('groups', 'userRow', 'uRow');
-            if ($A['uid'] == 0) {    // vacant position
-                $user_img = '';
-                $show_vacant = $A['show_vacant'] ? 'true' : '';
-                $username = '';
-            } else {
-                $user_img = USER_getPhoto($A['uid']);
-                $username = COM_getDisplayName(
-                    $A['uid'],
-                    $A['username'],
-                    $A['fullname']
-                );
-                $show_vacant = '';
+        if ($res && DB_numRows($res) > 0) {
+            while ($A = DB_fetchArray($res, false)) {
+                $P = new Position($A);
+                $P->Delete();
             }
-            $this->page_title = sprintf($LANG_MEMBERSHIP['title_positionpage'], $this->grpname);
-            $T->set_var(array(
-                'title' => $this->show_title ? $this->page_title : '',
-                'position'  => $A['descr'],
-                'user_name' => $username,
-                'show_vacant' => $show_vacant,
-                'user_img'  => $user_img,
-                'user_email' => empty($A['contact']) ?
-                    $LANG_MEMBERSHIP['contact'] : $A['contact'],
-                'uid'       => $A['uid'],
-            ) );
-            $T->parse('uRow', 'userRow', true);
         }
-        $T->parse('output', 'groups');
-        return $T->finish($T->get_var('output'));
+        // Then delete the position group record
+        DB_delete($_TABLES['membership_posgroups'], 'pg_id', $pg_id);
     }
 
 
@@ -464,7 +425,7 @@ class PosGroup
         );
         $filter = '';
         $text_arr = array(
-            'form_url' => Config::get('admin_url') . '/index.php?positions',
+            'form_url' => Config::get('admin_url') . '/index.php?posgroups',
         );
         $options = array(
             'chkdelete' => true,
@@ -543,5 +504,3 @@ class PosGroup
     }
 
 }
-
-?>
