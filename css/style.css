@@ -5,31 +5,6 @@
     background-color:#FF9999;
 }
 
-.pluginMembershipPlanForm label {
-    width: 16em;
-    float: left;
-    text-align: right;
-    margin-right: 1em;
-    display: block;
-    clear: both;
-}
-
-td.lbl {
-    width: 18em;
-}
-
-.pluginMembershipButtons {
-    position: relative;
-    float: right;
-    margin-right: 10px;
-    text-align:left;
-    padding-bottom: 10px;
-}
-
-#pluginMembershipHeader {
-    font-size: 150%;
-}
-
 #pluginMembershipAppMsg{
     font-size: 150%;
     clear: both;
@@ -44,18 +19,7 @@ td.lbl {
     /*padding-bottom: 5px;*/
 }
 
-#pluginMembershipPrice {
-    font-weight: bold;
-    padding-top: 5px;
-    padding-right: 10px;
-    float: right;
-}
-
-.pluginMembershipPlanItem {
-    /*padding: 10px;*/
-    clear: both;
-}
-
+/* Define bold, used in code */
 .bold {
     font-weight: bold;
 }

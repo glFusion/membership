@@ -1,12 +1,12 @@
 {# begin {templatelocation} #}
-<form action="{action_url}/index.php" method="post"
-   class="pluginMembershipPlanForm uk-form uk-form-horizontal">
+<form uk-form action="{action_url}/index.php" method="post"
+   class="uk-form uk-form-horizontal">
   <input type="hidden" name="id" value="{id}" />
   <input type="hidden" name="old_grp_id" value="{old_grp_id}" />
   <input type="hidden" name="old_uid" value="{old_uid}" />
   <fieldset>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['position']}:
       <span id="position" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['position_type']}:
       <span id="type" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -30,7 +30,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['current_user']}:
       <span id="current_user" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -42,7 +42,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['contact_info']}:
       <span id="contact" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -51,7 +51,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['order']}:
       <span id="order" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -62,7 +62,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['enabled']}?
       <span id="enabled" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -71,7 +71,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['show_vacant']}:
       <span id="show_vacant" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_MEMBERSHIP['in_lists']}:
       <span id="in_lists" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -89,7 +89,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row">
+  <div class="uk-form-row uk-margin">
     <label class="uk-form-label">{$LANG_ACCESS['group']}:
       <span id="group" class="tooltip_cfg tooltipstered"></span>
     </label>
@@ -101,7 +101,7 @@
     </div>
   </div>
 
-  <div class="uk-form-row" align="center">
+  <div class="uk-form-row uk-margin" align="center">
     <div class="uk-form-controls">
       <button type="submit" class="uk-button uk-button-success" name="saveposition" value="{$LANG_ADMIN['save']}">{$LANG_ADMIN['save']}</button>
       <button type="reset" class="uk-button uk-button-primary">{$LANG_MEMBERSHIP['reset']}</button>
