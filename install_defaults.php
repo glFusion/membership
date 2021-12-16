@@ -623,7 +623,7 @@ function plugin_initconfig_membership($group_id = 0)
     $c = config::get_instance();
     if (!$c->group_exists('membership')) {
         USES_lib_install();
-        foreach ($photoConfigData AS $cfgItem) {
+        foreach ($membershipConfigData AS $cfgItem) {
             _addConfigItem($cfgItem);
         }
     }
