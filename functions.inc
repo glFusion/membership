@@ -784,7 +784,7 @@ function plugin_user_delete_membership($uid)
         'Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.'
     );
-    Membership\Membership::Delete($uid);
+    Membership\Membership::getInstance($uid)->Delete();
 }
 
 
