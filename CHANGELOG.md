@@ -1,7 +1,7 @@
 # glFusion Membership Plugin - Change Log
 
 ## 0.3.1
-Release TBD
+Release 2021-12-16
 - Use list description from Position List as Group List page title.
 - Quick-renew is now a popup, only available from the Member Admin list.
 - Use a clone of the current date object when it will be modidified.
