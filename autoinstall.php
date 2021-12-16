@@ -289,6 +289,7 @@ function plugin_postinstall_membership()
     }
 
     if (is_array($_MEMBERSHIP_SAMPLEDATA)) {
+        COM_errorLog("Installing sample data.");
         foreach ($_MEMBERSHIP_SAMPLEDATA as $sql) {
             DB_query($sql, 1);
             if (DB_error()) {

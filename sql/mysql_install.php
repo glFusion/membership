@@ -3,16 +3,16 @@
  * Table definitions for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.0
+ * @version     v0.3.1
  * @license     http://opensource.org/licenses/gpl-2.0.php 
  *              GNU Public License v2 or later
  * @filesource
  */
 
 /** @global array $_TABLES */
-global $_TABLES;
+global $_TABLES, $_SQL, $_UPGRADE_SQL, $_MEMBERSHIP_SAMPLEDATA;
 
 $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_uid` mediumint(8) unsigned NOT NULL,
@@ -193,7 +193,13 @@ $_UPGRADE_SQL = array(
 );
 
 $_MEMBERSHIP_SAMPLEDATA = array(
-    $_UPGRADE_SQL['0.0.5'][1],
+    "INSERT INTO {$_TABLES['membership_posgroups']}
+        (pg_id, pg_tag, pg_title, pg_orderby) VALUES
+        (1, 'Officer', 'Club Officers', 10)",
+    "INSERT INTO {$_TABLES['membership_positions']}
+        (id, pg_id, orderby, descr)  VALUES
+        (0, 1, 10, 'President'),
+        (0, 1, 20, 'Vice-President'),
+        (0, 1, 30, 'Secretary'),
+        (0, 1, 40, 'Treasurer')",
 );
-
-?>
