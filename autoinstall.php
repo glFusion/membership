@@ -150,16 +150,10 @@ function plugin_install_membership()
  */
 function plugin_load_configuration_membership()
 {
-    global $_CONF, $_TABLES, $group_id;
+    global $group_id;
 
     require_once __DIR__ . '/install_defaults.php';
-
-    // Get the member group ID that was saved previously.
-    $group_id = (int)DB_getItem(
-        $_TABLES['groups'],
-        'grp_id',
-        "grp_name='" . Config::PI_NAME . " Members'"
-    );
+    $group_id = 13;
     return plugin_initconfig_membership($group_id);
 }
 

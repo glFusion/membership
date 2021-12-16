@@ -5,6 +5,7 @@ Release 2021-12-16
 - Use list description from Position List as Group List page title.
 - Quick-renew is now a popup, only available from the Member Admin list.
 - Use a clone of the current date object when it will be modidified.
+- Default to Logged-In Users as the initial member group, essentially a noop.
 
 ## 0.3.0
 Release 2021-01-30
