@@ -3,9 +3,9 @@
  * Configuration Defaults for the Membership plugin for glFusion.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2018 Lee Garner
+ * @copyright   Copyright (c) 2012-2021 Lee Garner
  * @package     membership
- * @version     v0.2.0
+ * @version     v0.3.1
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -17,6 +17,8 @@
 if (!defined ('GVERSION')) {
     die ('This file can not be used on its own.');
 }
+
+global $membershipConfigData;
 
 /**
  * Membership default settings.
@@ -628,4 +630,3 @@ function plugin_initconfig_membership($group_id = 0)
     return true;
 }
 
-?>

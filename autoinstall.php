@@ -3,9 +3,9 @@
  * Provides automatic installation of the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.0.1
+ * @version     v0.3.1
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -19,10 +19,10 @@ if (!defined ('GVERSION')) {
 global $_DB_dbms;
 
 /** Include plugin functions */
-require_once $_CONF['path'].'plugins/membership/functions.inc';
+require_once __DIR__ . '/functions.inc';
 
 /** Include database definitions */
-require_once $_CONF['path'].'plugins/membership/sql/'. $_DB_dbms. '_install.php';
+require_once __DIR__ . '/sql/'. $_DB_dbms. '_install.php';
 
 use Membership\Config;
 
@@ -299,4 +299,3 @@ function plugin_postinstall_membership()
 
 }
 
-?>
