@@ -13,6 +13,7 @@
 
 /** @global array $_TABLES */
 global $_TABLES, $_SQL, $_UPGRADE_SQL, $_MEMBERSHIP_SAMPLEDATA;
+$_SQL = array();
 
 $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_uid` mediumint(8) unsigned NOT NULL,
