@@ -35,7 +35,7 @@
 </p>
 <p>{$LANG_MEMBERSHIP['plan']}: {plan_id}
 {!if plan_name} - {plan_name}{!endif}
-{!if plan_dscpIGNORE}
+{!if plan_dscp}
     <br />{plan_dscp}
 {!endif}
 </p>
