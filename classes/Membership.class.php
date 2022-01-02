@@ -2114,6 +2114,9 @@ class Membership
 
                 $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
 
+                $price = $this->Plan->Price($this->isNew());
+                $price_txt = COM_numberFormat($price, 2);
+
                 $T->set_var(array(
                     'site_name'     => $_CONF['site_name'],
                     'username'      => $username,
@@ -2133,6 +2136,8 @@ class Membership
                     'fullname'      => $row['fullname'],
                     'is_expired'    => $is_expired,
                     'expire_eom'    => Config::get('expires_eom'),
+                    'renewal_dues'  => $price_txt,
+                    'currency'      => Plan::getCurrency(),
                 ) );
                 $T->parse('exp_msg', 'message');
 
