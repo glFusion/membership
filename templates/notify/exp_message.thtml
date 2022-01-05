@@ -1,22 +1,23 @@
 {!if 0}
-    Available replacememt variables:
-        'site_name'     => Site Name
-        'username'      => Member's login username
-        'plan_name'     => Plan short name
-        'plan_id'       => Plan ID
-        'description'   => Full plan description
-        'detail_url'    => URL to plan detail page,
-        'buy_button'    => Purchase button from the Shop plugin
-        'exp_my'        => Expiration as "Month, Year"
-        'exp_date'      => Expiration formatted using site "dateonly" format
-        'firstname'     => Member's first name
-        'lastname'      => Member's last name
-        'fullname'      => Member's full name
-
+	Available replacememt variables:
+		site_name'	=> Site Name
+		site_url	=> Base site URL
+		username	=> Member's login username
+		plan_name	=> Plan short name
+		plan_id		=> Plan ID
+		description	=> Full plan description
+		detail_url	=> URL to plan detail page,
+		buy_button	=> Purchase button from the Shop plugin
+		exp_my		=> Expiration as "Month, Year"
+		exp_date	=> Expiration formatted using site "dateonly" format
+		firstname	=> Member's first name
+		lastname	=> Member's last name
+		fullname	=> Member's full name
+		renewal_dues => Renewal dues amount, example '35.00 USD'
 {!endif}
 <h2>
-    {site_name}<br />
-    {$LANG_MEMBERSHIP['exp_notice']}
+	{site_name}<br />
+	{$LANG_MEMBERSHIP['exp_notice']}
 </h2>
 {!if firstname}
 <p>{$LANG_MEMBERSHIP['greeting']}, {firstname};</p>
@@ -36,17 +37,17 @@
 <p>{$LANG_MEMBERSHIP['plan']}: {plan_id}
 {!if plan_name} - {plan_name}{!endif}
 {!if plan_dscp}
-    <br />{plan_dscp}
+	<br />{plan_dscp}
 {!endif}
 </p>
 <p>{$LANG_MEMBERSHIP['msg_expiring_renew']}</p>
 {!if buy_button}
 <p>{$LANG_MEMBERSHIP['msg_renew_shop']}:</p>
 <div style="clear:both;float:right;width:100%;">
-    {buy_button}
+	{buy_button}
 </div>
 {!endif}
  <div style="clear:both;">
-    {$LANG_MEMBERSHIP['sincerely']},<br />
-    {site_name}
+	{$LANG_MEMBERSHIP['sincerely']},<br />
+	{site_name}
 </div>
