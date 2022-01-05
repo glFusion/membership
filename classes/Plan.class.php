@@ -907,10 +907,10 @@ class Plan
      * Get all the plans that can be purchased by the current user.
      *
      * @param   string  $plan_id    Optional specific plan to get
-     * @paraam  boolean $admin      True to disregard group access
+     * @param   boolean $admin      True to disregard group access
      * @return  array       Array of plan objects
      */
-    public static function getPlans($plan_id='', $admin = false)
+    public static function getPlans(?string $plan_id=NULL, ?bool $admin = NULL) : array
     {
         global $_TABLES, $_GROUPS;
 
@@ -950,7 +950,7 @@ class Plan
      * @param   string  $show_plan      A single plan_id to show (selected on app)
      * @return  string      HTML for product catalog.
      */
-    public static function listPlans($show_plan = '')
+    public static function listPlans(?string $show_plan = NULL) : string
     {
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP, $_USER;
 
@@ -963,14 +963,11 @@ class Plan
         if (0) {
         if (COM_isAnonUser()) {
             // Anonymous must log in to purchase
-            //$T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
-            //$login_url = "#\" onclick=\"Popup.showModal('loginform',null,null,{'screenColor':'#999999','screenOpacity':.6,'className':'piMembershipLoginForm'});return false;\"";
             $login_url = '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';';
-            $T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
-                $_CONF['site_url'] . '/users.php?mode=new', $login_url));
-            /*$T->set_var('login_msg', sprintf($LANG_MEMBERSHIP['must_login'],
-                $_CONF['site_url'] . '/users.php?mode=new',
-                '#" onclick="document.getElementById(\'loginform\').style.display=\'block\';'));*/
+            $T->set_var('login_msg', sprintf(
+                $LANG_MEMBERSHIP['must_login'],
+                $_CONF['site_url'] . '/users.php?mode=new', $login_url
+            ));
             $T->set_var('exp_msg_class', 'alert');
             $T->set_var('login_form', SEC_loginform());
             $T->parse('output', 'planlist');
@@ -980,9 +977,9 @@ class Plan
 
         $Plans = self::getPlans($show_plan);
         if (empty($Plans)) {
+            $T->set_var('no_plans', true);
             $T->parse('output', 'planlist');
             $retval = $T->finish($T->get_var('output', 'planlist'));
-            $retval .= '<p />' . $LANG_MEMBERSHIP['no_plans_avail'];
             return $retval;
         }
 

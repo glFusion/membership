@@ -1,5 +1,8 @@
 {# begin {templatelocation} #}
 <div class="story-featured"><h1>{$LANG_MEMBERSHIP['plans']}</h1></div>
+{!if no_plans}
+<div class="uk-alert"><h2>{$LANG_MEMBERSHIP['no_plans_avail']}</h2></div>
+{!endif}
 {!if login_msg}
 <div data-uk-alert class="uk-alert uk-alert-warning">{login_msg}</div>
 {login_form}
