@@ -3,9 +3,9 @@
  * Table definitions and other static config variables.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.1
+ * @version     v0.3.2
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -34,7 +34,7 @@ $_TABLES['membership_posgroups'] = $prefix . 'pos_groups';
 $_TABLES['membership_users']    = $prefix . 'users';
 
 use Membership\Config;
-Config::set('pi_version', '0.3.1');
+Config::set('pi_version', '0.3.2');
 Config::set('gl_version', '1.7.8');
 Config::set('pi_display_name', 'Membership');
 Config::set('pi_url', 'http://www.leegarner.com');
