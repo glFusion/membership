@@ -15,6 +15,12 @@
 require_once '../../../lib-common.php';
 require_once '../../auth.inc.php';
 use Membership\Config;
+use Membership\Plan;
+use Membership\Membership;
+use Membership\Menu;
+use Membership\Position;
+use Membership\PosGroup;
+use Membership\Logger;
 
 // Make sure the plugin is installed and enabled
 if (!in_array('membership', $_PLUGINS)) {
@@ -24,7 +30,7 @@ if (!in_array('membership', $_PLUGINS)) {
 // Only let admin users access this page
 if (!MEMBERSHIP_isManager()) {
     // Someone is trying to illegally access this page
-    Membership\Logger::System("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
+    Logger::System("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
     COM_404();
     exit;
 }
@@ -64,7 +70,7 @@ foreach($expected as $provided) {
 switch ($action) {
 case 'notify':      // Force-send expiration reminders
     if (isset($_POST['delitem']) && !empty($_POST['delitem'])) {
-        Membership\Membership::notifyExpiration($_POST['delitem'], true);
+        Membership::notifyExpiration($_POST['delitem'], true);
     }
     COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
@@ -88,7 +94,7 @@ case 'regenbutton':
             WHERE mem_uid in ($members)";
     $res = DB_query($sql, 1);
     while ($A = DB_fetchArray($res, false)) {
-        $new_mem_num = Membership\Membership::createMemberNumber($A['mem_uid']);
+        $new_mem_num = Membership::createMemberNumber($A['mem_uid']);
         if ($new_mem_num != $A['mem_number']) {
             $sql = "UPDATE {$_TABLES['membership_members']}
                     SET mem_number = '" . DB_escapeString($new_mem_num) . "'
@@ -106,7 +112,7 @@ case 'importusers':
     break;
 
 case 'quickrenew':
-    $M = new Membership\Membership($_POST['mem_uid']);
+    $M = new Membership($_POST['mem_uid']);
     $status = $M->Renew();
     COM_refresh(Config::get('admin_url') . '/index.php?editmember=' . $_POST['mem_uid']);
     break;
@@ -122,7 +128,7 @@ case 'deletebutton_x':
 case 'deletebutton':
     if (is_array($_POST['delitem'])) {
         foreach ($_POST['delitem'] as $mem_uid) {
-            $status = Membership\Membership::Delete($mem_uid);
+            $status = Membership::Delete($mem_uid);
         }
     }
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
@@ -132,7 +138,7 @@ case 'renewbutton_x':
 case 'renewbutton':
     if (is_array($_POST['delitem'])) {
         foreach ($_POST['delitem'] as $mem_uid) {
-            $M = new Membership\Membership($mem_uid);
+            $M = new Membership($mem_uid);
             $M->Renew();
         }
     }
@@ -151,12 +157,12 @@ case 'deleteplan':
 
 case 'saveplan':
     $plan_id = isset($_POST['old_plan_id']) ? $_POST['old_plan_id'] : '';
-    $P = new Membership\Plan($plan_id);
+    $P = new Plan($plan_id);
     $status = $P->Save($_POST);
     if ($status == true) {
         COM_refresh(Config::get('admin_url') . '/index.php?listplans');
     } else {
-        $content .= Membership\Menu::Admin('editplan');
+        $content .= Menu::Admin('editplan');
         $content .= $P->PrintErrors($LANG_MEMBERSHIP['error_saving']);
         $content .= $P->Edit();
         $view = 'none';
@@ -165,14 +171,14 @@ case 'saveplan':
 
 case 'savepg':
     $pg_id = isset($_POST['ppg_id']) ? $_POST['ppg_id'] : 0;
-    $P = new Membership\PosGroup($pg_id);
+    $P = new PosGroup($pg_id);
     $status = $P->Save($_POST);
     if ($status == true) {
         COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
         exit;
     } else {
         // Redisplay the edit form in case of error, keeping $_POST vars
-        $content .= Membership\Menu::Admin('editpg');
+        $content .= Menu::Admin('editpg');
         $content .= $P->Edit();
         $view = 'none';
     }
@@ -180,14 +186,14 @@ case 'savepg':
 
 case 'saveposition':
     $pos_id = isset($_POST['pos_id']) ? $_POST['pos_id'] : 0;
-    $P = new Membership\Position($pos_id);
+    $P = new Position($pos_id);
     $status = $P->Save($_POST);
     if ($status == true) {
         COM_refresh(Config::get('admin_url') . '/index.php?positions');
         exit;
     } else {
         // Redisplay the edit form in case of error, keeping $_POST vars
-        $content .= Membership\Menu::Admin('editpos');
+        $content .= Menu::Admin('editpos');
         $content .= $P->Edit();
         $view = 'none';
     }
@@ -197,7 +203,7 @@ case 'reorderpg':
     $id = isset($_GET['id']) ? $_GET['id'] : 0;
     $where = $actionval;
     if ($id > 0 && $where != '') {
-        $msg = Membership\PosGroup::Move($id, $where);
+        $msg = PosGroup::Move($id, $where);
     }
     COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
     break;
@@ -207,13 +213,13 @@ case 'reorderpos':
     $id = isset($_GET['id']) ? $_GET['id'] : 0;
     $where = $actionval;
     if ($type != '' && $id > 0 && $where != '') {
-        $msg = Membership\Position::Move($id, $type, $where);
+        $msg = Position::Move($id, $type, $where);
     }
     COM_refresh(Config::get('admin_url') . '/index.php?positions');
     break;
 
 case 'deletepos':
-    $P = new Membership\Position($actionval);
+    $P = new Position($actionval);
     $P->Delete();
     COM_refresh(Config::get('admin_url') . '/index.php?positions');
     exit;
@@ -227,7 +233,7 @@ default:
 // Select the page to display
 switch ($view) {
 case 'importform':
-    $content .= Membership\Menu::Admin('importform');
+    $content .= Menu::Admin('importform');
     $LT = new Template(Config::get('pi_path') . '/templates');
     $LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
@@ -257,39 +263,39 @@ case 'importform':
     break;
 
 case 'editmember':
-    $M = new Membership\Membership($actionval);
+    $M = new Membership($actionval);
     $showexp = isset($_GET['showexp']) ? '?showexp' : '';
-    $content .= Membership\Menu::Admin('listmembers');
+    $content .= Menu::Admin('listmembers');
     $content .= $M->Editform(Config::get('admin_url') . '/index.php' . $showexp);
     break;
 
 case 'editplan':
     $plan_id = isset($_REQUEST['plan_id']) ? $_REQUEST['plan_id'] : '';
-    $P = new Membership\Plan($plan_id);
-    $content .= Membership\Menu::Admin($view);
+    $P = new Plan($plan_id);
+    $content .= Menu::Admin($view);
     $content .= $P->Edit();
     break;
 
 case 'editpos':
-    $P = new Membership\Position($actionval);
-    $content .= Membership\Menu::Admin($view);
+    $P = new Position($actionval);
+    $content .= Menu::Admin($view);
     $content .= $P->Edit();
     break;
 
 case 'editpg':
-    $PG = new Membership\PosGroup($actionval);
-    $content .= Membership\Menu::Admin($view);
+    $PG = new PosGroup($actionval);
+    $content .= Menu::Admin($view);
     $content .= $PG->Edit();
     break;
 
 case 'listmembers':
-    $content .= Membership\Menu::Admin($view);
-    $content .= Membership\Membership::adminList();
+    $content .= Menu::Admin($view);
+    $content .= Membership::adminList();
     break;
 
 case 'stats':
-    $content .= Membership\Menu::Admin($view);
-    $content .= Membership\Membership::summaryStats();
+    $content .= Menu::Admin($view);
+    $content .= Membership::summaryStats();
     break;
 
 case 'none':
@@ -297,44 +303,44 @@ case 'none':
     break;
 
 case 'listtrans':
-    $content .= Membership\Menu::Admin($view);
-    $content .= Membership\Membership::listTrans();
+    $content .= Menu::Admin($view);
+    $content .= Membership::listTrans();
     break;
 
 case 'posgroups':
     if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
         // Delete some checked attributes
         foreach ($_POST['delitem'] as $id) {
-            Membership\PosGroup::Delete($id);
+            PosGroup::Delete($id);
         }
     }
-    $content .= Membership\Menu::Admin($view);
-    $content .= Membership\Menu::adminPositions($view);
-    $content .= Membership\PosGroup::adminList();
+    $content .= Menu::Admin($view);
+    $content .= Menu::adminPositions($view);
+    $content .= PosGroup::adminList();
     break;
 
 case 'positions':
     if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
         // Delete some checked attributes
         foreach ($_POST['delitem'] as $id) {
-            $P = new Membership\Position($id);
+            $P = new Position($id);
             $P->Delete();
         }
     }
-    $content .= Membership\Menu::Admin($view);
-    $content .= Membership\Menu::adminPositions($view);
-    $content .= Membership\Position::adminList();
+    $content .= Menu::Admin($view);
+    $content .= Menu::adminPositions($view);
+    $content .= Position::adminList();
     break;
 
 case 'listplans':
 default:
     $view = 'listplans';
-    $content .= Membership\Menu::Admin($view);
-    $content .= Membership\Plan::adminList();
+    $content .= Menu::Admin($view);
+    $content .= Plan::adminList();
     break;
 
 }
-$output = Membership\Menu::siteHeader();
+$output = Menu::siteHeader();
 $T = new Template(Config::get('pi_path') . '/templates');
 $T->set_file('page', 'admin_header.thtml');
 $T->set_var(array(
@@ -345,5 +351,5 @@ $T->parse('output','page');
 $output .= $T->finish($T->get_var('output'));
 $output .= $content;
 if ($footer != '') $output .= '<p>' . $footer . '</p>' . LB;
-$output .= Membership\Menu::siteFooter();
+$output .= Menu::siteFooter();
 echo $output;
