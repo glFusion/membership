@@ -538,6 +538,10 @@ class Membership
             $this->notified = Config::get('notifycount');
         }
 
+        // Set a flag to see if the membership status, group, etc. needs
+        // to be updated based on form input. Quick renewal forces an update.
+        $need_membership_update = $quickrenew || !$this->Matches(self::getInstance($this->uid));
+
         // The first thing is to check to see if we're removing this account
         // from the family so we don't update other members incorrectly
         if ($this->Plan->isFamily()) {
@@ -569,11 +573,12 @@ class Membership
 
         // If this plan updates linked accounts, get all the accounts.
         // Already updated any link changes above.
-        if ($this->Plan->isFamily()) {
+        if ($need_membership_update && $this->Plan->isFamily()) {
             $accounts = $this->getLinks();
             $accounts[$this->uid] = '';
             Cache::clear('members');
         } else {
+            // Don't bother updating others if no key fields changed
             $accounts = array($this->uid => '');
         }
         $this->joined = DB_escapeString($this->joined);
@@ -589,8 +594,6 @@ class Membership
             $this->joined = DB_escapeString($this->joined);
             $this->expires = DB_escapeString($this->expires);
 
-            // Add this user to the membership group
-            Logger::debug("Adding user $key to group " . Config::get('member_group'));
             // Create membership number if not already defined for the account
             // Include trailing comma, be sure to place it appropriately in
             // the sql statement that follows
@@ -633,10 +636,13 @@ class Membership
             // and the status is active. If the expiration was set to a past
             // date then the status and group changes will be handled by
             // runScheduledTask
-            if ($this->status == Status::ACTIVE) {
-                USER_addGroup(Config::get('member_group'), $key);
+            if ($need_membership_update) {
+                if ($this->status == Status::ACTIVE && $need_membership_update) {
+                    Logger::debug("membership:: Adding user $key to group " . Config::get('member_group'));
+                    USER_addGroup(Config::get('member_group'), $key);
+                }
+                self::updatePlugins($key, $old_status, $this->status);
             }
-            self::updatePlugins($key, $old_status, $this->status);
         }
 
         // If this is a payment transaction, as opposed to a simple edit,
@@ -1489,6 +1495,26 @@ class Membership
         ) );
         $T->parse('output', 'stats');
         return $T->get_var('output');
+    }
+
+
+    /**
+     * Check if this object matches the provided object for key values.
+     *
+     * @param   object  $B      Object "B" to test
+     * @return  bool    True if the objects match, False if not
+     */
+    public function Matches(Membership $B) : bool
+    {
+        if (
+            $this->plan_id != $B->getPlanID() ||
+            $this->joined != $B->getJoined() ||
+            $this->expires != $B->getExpires() ||
+            $this->istrial != $B->isTrial()
+        ) {
+            return false;
+        }
+        return true;
     }
 
 
