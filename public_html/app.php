@@ -62,18 +62,22 @@ switch ($view) {
 case 'prt':
     // Create a printable view of the application
     $content .= displayApp($uid);
-    if (empty($content)) COM_404();
-    else echo $content;
+    if (empty($content)) {
+        COM_404();
+    } else {
+        echo $content;
+    }
     exit;
     break;
 
 case 'view':
 default:
+
     // Display the application within the normal glFusion site.
     $content .= \Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
         $content .= sprintf(
-            $LANG_MEMBERSHIP['click_to_update_app',
+            $LANG_MEMBERSHIP['click_to_update_app'],
             Config::get('url') . '/app.php?editapp',
         );
         break;

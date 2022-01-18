@@ -2,6 +2,7 @@
 
 ## 0.3.2
 Release TBD
+- Fix typo in application print popup.
 
 ## 0.3.1
 Release 2022-01-05
