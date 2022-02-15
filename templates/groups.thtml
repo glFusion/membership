@@ -3,31 +3,31 @@
 {!if title}
 <h1>{title}</h1>
 {!endif}
-<ul class="uk-grid uk-grid-width-medium-1-5 uk-hidden-small" style="font-weight:bold;">
-    <li></li>
-    <li>{$LANG_MEMBERSHIP['position']}</li>
-    <li>{$LANG_MEMBERSHIP['name']}</li>
-    <li class="uk-width-medium-2-5">{$LANG_MEMBERSHIP['contact_info']}</li>
+<ul uk-grid class="uk-grid uk-child-width-1-5@m uk-grid-width-medium-1-5 uk-hidden-small" style="font-weight:bold;">
+	<li></li>
+	<li>{$LANG_MEMBERSHIP['position']}</li>
+	<li>{$LANG_MEMBERSHIP['name']}</li>
+	<li class="uk-width-medium-2-5">{$LANG_MEMBERSHIP['contact_info']}</li>
 </ul>
 <!-- BEGIN userRow -->
-<ul class="uk-grid uk-grid-width-medium-1-5 uk-grid-width-small-1-2">
-    <li>{user_img}</li>
-    <li>{position}</li>
-    <li>
+<ul uk-grid class="uk-grid uk-child-width-1-5@m uk-child-width-1-2@s uk-grid-width-medium-1-5 uk-grid-width-small-1-2">
+	<li>{user_img}</li>
+	<li>{position}</li>
+	<li>
 {!if user_name}
-        {user_name}
+		{user_name}
 {!if comment}
-        <br />{comment}
+		<br />{comment}
 {!endif}
 {!elseif show_vacant}
-        <span class="vacant">{$LANG_MEMBERSHIP['vacant']}</span>
+		<span class="vacant">{$LANG_MEMBERSHIP['vacant']}</span>
 {!endif}
-    </li>
-    <li class="uk-width-medium-2-5">
+	</li>
+	<li class="uk-width-2-5@m uk-width-medium-2-5">
 {!if user_name}
-        <a href="{site_url}/profiles.php?uid={uid}">{user_email}</a>
+		<a href="{site_url}/profiles.php?uid={uid}">{user_email}</a>
 {!endif}
-    </li>
+	</li>
 </ul>
 <!-- END userRow -->
 </div>
