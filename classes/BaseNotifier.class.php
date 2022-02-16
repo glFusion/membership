@@ -17,7 +17,7 @@ namespace Membership;
  * Notification class.
  * @package shop
  */
-class Notifier
+class BaseNotifier
 {
     protected $message = '';
     protected $language = '';

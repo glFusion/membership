@@ -620,7 +620,8 @@ function plugin_runScheduledTask_membership()
     // Set members to "dropped" if they've been expired for a long time.
     Membership\Membership::batchPurge();
     // For the current members that are left, notify of impending expiration.
-    Membership\Notifiers\Expiration::Notify();
+    $Notifier = new Membership\Notifiers\Expiration;
+    $Notifier->Notify();
 }
 
 
