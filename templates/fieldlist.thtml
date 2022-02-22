@@ -56,4 +56,15 @@
     </button>
 <!-- END field-regen-button -->
 
+
+{# Begin glFusion2.0 fields #}
+<!-- BEGIN field-checkbox -->
+	<input type="checkbox"
+    <!-- BEGIN attr -->
+    {name}="{value}"
+    <!-- END attr -->
+    >
+<!-- END field-checkbox -->
+
+
 {# begin {templatename} #}

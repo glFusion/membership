@@ -24,6 +24,7 @@ use Membership\Membership;
 use Membership\Logger;
 use Membership\Dates;
 use Membership\Models\ProductInfo;
+use Membership\FieldList;
 
 /**
  * Get information about a specific item.
@@ -169,7 +170,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     if ($status !== false) {
         // if purchase went ok, log the transaction and remove any
         // expiration message.
-        $M->AddTrans($ipn_data['gw_name'], $ipn_data['pmt_gross'],
+        $M->addTrans($ipn_data['gw_name'], $ipn_data['pmt_gross'],
             $ipn_data['txn_id'], '', 0);
     }
     return $status == true ? PLG_RET_OK : PLG_RET_ERROR;
@@ -244,24 +245,16 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     $output['filter'] = '';
     foreach ($opts as $stat=>$txt) {
         if (in_array($stat, $exp_stat)) {
-            $sel =  'checked="checked"';
             $checked = true;
             $get_parms[] = $stat;
         } else {
-            $sel = '';
             $checked = false;
         }
-        $output['filter'] .= '<input type="checkbox" name="mem_exp_status[]" value="' .
-            $stat . '" ' . $sel . ' />' . $txt . '&nbsp;';
-
-        /* TODO - glFusion 2.0
         $output['filter'] .= FieldList::checkbox(array(
             'name' => 'mem_exp_status[]',
             'value' => $stat,
             'checked' => $checked,
         ) ) . $txt . '&nbsp;';
-         */
-
     }
     $output['filter'] .= '<input type="hidden" name="mem_exp_status_flag" value="1" />';
     $output['get'] = 'mem_exp_status=' . implode(',', $get_parms);
@@ -288,6 +281,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     $members = $_TABLES['membership_members'];
     $positions = $_TABLES['membership_positions'];
     $where = " $members.mem_expires IS NOT NULL ";  // get only membership records
+    $where .= " AND $members.mem_status < " . Status::DROPPED;
     $exp_stat = array(1, 2);        // Current and Arrears checked by default
     $incl_exp_stat = 0;
 

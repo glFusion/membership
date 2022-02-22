@@ -33,6 +33,36 @@ class FieldList //extends \glFusion\FieldList
         return $t;
     }
 
+    public static function checkbox($args)
+    {
+        $t = self::init();
+        $t->set_block('field','field-checkbox');
+
+        // Go through the required or special options
+        $t->set_block('field', 'attr', 'attributes');
+        foreach ($args as $name => $value) {
+            switch ($name) {
+            case 'checked':
+            case 'disabled':
+                if ($value) {
+                    $value = $name;
+                } else {
+                    continue 2;
+                }
+                break;
+            }
+            $t->set_var(array(
+                'name' => $name,
+                'value' => $value,
+            ) );
+            $t->parse('attributes', 'attr', true);
+        }
+        $t->parse('output', 'field-checkbox');
+        return $t->finish($t->get_var('output'));
+    }
+
+
+
 
     /**
      * Create a view-application link.
