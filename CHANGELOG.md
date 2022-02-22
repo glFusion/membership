@@ -3,6 +3,7 @@
 ## 0.3.2
 Release TBD
 - Fix typo in application print popup.
+- Show notification interval on member editing page.
 
 ## 0.3.1
 Release 2022-01-05

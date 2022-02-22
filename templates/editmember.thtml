@@ -83,7 +83,7 @@ function togglePmtDiv()
 <!-- BEGIN expToSend -->
 					<option value="{notify_val}" {sel}>{notify_val}</option>
 <!-- END expToSend -->
-				</select>
+				</select>&nbsp({lang_x_interval})
 			</div>
 		</div>
 
@@ -224,7 +224,7 @@ function togglePmtDiv()
 				</div>
 			</div>
 			<div class="uk-form-row">
-				<button type="submit" class="uk-button uk-button-success" name="quickrenew" value="{$LANG_MEMBERSHIP['renew']}">{$LANG_MEMBERSHIP['renew']}</button>
+				<button type="submit" class="uk-button uk-button-success" name="quickrenew" value="1">{$LANG_MEMBERSHIP['renew']}</button>
 				<button type="reset" class="uk-button uk-button-primary" name="reset" value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
 				<button type="reset" class="uk-button uk-button-default uk-modal-close">{$LANG_MEMBERSHIP['cancel']}</button>
 			</div>

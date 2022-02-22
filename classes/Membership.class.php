@@ -401,6 +401,7 @@ class Membership
             'mem_istrial' => $this->istrial,
             'mem_istrial_chk' => $this->istrial ? 'checked="checked"' : '',
             'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
+            'lang_x_interval' => sprintf($LANG_MEMBERSHIP['at_x_interval'], Config::get('notifydays')),
         ) );
         $T->set_block('editmember', 'expToSend', 'expTS');
 
@@ -650,7 +651,7 @@ class Membership
         // This only logs transactions for profile updates; Shop
         // transactions are logged by the handlePurchase service function.
         if (!empty($pmt_type) || $pmt_amt > 0 || $quickrenew == 1) {
-            $this->AddTrans(
+            $this->addTrans(
                 $A['mem_pmttype'],
                 $A['mem_pmtamt'],
                 $A['mem_pmtdesc']
@@ -1067,6 +1068,7 @@ class Membership
                 $args['mem_plan_id'] = $this->plan_id;
             }
             $args['mem_expires'] = $this->expires;
+            $args['mem_quickrenew'] = 1;
             $this->notified = (int)Config::get('notifycount');
             $this->Save($args);
             return true;
@@ -1108,7 +1110,7 @@ class Membership
      * @param   string  $dt         Optional date, now() used if empty
      * @param   integer $by         Optional user ID, -1 for system gateway
      */
-    public function AddTrans($gateway, $amt, $txn_id='', $dt = '', $by = -1)
+    public function addTrans($gateway, $amt, $txn_id='', $dt = '', $by = -1)
     {
         global $_TABLES, $_USER, $_CONF;
 
