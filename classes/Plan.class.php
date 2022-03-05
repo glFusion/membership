@@ -543,7 +543,7 @@ class Plan
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP,
                 $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH;
 
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('product', 'plan_form.thtml');
         if ($this->plan_id != '') {
             $T->set_var('plan_id', $this->plan_id);
@@ -677,7 +677,7 @@ class Plan
         $buttons = '';
 
         // Create product template
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('detail', 'plan_detail.thtml');
 
         $M = Membership::getInstance($_USER['uid']);
@@ -840,7 +840,7 @@ class Plan
             }
         }
         if (Config::get('ena_checkpay')) {
-            $T = new \Template(Config::get('pi_path') . '/templates');
+            $T = new \Template(Config::get('pi_path') . 'templates');
             $T->set_file('checkpay', 'pmt_check_btn.thtml');
             $T->set_var('plan_id', $this->plan_id);
             $retval[] = $T->parse('output', 'checkpay');
@@ -958,7 +958,7 @@ class Plan
         /*if (!$have_app) {
             COM_refresh(Config::get('url') . '/index.php?editapp');
         }*/
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('planlist', 'plan_list.thtml');
         if (0) {
         if (COM_isAnonUser()) {

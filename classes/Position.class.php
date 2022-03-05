@@ -335,7 +335,7 @@ class Position
     {
         global $_TABLES;
 
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('editform', 'position_form.thtml');
         $T->set_var(array(
             'action_url'    => Config::get('admin_url'),

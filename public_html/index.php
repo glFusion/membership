@@ -154,7 +154,7 @@ case 'pmtform':
     $M = Membership\Membership::getInstance();
     $P = Membership\Plan::getInstance($_GET['plan_id']);
     if (!$P->isNew() && $P->canPurchase()) {
-        $T = new Template(Config::get('pi_path') . '/templates');
+        $T = new Template(Config::get('pi_path') . 'templates');
         $T->set_file('pmt', 'pmt_form.thtml');
         $price_actual = $P->Price($M->isNew(), 'actual');
         if (Config::get('ena_checkpay') == 2) {

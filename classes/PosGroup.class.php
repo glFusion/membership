@@ -182,7 +182,7 @@ class PosGroup
     {
         global $_TABLES;
 
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('editform', 'pg_form.thtml');
         if ($this->pg_orderby > 0) {
             $orderby_sel = $this->pg_orderby - 10;

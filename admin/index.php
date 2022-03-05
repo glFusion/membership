@@ -106,14 +106,16 @@ case 'regenbutton':
     break;
 
 case 'importusers':
-    require_once Config::get('pi_path') . '/import_members.php';
+    require_once Config::get('pi_path') . 'import_members.php';
     $view = 'importform';
     $footer .= MEMBERSHIP_import();
     break;
 
 case 'quickrenew':
     $M = new Membership($_POST['mem_uid']);
-    $status = $M->Renew();
+    if (!$M->isNew()) {
+        $status = $M->Renew($_POST);
+    }
     COM_refresh(Config::get('admin_url') . '/index.php?editmember=' . $_POST['mem_uid']);
     break;
 
@@ -234,7 +236,7 @@ default:
 switch ($view) {
 case 'importform':
     $content .= Menu::Admin('importform');
-    $LT = new Template(Config::get('pi_path') . '/templates');
+    $LT = new Template(Config::get('pi_path') . 'templates');
     $LT->set_file('form', 'import_form.thtml');
     if (isset($import_success)) {
         $content .= "Imported $successes successfully<br />\n";
@@ -341,7 +343,7 @@ default:
 
 }
 $output = Menu::siteHeader();
-$T = new Template(Config::get('pi_path') . '/templates');
+$T = new Template(Config::get('pi_path') . 'templates');
 $T->set_file('page', 'admin_header.thtml');
 $T->set_var(array(
     'header'    => $LANG_MEMBERSHIP['admin_title'],

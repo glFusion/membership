@@ -93,7 +93,7 @@ class App
     {
         global $_CONF;
 
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('app', 'application.thtml');
         $T->set_block('app', 'DataRow', 'row');
         $values = $this->getDisplayValues();
@@ -153,7 +153,7 @@ class App
         } else {*/
             $sel = $M->getPlanID();
         //}
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('app', 'app_form.thtml');
         $T->set_var(array(
             'form_id'       => 'membership_forms_form',

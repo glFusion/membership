@@ -378,7 +378,7 @@ class Membership
     {
         global $_CONF, $_TABLES, $LANG_MEMBERSHIP;
 
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file(array(
             'editmember' => 'editmember.thtml',
             'tips' => 'tooltipster.thtml',
@@ -922,7 +922,7 @@ class Membership
         } else {
             $app_link = false;
         }
-        $LT = new \Template(Config::get('pi_path') . '/templates/');
+        $LT = new \Template(Config::get('pi_path') . 'templates/');
         $LT->set_file(array(
             'block' => 'profileblock.thtml',
         ));
@@ -1474,7 +1474,7 @@ class Membership
             GROUP BY mem_plan_id";
         $rAll = DB_query($sql);
 
-        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('stats', 'admin_stats.thtml');
         $linetotal = 0;
         $tot_current = 0;

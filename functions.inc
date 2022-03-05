@@ -43,7 +43,7 @@ spl_autoload_register(function ($class)
     }
 });
 use Membership\Config;
-Config::set('pi_path', __DIR__);
+Config::set('pi_path', __DIR__ . '/');
 Config::set('url', $_CONF['site_url'] . '/' . Config::PI_NAME);
 Config::set('admin_url', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAME);
 
