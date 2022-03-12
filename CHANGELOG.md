@@ -1,9 +1,11 @@
 # glFusion Membership Plugin - Change Log
 
-## 0.3.2
+## 1.0.0
 Release TBD
+- Requires glFusion 2.0.0+.
 - Fix typo in application print popup.
 - Show notification interval on member editing page.
+- Deprecate import from Subscription plugin.
 
 ## 0.3.1
 Release 2022-01-05

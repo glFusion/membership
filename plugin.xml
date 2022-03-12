@@ -2,10 +2,10 @@
     <id>membership</id>
     <name>Membership</name>
     <description>Provides an interface to manage club members.</description>
-    <version>0.3.2</version>
-    <glfusionversion>1.7.8</glfusionversion>
-    <phpversion>7.2.0</phpversion>
-    <url>http://www.leegarner.com</url>
+    <version>1.0.0</version>
+    <glfusionversion>2.0.0</glfusionversion>
+    <phpversion>7.4.0</phpversion>
+    <url>http://www.glfusion.org</url>
     <maintainer>Lee Garner</maintainer>
     <requires>lglib,1.0.9</requires>
     <requires>profile</requires>
