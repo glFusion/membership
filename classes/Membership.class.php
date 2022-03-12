@@ -3,14 +3,16 @@
  * Class to handle membership records.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.0
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership;
+use glFusion\Database\Database;
+use glFusion\Log\Log;
 
 
 /**
@@ -149,23 +151,24 @@ class Membership
 
         if ($uid > 0) $this->uid = $uid;
 
-        $sql = "SELECT *
-            FROM {$_TABLES['membership_members']}
-            WHERE mem_uid = '{$this->uid}'";
-        //echo $sql;die;
-        $res1 = DB_query($sql);
-        if (!$res1 || DB_numRows($res1) != 1) {
-            $this->Plan = NULL;
-            return false;
+        $db = Database::getInstance();
+        try {
+        $data = $db->conn->executeQuery(
+            "SELECT * FROM {$_TABLES['membership_members']}
+            WHERE mem_uid = ?",
+            array($this->uid),
+            array(Database::INTEGER)
+        )->fetch(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+        if (is_array($data) && !empty($data)) {
+            $this->setVars($data);
+            $this->Plan = new Plan($this->plan_id);
+            return true;
         } else {
-            $A = DB_fetchArray($res1, false);
-            if (!empty($A)) {
-                $this->setVars($A);
-                $this->Plan = new Plan($this->plan_id);
-                return true;
-            } else {
-                return false;
-            }
+            return false;
         }
     }
 
@@ -475,16 +478,27 @@ class Membership
             $link_ids[] = $key;
         }
 
-        $sql = "SELECT uid, username, fullname
-            FROM {$_TABLES['users']} WHERE uid > 1
-            AND uid <> '{$this->uid}'";
-        if (!empty($link_ids))
-            $sql .= ' AND uid NOT IN (' . implode(',', $link_ids) . ')';
-        $sql .= ' ORDER BY fullname';
-        //echo $sql;die;
-        $res = DB_query($sql, 1);
+        $db = Database::getInstance();
+        $qb = $db->conn->createQueryBuilder();
+        try {
+            $qb->select('uid', 'username', 'fullname')
+               ->from($_TABLES['users'])
+               ->where('uid > 1')
+               ->andWhere('uid <> :uid')
+               ->setParameter('uid', $this->uid, Database::INTEGER)
+               ->orderBy('fullname', 'ASC');
+            if (!empty($link_ids)) {
+                $qb->andWhere('uid NOT IN (:link_ids)')
+                   ->setParameter('link_ids', $link_ids, Database::PARAM_INT_ARRAY);
+            }
+            $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+
         $T->set_block('editmember', 'linkSelect', 'linksel');
-        while ($A = DB_fetchArray($res, false)) {
+        foreach ($data as $A) {
             $T->set_var(array(
                 'link_id'   => $A['uid'],
                 'link_name' => empty($A['fullname']) ? $A['username'] : $A['fullname'],
@@ -508,6 +522,7 @@ class Membership
     {
         global $_TABLES;
 
+        $db = Database::getInstance();
         $old_status = $this->status;  // track original status
         if (is_array($A) && !empty($A)) {
             if (isset($A['mem_plan_id']) && $A['mem_plan_id'] == '') {
@@ -582,8 +597,6 @@ class Membership
             // Don't bother updating others if no key fields changed
             $accounts = array($this->uid => '');
         }
-        $this->joined = DB_escapeString($this->joined);
-        $this->expires = DB_escapeString($this->expires);
 
         // Create a guid (just an md5()) for the membership.
         // Only for memberships that don't already have one, e.g. new.
@@ -592,8 +605,6 @@ class Membership
         }
         USES_lib_user();
         foreach ($accounts as $key => $name) {
-            $this->joined = DB_escapeString($this->joined);
-            $this->expires = DB_escapeString($this->expires);
 
             // Create membership number if not already defined for the account
             // Include trailing comma, be sure to place it appropriately in
@@ -606,31 +617,59 @@ class Membership
                 $this->mem_number = self::createMemberNumber($key);
             }
 
-            $sql = "INSERT INTO {$_TABLES['membership_members']} SET
-                        mem_uid = '{$key}',
-                        mem_plan_id = '" . DB_escapeString($this->plan_id) ."',
-                        mem_joined = '" . DB_escapeString($this->joined) ."',
-                        mem_expires = '" . DB_escapeString($this->expires) ."',
-                        mem_status = {$this->status},
-                        mem_guid = '{$this->guid}',
-                        mem_number = '" . DB_EscapeString($this->mem_number) . "',
-                        mem_notified = {$this->notified},
-                        mem_istrial = {$this->istrial}
-                    ON DUPLICATE KEY UPDATE
-                        mem_plan_id = '" . DB_escapeString($this->plan_id) . "',
-                        mem_joined = '" . DB_escapeString($this->joined) ."',
-                        mem_expires = '" . DB_escapeString($this->expires) . "',
-                        mem_status = {$this->status},
-                        mem_guid = '{$this->guid}',
-                        mem_number = '" . DB_EscapeString($this->mem_number) . "',
-                        mem_notified = {$this->notified},
-                        mem_istrial = {$this->istrial}";
-            //Logger::System($sql);
-            DB_query($sql, 1);
-            if (DB_error()) {
-                Logger::System(__CLASS__ . '::Save() sql error: ' . $sql);
-            } else {
-                Logger::Audit("Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated.");
+            try {
+                $qb = $db->conn->createQueryBuilder();
+                $qb->insert($_TABLES['membership_members'])
+                    ->setValue('mem_uid', ':mem_uid')
+                    ->setValue('mem_plan_id', ':mem_plan_id')
+                    ->setValue('mem_joined', ':mem_joined')
+                    ->setValue('mem_expires', ':mem_expires')
+                    ->setValue('mem_status', ':mem_status')
+                    ->setValue('mem_guid', ':mem_guid')
+                    ->setValue('mem_number', ':mem_number')
+                    ->setValue('mem_notified', ':mem_notified')
+                    ->setValue('mem_istrial', ':mem_istrial')
+                    ->setParameter('mem_uid', $key, Database::INTEGER)
+                    ->setParameter('mem_plan_id', $this->plan_id, Database::STRING)
+                    ->setParameter('mem_joined', $this->joined, Database::STRING)
+                    ->setParameter('mem_expires', $this->expires, Database::STRING)
+                    ->setParameter('mem_status', $this->status, Database::STRING)
+                    ->setParameter('mem_guid', $this->guid, Database::STRING)
+                    ->setParameter('mem_number', $this->mem_number, Database::STRING)
+                    ->setParameter('mem_notified', $this->notified, Database::INTEGER)
+                    ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
+                    ->execute();
+                    Logger::Audit("Member {$this->uid} " . COM_getDisplayName($this->uid) . " created.");
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
+                try {
+                    $qb = $db->conn->createQueryBuilder();
+                    $qb->update($_TABLES['membership_members'])
+                       ->set('mem_plan_id', ':mem_plan_id')
+                       ->set('mem_joined', ':mem_joined')
+                       ->set('mem_expires', ':mem_expires')
+                       ->set('mem_status', ':mem_status')
+                       ->set('mem_guid', ':mem_guid')
+                       ->set('mem_number', ':mem_number')
+                       ->set('mem_notified', ':mem_notified')
+                       ->set('mem_istrial', ':mem_istrial')
+                       ->setParameter('mem_uid', $key, Database::INTEGER)
+                       ->setParameter('mem_plan_id', $this->plan_id, Database::STRING)
+                       ->setParameter('mem_joined', $this->joined, Database::STRING)
+                       ->setParameter('mem_expires', $this->expires, Database::STRING)
+                       ->setParameter('mem_status', $this->status, Database::STRING)
+                       ->setParameter('mem_guid', $this->guid, Database::STRING)
+                       ->setParameter('mem_number', $this->mem_number, Database::STRING)
+                       ->setParameter('mem_notified', $this->notified, Database::INTEGER)
+                       ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
+                       ->where('mem_uid = :mem_uid')
+                       ->execute();
+                    Logger::Audit("Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated.");
+                } catch (\Throwable $e) {
+                    Log::write('system', Log::ERROR, $e->getMessage());
+                } 
+            } catch (\Throwable $e) {
+                Logger::System(__CLASS__ . '::Save() sql error: ' . $e->getMessage());
+                Log::write('system', Log::ERROR, $e->getMessage());
             }
 
             // Add the member to the groups if the status has changed,
@@ -642,7 +681,7 @@ class Membership
                     Logger::debug("membership:: Adding user $key to group " . Config::get('member_group'));
                     USER_addGroup(Config::get('member_group'), $key);
                 }
-                self::updatePlugins($key, $old_status, $this->status);
+                self::updatePlugins(array($key), $old_status, $this->status);
             }
         }
 
@@ -693,17 +732,13 @@ class Membership
             break;
         }
         // Set membership status
-        $sql = "UPDATE {$_TABLES['membership_members']} SET
-                mem_status = $new_status
-                WHERE mem_uid = $uid";
-        //COM_errorLog($sql);
-        DB_query($sql, 1);
+        $update_keys = array($uid);
 
         // Remove this member from the membership groups
         foreach ($groups as $group) {
             USER_delGroup($group, $uid);
         }
-        self::updatePlugins($uid, $old_status, $new_status);
+        self::updatePlugins(array($uid), $old_status, $new_status);
 
         // Now do the same thing for all the relatives.
         if ($inc_relatives) {
@@ -712,14 +747,23 @@ class Membership
                 foreach ($groups as $group) {
                     USER_delGroup($group, $key);
                 }
-                DB_query(
-                    "UPDATE {$_TABLES['membership_members']} SET
-                    mem_status = $new_status
-                    WHERE mem_uid = $key",
-                    1
-                );
-                self::updatePlugins($key, $old_status, $new_status);
+                $update_keys[] = $key;
             }
+        }
+        if (!empty($update_keys)) {
+            $db = Database::getInstance();
+            try {
+                $db->conn->executeQuery(
+                    "UPDATE {$_TABLES['membership_members']} SET
+                    mem_status = ?
+                    WHERE mem_uid IN (?)",
+                    array($new_status, $update_keys),
+                    array(Database::INTEGER, Database::PARAM_INT_ARRAY)
+                );
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+            }
+            self::updatePlugins($update_keys, $old_status, $new_status);
         }
         return true;
     }
@@ -738,15 +782,25 @@ class Membership
     {
         global $_TABLES, $_CONF;
 
-        $sql = "UPDATE {$_TABLES['membership_members']} SET
-            mem_expires = '" . $_CONF['_now']->format('Y-m-d') . "',
-            mem_notified = 0 ";
-        if ($cancel_relatives) {
-            $sql .= "WHERE mem_guid = '" . $this->getGuid() . "'";
-        } else {
-            $sql .= " WHERE mem_uid = " . $this->getUid();
+        $db = Database::getInstance();
+        $qb = $db->conn->createQueryBuilder();
+        try {
+            $qb->update($_TABLES['membership_members'])
+               ->set('mem_expires', ':expires')
+               ->set('mem_notified', ':notified')
+               ->setParameter('expires', $_CONF['_now']->format('Y-m-d'))
+               ->setParameter('notified', 0, Database::INTEGER);
+            if ($cancel_relatives) {
+                $qb->where('mem_guid = :guid')
+                    ->setParameter('guid', $this->getGuid(), Database::STRING);
+            } else {
+                $qb->where('mem_uid = :uid')
+                   ->setParameter('uid', $this->getUid(), Database::INTEGER);
+            }
+            $qb->execute();
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
         }
-        DB_query($sql);
         $this->Expire($cancel_relatives, false);
     }
 
@@ -906,10 +960,19 @@ class Membership
             if (Config::get('use_mem_number') && SEC_hasRights('membership.admin')) {
                 $mem_number = $this->mem_number;
             }
-            $sql = "SELECT descr FROM {$_TABLES['membership_positions']}
-                    WHERE uid = $uid";
-            $res = DB_query($sql, 1);
-            while ($A = DB_fetchArray($res, false)) {
+            $db = Database::getInstance();
+            try {
+                $data = $db->conn->executeQuery(
+                    "SELECT descr FROM {$_TABLES['membership_positions']}
+                    WHERE uid = ?",
+                    array($uid),
+                        array(Database::INTEGER)
+                )->fetchAll(Database::ASSOCIATIVE);
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+                $data = array();
+            }
+            foreach ($data as $A) {
                 $positions[] = $A['descr'];
             }
         }
@@ -968,22 +1031,31 @@ class Membership
     {
         global $_TABLES;
 
+        $db = Database::getInstance();
         // Verify that the new plan exists
         if (empty($old_plan) || empty($new_plan) ||
-            DB_count($_TABLES['membership_plans'], 'plan_id', $new_plan) == 0) {
+            $db->getCount(
+                $_TABLES['membership_plans'],
+                array('plan_id'),
+                array($new_plan),
+                array(Database::STRING)
+            ) == 0) {
             return false;
         }
 
-        $old_plan = DB_escapeString($old_plan);
-        $new_plan = DB_escapeString($new_plan);
-        DB_query("UPDATE {$_TABLES['membership_members']}
-                SET mem_plan_id = '$new_plan'
-                WHERE mem_plan_id = '$old_plan'", 1);
-        if (!DB_error()) {
-            return true;
-        } else {
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['membership_members']}
+                SET mem_plan_id = ?
+                WHERE mem_plan_id = ?",
+                array($new_plan, $old_plan),
+                array(Database::STRING, Database::STRING)
+            );
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
             return false;
         }
+        return true;
     }
 
 
@@ -1095,7 +1167,17 @@ class Membership
         USER_delGroup(Config::get('member_group'), $this->uid);
 
         // Delete this membership record
-        DB_delete($_TABLES['membership_members'], 'mem_uid', $this->uid);
+        $db = Database::getInstance();
+        try {
+            $db->conn->delete(
+                $_TABLES['membership_members'],
+                array('mem_uid'),
+                array($this->uid),
+                array(Database::INTEGER)
+            );
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+        }
         Cache::clear('members');     // Make sure members and links are cleared
         $this->_disableAccount();
     }
@@ -1110,25 +1192,41 @@ class Membership
      * @param   string  $dt         Optional date, now() used if empty
      * @param   integer $by         Optional user ID, -1 for system gateway
      */
-    public function addTrans($gateway, $amt, $txn_id='', $dt = '', $by = -1)
+    public function addTrans($gateway, $amt, string $txn_id='', ?string $dt=NULL, ?int $by=NULL)
     {
         global $_TABLES, $_USER, $_CONF;
 
-        $gateway = DB_escapeString($gateway);
         $amt = (float)$amt;
-        $txn_id = DB_escapeString($txn_id);
-        $now = empty($dt) ? $_CONF['_now']->toMySQL(true) : DB_escapeString($dt);
-        $by = $by == -1 ? (int)$_USER['uid'] : (int)$by;
-        $sql = "INSERT INTO {$_TABLES['membership_trans']} SET
-            tx_date = '{$now}',
-            tx_by = '{$by}',
-            tx_uid = '{$this->uid}',
-            tx_planid = '{$this->Plan->getPlanID()}',
-            tx_gw = '{$gateway}',
-            tx_amt = '{$amt}',
-            tx_exp = '{$this->expires}',
-            tx_txn_id = '$txn_id'";
-        DB_query($sql);
+        if (empty($dt)) {
+            $now = $_CONF['_now']->toMySQL(true);
+        }
+        if ($by === NULL) {
+            $by = $_USER['uid'];
+        }
+        $db = Database::getInstance();
+        $qb = $db->conn->createQueryBuilder();
+        try {
+            $qb->insert($_TABLES['membership_trans'])
+               ->setValue('tx_date', ':tx_date')
+               ->setValue('tx_uid', ':tx_by')
+               ->setValue('tx_uid', ':tx_uid')
+               ->setValue('tx_planid', ':tx_planid')
+               ->setValue('tx_gw', ':tx_gw')
+               ->setValue('tx_amt', ':tx_amt')
+               ->setValue('tx_exp', ':tx_exp')
+               ->setValue('tx_txn_id', ':tx_txn_id')
+               ->setParam('tx_date', $now, Database::STRING)
+               ->setParam('tx_by', $by, Database::INTEGER)
+               ->setParam('tx_uid', $this->uid, Database::INTEGER)
+               ->setParam('tx_planid', $$this->Plan->getPlanID(), Database::STRING)
+               ->setParam('tx_gw', $gateway, Database::STRING)
+               ->setParam('tx_amt', $amt, Database::INTEGER)
+               ->setParam('tx_exp', $this->expires, Database::STRING)
+               ->setParam('tx_txn_id', $txn_id, Database::STRING)
+               ->execute();
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+        }
     }
 
 
@@ -1139,7 +1237,7 @@ class Membership
      * @param   integer $old_status     Original member status
      * @param   integer $new_status     New member status
      */
-    public static function updatePlugins($uid, $old_status, $new_status)
+    public static function updatePlugins(array $uids, $old_status, $new_status)
     {
         global $_TABLES, $_PLUGINS;
 
@@ -1157,7 +1255,12 @@ class Membership
             Config::get('manage_mg_quota')  &&
             in_array('mediagallery', $_PLUGINS)
         ) {
-            $quota = DB_getItem($_TABLES['mg_userprefs'], 'quota', "uid=$uid");
+            $db = Database::getInstance();
+            $quota = $db->getItem(
+                $_TABLES['mg_userprefs'],
+                'quota',
+                array('uid' => $uid)
+            );
             if ($quota > 0) {
                 $max = (int)Config::get('mg_quota_member');
                 $min = (int)Config::get('mg_quota_nonmember');
@@ -1177,13 +1280,28 @@ class Membership
                     if ($size != $quota) {
                         // Update the MG uerpref table with the new quota.
                         // Ignore errors, nothing to be done about them here.
-                        $sql = "INSERT INTO {$_TABLES['mg_userprefs']}
+                        try {
+                            $db->conn->executeUpdate(
+                                "INSERT INTO {$_TABLES['mg_userprefs']}
                                 (`uid`, `quota`)
-                            VALUES
-                                ($uid, $size)
-                            ON DUPLICATE KEY UPDATE
-                                quota = '$size'";
-                        DB_query($sql, 1);
+                                VALUES
+                                (:uid, :size)",
+                                array('uid' => $uid, 'size' => $size),
+                                array(Database::INTEGER, Database::INTEGER)
+                            );
+                        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
+                            try {
+                                $db->conn->executeUpdate(
+                                    "UPDATE {$_TABLES['mg_userprefs']}
+                                    SET quota = :size
+                                    WHERE uid = :uid",
+                                    array('uid' => $uid, 'size' => $size),
+                                    array(Database::INTEGER, Database::INTEGER)
+                                );
+                            } catch (\Throwable $e) {
+                                Log::write('system', Log::ERROR, $e->getMessage());
+                            }
+                        }
                     }
                 }
             }
@@ -1256,9 +1374,16 @@ class Membership
 
         if (Config::get('disable_expired')) {
             // Disable the user account at expiration, if so configured
-            DB_query("UPDATE {$_TABLES['users']}
-                    SET status = " . USER_ACCOUNT_DISABLED .
-                    " WHERE uid = $this->uid", 1);
+            $db = Database::getInstance();
+            try {
+                $db->conn->executeUpdate(
+                    "UPDATE {$_TABLES['users']} SET status = ? WHERE uid = ?",
+                    array(USER_ACCOUNT_DISABLED, $this->uid),
+                    array(Database::INTEGER, Database::INTEGER)
+                );
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+            }
         }
     }
 
@@ -1361,33 +1486,41 @@ class Membership
         } else {
             $mem_number = $Mem2->getMemNumber();
         }
-        $mem_number = DB_escapeString($mem_number);
 
-        $sql = "INSERT INTO {$_TABLES['membership_members']} (
+        $db = Database::getInstance();
+        try {
+            $sql = "INSERT INTO {$_TABLES['membership_members']} (
                 mem_uid, mem_plan_id, mem_joined, mem_expires, mem_status, mem_guid,
                 mem_number, mem_notified, mem_istrial
-            ) SELECT
-                $uid2, mem_plan_id, mem_joined, mem_expires, mem_status, mem_guid,
-                '$mem_number', mem_notified, mem_istrial
+                ) SELECT
+                :uid2, mem_plan_id, mem_joined, mem_expires, mem_status, mem_guid,
+                :mem_number, mem_notified, mem_istrial
                 FROM {$_TABLES['membership_members']}
                 WHERE mem_uid = $uid1
-            ON DUPLICATE KEY UPDATE
-                mem_plan_id = '" . DB_escapeString($Mem1->getPlanID()) . "',
-                mem_expires = '" . DB_escapeString($Mem1->getExpires()) . "',
-                mem_status = '{$Mem1->getStatus()}',
+                ON DUPLICATE KEY UPDATE
+                mem_plan_id = :plan_id,
+                mem_expires = :expires,
+                mem_status = :status,
                 mem_guid = '{$Mem1->getGuid()}',
                 mem_notified = '{$Mem1->expToSend()}',
                 mem_istrial = '{$Mem1->isTrial()}'";
-        //echo $sql;die;
-        DB_query($sql);
-        if (DB_error()) {
-            Logger::System(__CLASS__ . "/addLink() error: $sql");
+            $stmt = $db->conn->prepare($sql);
+            $stmt->bindValue('uid1', $uid1, Database::INTEGER)
+                 ->bindValue('uid2', $uid2, Database::INTEGER)
+                 ->bindValue('plan_id', $Mem1->getPlanID(), Database::STRING)
+                 ->bindValue('expires', $Mem1->getExpires()(), Database::STRING)
+                 ->bindValue('status', $Mem1->getStatus()(), Database::INTEGER)
+                 ->bindValue('guid', $Mem1->getGuid()(), Database::STRING)
+                 ->bindValue('notified', $Mem1->expToSend()(), Database::INTEGER)
+                 ->bindValue('istrial', $Mem1->isTrial()(), Database::INTEGER);
+            $stmt->executeUpdate();
+        } catch (\Throwable $e) {
+            Logger::System(__CLASS__ . "/addLink() error: " . $e->getMessage());
             return false;
-        } else {
-            Logger::Audit("Member $uid linked to member $uid1");
-            Cache::clear('members');
-            return true;
         }
+         Logger::Audit("Member $uid linked to member $uid1");
+         Cache::clear('members');
+         return true;
     }
 
 
@@ -1406,18 +1539,22 @@ class Membership
         $uid = (int)$uid;
         if ($uid < 2) return false;
 
-        $sql = "UPDATE {$_TABLES['membership_members']}
-            SET mem_guid = '" . self::_makeGuid($uid) . "'
-            WHERE mem_uid = $uid";
-        DB_query($sql);
-        if (DB_error()) {
-            Logger::System(__CLASS__ . "::remLink() error: $sql");
+        $db = Database::getInstance();
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['membership_members']}
+                SET mem_guid = :guid
+                WHERE mem_uid = :uid",
+                array(self::_makeGuid($uid), $uid),
+                array(Database::STRING, Database::INTEGER)
+            );
+        } catch (\Throwable $e) {
+            Logger::System(__CLASS__ . '/' . __FUNCTION__ . " error: " . $e->getMessage());
             return false;
-        } else {
-            Logger::Audit("Member $uid links removed");
-            Cache::clear('members');
-            return true;
         }
+        Logger::Audit("Member $uid links removed");
+        Cache::clear('members');
+        return true;
     }
 
 
@@ -1438,15 +1575,23 @@ class Membership
         $relatives = Cache::get($cache_key);
         if ($relatives === NULL) {
             $relatives = array();
-            $sql = "SELECT m.mem_uid, u.fullname, u.username
+            $db = Database::getInstance();
+            try {
+                $data = $db->conn->executeQuery(
+                    "SELECT m.mem_uid, u.fullname, u.username
                     FROM {$_TABLES['membership_members']} m
                     LEFT JOIN {$_TABLES['users']} u
                     ON m.mem_uid = u.uid
-                    WHERE m.mem_guid = '" . DB_escapeString($this->guid) . "'
-                    AND m.mem_uid <> {$this->uid}";
-            //echo $sql;die;
-            $res = DB_query($sql, 1);
-            while ($A = DB_fetchArray($res, false)) {
+                    WHERE m.mem_guid = ?
+                    AND m.mem_uid <> ?",
+                    array($this->guid, $this->uid),
+                    array(Database::STRING, Database::INTEGER)
+                )->fetchAll(Databae::ASSOCIATIVE);
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+                $data = array();
+            }
+            foreach ($data as $A) {
                 $relatives[$A['mem_uid']] = empty($A['fullname']) ?
                     $A['username'] : $A['fullname'];
             }
@@ -1467,12 +1612,22 @@ class Membership
 
         // The brute-force way to get summary stats.  There must be a better way.
         $sql = "SELECT mem_plan_id,
-            sum(case when mem_status = " . Status::ACTIVE . " then 1 else 0 end) as active,
-            sum(case when mem_status = " . Status::ARREARS . " then 1 else 0 end) as arrears
+            sum(case when mem_status = ? then 1 else 0 end) as active,
+            sum(case when mem_status = ? then 1 else 0 end) as arrears
             FROM {$_TABLES['membership_members']}
-            WHERE mem_expires > '" . Dates::expGraceEnded() . "'
+            WHERE mem_expires > ? 
             GROUP BY mem_plan_id";
-        $rAll = DB_query($sql);
+        $db = Database::getInstance();
+        try {
+            $rAll = $db->conn->executeQuery(
+                $sql,
+                array(Status::ACTIVE, Status::ARREARS, Dates::expGraceEnded()),
+                array(Database::INTEGER, Database::INTEGER, Database::STRING)
+            )->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $rAll = array();
+        }
 
         $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('stats', 'admin_stats.thtml');
@@ -1480,7 +1635,7 @@ class Membership
         $tot_current = 0;
         $tot_arrears = 0;
         $gtotal = 0;
-        while ($A = DB_fetchArray($rAll, false)) {
+        foreach ($rAll as $A) {
             $T->set_block('stats', 'statrow', 'srow');
             $linetotal = $A['active'] + $A['arrears'];
             $tot_current += $A['active'];
@@ -1488,6 +1643,8 @@ class Membership
             $gtotal += $linetotal;
             $T->set_var(array(
                 'plan'          => $A['mem_plan_id'],
+                'plan_url'      => Config::get('admin_url') .
+                    '/index.php?listmembers&plan=' . $A['mem_plan_id'],
                 'num_current'   => $A['active'],
                 'num_arrears'   => $A['arrears'],
                 'line_total'    => $linetotal,
@@ -1599,6 +1756,13 @@ class Membership
                 Dates::expGraceEnded()
             );
         }
+        if (isset($_REQUEST['plan'])) {
+            $sel_plan = DB_escapeString($_REQUEST['plan']);
+            $exp_query .= " AND plan_id = '$sel_plan'";
+        } else {
+            $sel_plan = '';
+        }
+
         $query_arr = array(
             'table' => 'membership_members',
             'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
@@ -1615,14 +1779,19 @@ class Membership
             'has_extras' => true,
             'form_url'  => Config::get('admin_url') . '/index.php?listmembers',
         );
-        /* TODO: glFusion 2.0
-        $filter = FieldList::checkbox(array(
-            'name' => 'showexp',
-            'checked' => $showexp_chk,
+
+        $T = new \Template(Config::get('path') . 'templates/admin/');
+        $T->set_file('filter', 'memb_filter.thtml');
+        $T->set_var(array(
+            'exp_chk' => $frmchk,
+            'plan_opts' => COM_optionList(
+                $_TABLES['membership_plans'],
+                'plan_id,plan_id',
+                $sel_plan
+            ),
         ) );
-         */
-        $filter = '<input type="checkbox" name="showexp" ' . $frmchk .  '>&nbsp;' .
-            $LANG_MEMBERSHIP['show_expired'] . '&nbsp;&nbsp;';
+        $T->parse('output', 'filter');
+        $filter = $T->finish($T->get_var('output'));
 
         $del_action = FieldList::deleteButton(array(
             'name' => 'deletebutton',
@@ -1692,15 +1861,9 @@ class Membership
         switch($fieldname) {
         case 'edit':
             $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
-            $retval = COM_createLink(
-                '<i class="uk-icon uk-icon-edit"></i>',
-                Config::get('admin_url') . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
-            );
-            /* TODO: glFusion 2.0
             $retval = FieldList::edit(array(
                 'url' => Config::get('admin_url') . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
             ) );
-             */
             break;
 
         case 'app_link':
@@ -1939,29 +2102,34 @@ class Membership
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
-        $stat = Status::ACTIVE . ',' .
-            Status::ARREARS;
+        $stat = Status::ACTIVE . ',' . Status::ARREARS;
 
-        $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
-            FROM {$_TABLES['membership_members']} m
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = m.mem_uid
-            WHERE mem_status IN ($stat)
-            AND mem_expires < '" . Dates::expGraceEnded() . "'";
-        //Membership\Logger::System($sql);
-        $r = DB_query($sql, 1);
-        if ($r) {
-            while ($row = DB_fetchArray($r, false)) {
-                self::getInstance($row['mem_uid'])->Expire(true);
-                Logger::Audit(
-                    sprintf(
-                        $LANG_MEMBERSHIP['log_expired'],
-                        $row['mem_uid'],
-                        $row['fullname']
-                    ),
-                    true
-                );
-            }
+        $db = Database::getInstance();
+        $qb = $db->conn->createQueryBuilder();
+        try {
+            $data = $qb->select('m.mem_uid', 'm.mem_expires', 'u.fullname')
+               ->from($_TABLES['membership_members'])
+               ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid')
+               ->where('m.mem_status in (:status)')
+               ->andWhere('m.mem_expires < :endgrace')
+               ->setParameter('status', array(Status::ACTIVE, Status::ARREARS), Database::PARAM_INT_ARRAY)
+               ->setParameter('endgrace', Dates::expGraceEnded(), Database::STRING)
+               ->execute()
+               ->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+        foreach ($data as $A) {
+            self::getInstance($A['mem_uid'])->Expire(true);
+            Logger::Audit(
+                sprintf(
+                    $LANG_MEMBERSHIP['log_expired'],
+                    $A['mem_uid'],
+                    $A['fullname']
+                ),
+                true
+            );
         }
     }
 
@@ -1975,28 +2143,32 @@ class Membership
     {
         global $_TABLES;
 
-        $stat = Status::ACTIVE;
-        $sql = "SELECT m.mem_uid, m.mem_expires, u.fullname
-            FROM {$_TABLES['membership_members']} m
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = m.mem_uid
-            WHERE mem_status IN ($stat)
-            AND mem_expires < '" . Dates::Today() . "'";
-        //echo $sql;die;
-        //Membership\Logger::System($sql);
-        $r = DB_query($sql, 1);
-        if ($r) {
-            while ($row = DB_fetchArray($r, false)) {
-                self::getInstance($row['mem_uid'])->Arrears(true);
-                Logger::Audit(
-                    sprintf(
-                        $LANG_MEMBERSHIP['log_arrears'],
-                        $row['mem_uid'],
-                        $row['fullname']
-                    ),
-                    true
-                );
-            }
+        $db = Database::getInstance();
+        $qb = $db->conn->createQueryBuilder();
+        try {
+            $data = $qb->select('m.mem_uid', 'm.mem_expires', 'u.fullname')
+               ->from($_TABLES['membership_members'])
+               ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid')
+               ->where('m.mem_status in (:status)')
+               ->andWhere('m.mem_expires < :endgrace')
+               ->setParameter('status', array(Status::ACTIVE), Database::PARAM_INT_ARRAY)
+               ->setParameter('endgrace', Dates::expGraceEnded(), Database::STRING)
+               ->execute()
+               ->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+        foreach ($data as $A) {
+            self::getInstance($row['mem_uid'])->Arrears(true);
+            Logger::Audit(
+                sprintf(
+                    $LANG_MEMBERSHIP['log_arrears'],
+                    $A['mem_uid'],
+                    $A['fullname']
+                ),
+                true
+            );
         }
     }
 
@@ -2009,19 +2181,28 @@ class Membership
         global $_TABLES;
 
         $days = (int)Config::get('drop_days');
-        if ($days > -1) {
-            $sql = "UPDATE {$_TABLES['membership_members']}
-                SET mem_status = " . Status::DROPPED . " WHERE
-                '" . Dates::Today() . "' > (mem_expires + interval $days DAY)";
-            $res = DB_query($sql, 1);
-            $num = DB_affectedRows($res);
-            if ($num > 0) {
-                Logger::Audit(
-                    sprintf($LANG_MEMBERSHIP['log_purged'],$num, $days),
-                    true
-                );
-            }
+        if ($days < 0) {
+            return;
         }
+
+        $db = Database::getInstance();
+        try {
+            $stmt = $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['membership_members']}
+                SET mem_status = ?
+                 WHERE ? > (mem_expires + interval ? DAY)",
+                array(Status::DROPPED, Dates::Today(), $days),
+                array(Database::INTEGER, Database::STRING, Database::INTEGER)
+            );
+            $num = $stmt->rowCount();
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $num = 0;
+        }
+        Logger::Audit(
+            sprintf($LANG_MEMBERSHIP['log_purged'], $num, $days),
+            true
+        );
     }
 
 }

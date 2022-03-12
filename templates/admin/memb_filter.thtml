@@ -1,0 +1,7 @@
+{# begin {templatelocation} #}
+<select class="uk-select uk-form-width-small" name="plan">
+	<option value="">-- {$LANG_MEMBERSHIP['all']} --</option>
+	{plan_opts}
+</select>
+<input class="uk-checkbox" type="checkbox" name="showexp" {exp_chk}>&nbsp;{$LANG_MEMBERSHIP['show_expired']}&nbsp;&nbsp;
+{# end {templatelocation} #}

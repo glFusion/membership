@@ -8,7 +8,7 @@
   </tr>
 <!-- BEGIN statrow -->
   <tr>
-    <td>{plan}</td>
+    <td><a href="{plan_url}">{plan}</a></td>
     <td class="alignright">{num_current}</td>
     <td class="alignright">{num_arrears}</td>
     <td class="alignright">{line_total}</td>
