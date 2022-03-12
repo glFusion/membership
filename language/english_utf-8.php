@@ -219,6 +219,8 @@ $LANG_MEMBERSHIP = array(
 'greeting' => 'Hello',
 'click_to_update_app' => 'Click <a href="%s">here</a> to update your profile. Some fields can be updated only by an administrator.',
 'at_x_interval' => 'at %d-day intervals',
+'no_import_grp' => 'No import group was provided.',
+'all' => 'All',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
