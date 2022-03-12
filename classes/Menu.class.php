@@ -35,7 +35,6 @@ class Menu
         $members_active = false;
         $trans_active = false;
         $pos_active = false;
-        $import_active = false;
         $stats_active = false;
         switch($mode) {
         case 'listplans':
@@ -52,9 +51,6 @@ class Menu
             break;
         case 'stats':
             $stats_active = true;
-            break;
-        case 'importform':
-            $import_active = true;
             break;
         }
 
@@ -84,11 +80,6 @@ class Menu
                 'url' => $admin_url . '/index.php?positions',
                 'text' => $LANG_MEMBERSHIP['positions'],
                 'active' => $pos_active,
-            ),
-            array(
-                'url' => $admin_url . '/index.php?importform',
-                'text' => $LANG_MEMBERSHIP['import'],
-                'active' => $import_active,
             ),
             array(
                 'url' => $_CONF['site_admin_url'],
