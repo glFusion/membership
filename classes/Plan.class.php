@@ -5,12 +5,14 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2011-2020 Lee Garner
  * @package     membership
- * @version     0.2.0
+ * @version     1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership;
+use glFusion\Database\Database;
+use glFusion\Log\Log;
 
 
 /**
@@ -342,16 +344,19 @@ class Plan
         $cache_key = 'plan_' . $id;
         $row = Cache::get($cache_key);
         if ($row === NULL) {
-            $sql = "SELECT *
-               FROM {$_TABLES['membership_plans']}
-               WHERE plan_id='$id' ";
-            $result = DB_query($sql, 1);
-            if (!$result || DB_numRows($result) != 1) {
+            $db = Database::getInstance();
+            try {
+                $row = $db->conn->executeQuery(
+                    "SELECT * FROM {$_TABLES['membership_plans']}
+                    WHERE plan_id='$id' ",
+                    array($id),
+                    array(Database::INTEGER)
+                )->fetch(Database::ASSOCIATIVE);
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
                 return false;
-            } else {
-                $row = DB_fetchArray($result, false);
-                Cache::set($cache_key, $row, 'plans');
             }
+            Cache::set($cache_key, $row, 'plans');
         }
         $this->setVars($row, true);
         $this->isNew = false;
@@ -401,48 +406,57 @@ class Plan
             return false;
         }
 
+        $db = Database::getInstance();
+        $qb = $db->conn->createQueryBuilder();
         // Insert or update the record, as appropriate
         if ($this->isNew) {
             Logger::debug('Preparing to save a new product.');
-            $sql1 = "INSERT INTO {$_TABLES['membership_plans']} SET ";
-            $sql3 = '';
+            $qb->insert($_TABLES['membership_plans']);
         } else {
             // Updating a plan.  Make sure that if the plan_id is changed it
             // isn't changed to an existing value
             if (
                 $this->plan_id != $old_plan_id &&
-                DB_count($_TABLES['membership_plans'], 'plan_id', $this->plan_id) > 0
+                $db->getCount(
+                    $_TABLES['membership_plans'],
+                    array('plan_id'),
+                    array($this->plan_id),
+                    array(Database::STRING)
+                ) > 0
             ) {
                return false;
             }
-            $sql1 = "UPDATE {$_TABLES['membership_plans']} SET ";
-            $sql3 = " WHERE plan_id = '" . DB_escapeString($old_plan_id) .
-                     "'";
+            $qb->update($_TABLES['membership_plans'])
+               ->where('plan_id = :old_plan_id')
+               ->setParameter('old_plan_id', $old_plan_id, Database::STRING);
             Logger::debug('Preparing to update product id ' . $this->plan_id);
         }
 
         $price = number_format($this->price, 2, '.', '');
-        $sql2 = "plan_id = '" . DB_escapeString($this->plan_id) . "',
-                name = '" . DB_escapeString($this->name) . "',
-                description = '" . DB_escapeString($this->dscp) . "',
-                fees = '" . DB_escapeString(@serialize($this->fees)) . "',
-                enabled = '{$this->enabled}',
-                upd_links = '{$this->upd_links}',
-                notify_exp = '{$this->notify_exp}',
-                grp_access = '{$this->grp_access}'";
-        $sql = $sql1 . $sql2 . $sql3;
-        //Logger::debug($sql);
-        //echo $sql;die;
-        DB_query($sql);
-
-        // If the update succeeded and the plan ID changed,
-        // rename the plan IDs in the membership table.
-        if (!DB_error()) {
+        try {
+            $qb->set('plan_id', ':plan_id')
+               ->set('name', ':name')
+               ->set('description', ':dscp')
+               ->set('fees', ':fees')
+               ->set('enabled', ':enabled')
+               ->set('upd_links', ':upd_links')
+               ->set('notify_exp', ':notify_exp')
+               ->set('grp_access', ':grp_access')
+               ->setParameter('plan_id', $this->plan_id, Database::STRING)
+               ->setParameter('name', $this->name, Database::STRING)
+               ->setParameter('description', $this->dscp, Database::STRING)
+               ->setParameter('fees', @serialize($this->fees), Database::STRING)
+               ->setParameter('enabled', $this->enabled, Database::INTEGER)
+               ->setParameter('upd_links', $this->upd_links, Database::INTEGER)
+               ->setParameter('notify_exp', $this->notify_exp, Database::INTEGER)
+               ->setParameter('grp_access', $this->grp_access, Database::INTEGER)
+               ->execute();
             if ($this->plan_id != $old_plan_id) {
                 Membership::Transfer($old_plan_id, $this->plan_id);
             }
             $status = 'OK';
-        } else {
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
             $status = 'Error Saving';
         }
 
@@ -500,7 +514,12 @@ class Plan
                 return false;
             }
         }
-        DB_delete($_TABLES['membership_plans'], 'plan_id', $id);
+        $db = Database::getInstance();
+        $db->conn->delete(
+            $_TABLES['membership_plans'],
+            array('plan_id'),
+            array($id)
+        );
         Cache::clear();     // clear all since this might affect memberships
         LGLIB_storeMessage(array(
             'message' => $LANG_MEMBERSHIP['msg_plan_deleted'],
@@ -654,11 +673,18 @@ class Plan
         // Determing the new value (opposite the old)
         $newvalue = $oldvalue == 1 ? 0 : 1;
 
-        $sql = "UPDATE {$_TABLES['membership_plans']}
-                SET $varname=$newvalue
-                WHERE plan_id='$id'";
-        //echo $sql;die;
-        DB_query($sql);
+        $db = Database::getInstance();
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['membership_plans']}
+                SET $varname = ?
+                WHERE plan_id= ?",
+                array($newvalue, $id),
+                array(Database::INTEGER, Database::INTEGER)
+            );
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+        }
         Cache::clear();     // clear all since this might affect memberships
         return $newvalue;
     }
@@ -751,10 +777,12 @@ class Plan
 
         if (empty($this->plan_id)) return false;
 
-        if (DB_count(
+        $db = Database::getInstance();
+        if ($db->getCount(
             $_TABLES['membership_members'],
-            'mem_plan_id',
-            DB_escapeString($this->plan_id)
+            array('mem_plan_id'),
+            array($this->plan_id),
+            array(Database::STRING)
         ) > 0) {
             return true;
         } else {
@@ -914,31 +942,41 @@ class Plan
     {
         global $_TABLES, $_GROUPS;
 
-        $plans = array();
-        $sql = "SELECT plan_id
-                FROM {$_TABLES['membership_plans']}
-                WHERE enabled = 1";
+        $qb = Database::getInstance()->conn->createQueryBuilder();
+        $qb->select('plan_id')
+           ->from($_TABLES['membership_plans'])
+           ->where('enabled = 1');
         if (!$admin) {
             $groups = $_GROUPS;
             if (!in_array(13, $groups)) {
                 $groups[] = 13;
             }
             $groups = implode(',', $groups);
-            $sql .= " AND grp_access IN ($groups)";
+            $qb->andWhere('grp_access IN (:groups)')
+               ->setParameter('groups', $groups, Database::PARAM_INT_ARRAY);
         }
         if (!empty($plan_id)) {
-            $sql .= " AND plan_id = '" . DB_escapeString($plan_id) . "'";
+            $qb->andWhere('plan_id = :plan_id')
+               ->setParameter('plan_id', $plan_id, Database::STRING);
         }
-        //echo $sql;die;
-        $cache_key = md5($sql);
+
+        $cache_key = md5($qb->getSql());
         $plans = Cache::get($cache_key);
-        if ($plans === NULL) {
-            $result = DB_query($sql);
-            while ($A = DB_fetchArray($result, false)) {
-                $plans[$A['plan_id']] = new self($A['plan_id']);
-            }
-            Cache::set($cache_key, $plans, 'plans');
+        if ($plans !== NULL) {
+            return $plans;
         }
+
+        $plans = array();
+        try {
+            $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+        foreach ($data as $A) {
+            $plans[$A['plan_id']] = new self($A['plan_id']);
+        }
+        Cache::set($cache_key, $plans, 'plans');
         return $plans;
     }
 

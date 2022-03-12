@@ -3,14 +3,15 @@
  * Class to handle group lists.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2020-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.0
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership;
+use glFusion\Database\Database;
 
 
 /**
@@ -147,24 +148,28 @@ class GroupList
             COM_404();
         }
 
-        $groups = "'" . implode("','", $this->groups) . "'";
-        $sql = "SELECT p.*,u.username,u.fullname,u.email
-            FROM {$_TABLES['membership_positions']} p
-            LEFT JOIN {$_TABLES['membership_posgroups']} pg
-            ON pg.pg_id = p.pg_id
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = p.uid
-            WHERE pg.pg_tag IN ($groups)
-            ORDER BY pg.pg_orderby, p.orderby ASC";
-        //echo $sql;die;
-        $res = DB_query($sql);
+        $qb = Database::getInstance()->conn->createQueryBuilder();
+        try {
+            $data = $qb->select('p.*', 'u.username', 'u.fullname', 'u.email')
+               ->from($_TABLES['membership_positions'], 'p')
+               ->leftJoin('p', $_TABLES['membership_posgroups'], 'pg', 'pg.pg_id=p.pg_id')
+               ->leftJoin('p', $_TABLES['users'], 'u', 'u.uid=p.pid')
+               ->where('pg.pg_tag IN (:groups)')
+               ->orderBy('pg.pg_orderby', 'ASC')
+               ->addOrderBy('p.orderby', 'ASC')
+               ->execute()
+               ->fetchAll(Database::ASSOCIATIVE());
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage();
+            $data = array();
+        }
 
         $T = new \Template(Config::get('pi_path') . 'templates');
         $T ->set_file(array(
             'groups' => 'groups.thtml',
         ));
 
-        while ($A = DB_fetchArray($res, false)) {
+        foreach ($data as $A) {
             $T->set_block('groups', 'userRow', 'uRow');
             if ($A['uid'] == 0) {    // vacant position
                 $user_img = '';

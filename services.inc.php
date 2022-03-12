@@ -25,6 +25,8 @@ use Membership\Logger;
 use Membership\Dates;
 use Membership\Models\ProductInfo;
 use Membership\FieldList;
+use glFusion\Log\Log;
+use glFusion\Database\Database;
 
 /**
  * Get information about a specific item.
@@ -120,7 +122,9 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     if (is_numeric($ipn_data['custom']['uid'])) {
         $uid = (int)$ipn_data['custom']['uid'];
     } else {
-        $uid = (int)DB_getItem($_TABLES['users'], 'email', $ipn_data['payer_email']);
+        $db = Database::getInstance();
+
+        $uid = $db->getItem($_TABLES['users'], 'uid', array('email' => $ipn_data['payer_email']));
     }
     if ($uid < 2) {
         return PLG_RET_ERROR;
@@ -558,10 +562,10 @@ function service_mailingSegment_membership($args, &$output, &$svc_msg)
     $uid = 0;
 
     if (isset($args['email']) && !empty($args['email'])) {
-        $uid = (int)DB_getItem(
+        $uid = $db->getItem(
             $_TABLES['users'],
             'uid',
-            "email = '" . DB_escapeString($args['email']) . "'"
+            array('email' => $args['email'])
         );
     } elseif (isset($args['uid']) && $args['uid'] > 1) {
         $uid = (int)$args['uid'];

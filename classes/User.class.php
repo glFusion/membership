@@ -3,14 +3,16 @@
  * Class to handle user information.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2009-2018 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2009-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.0
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership;
+use glFusion\Database\Database;
+
 
 /**
  * User Information class.
@@ -106,12 +108,21 @@ class User
         //$A = Cache::get($cache_key);
         $A = NULL;  // temp until user caching works
         if ($A === NULL) {
-            $sql = "SELECT u.*, m.terms_accept
-                FROM {$_TABLES['users']} u
-                LEFT JOIN {$_TABLES['membership_users']} m
-                ON m.uid = u.uid
-                WHERE u.uid=$uid";
-            $A = DB_fetchArray(DB_query($sql), false);
+            $db = Database::getInstance();
+            try {
+                $A = $db->conn->executeQuery(
+                    "SELECT u.*, m.terms_accept
+                    FROM {$_TABLES['users']} u
+                    LEFT JOIN {$_TABLES['membership_users']} m
+                    ON m.uid = u.uid
+                    WHERE u.uid=$uid",
+                    array($uid),
+                    array(Database::INTEGER)
+                )->fetch(Database::ASSOCIATIVE);
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage();
+                $A = array();
+            }
             //Cache::set($cache_key, $A, 'users');
         }
         if (!empty($A)) {

@@ -3,9 +3,9 @@
  * General Log class to handle logging functions.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2020-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.0
+ * @version     v1.0.0
  * @since       v0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -13,6 +13,7 @@
  */
 namespace Membership;
 use Membership\Config;
+use glFusion\Log\Log;
 
 
 /**
@@ -21,7 +22,6 @@ use Membership\Config;
  */
 class Logger
 {
-
     /**
      * Write a log file entry to the specified file.
      *
@@ -51,7 +51,7 @@ class Logger
 
         // Can't open the log file?  Return an error
         if (!$file = fopen($logfile, 'a')) {
-            COM_errorLog("Unable to open $logfile");
+            Log::write('system', Log::ERROR, "Unable to open $logfile");
             return;
         }
 
@@ -80,6 +80,7 @@ class Logger
         } else {
             $byuser = 'anon';
         }
+
         $byuser .= '@' . $_SERVER['REMOTE_ADDR'];
 
         // Write the log entry to the file
@@ -103,13 +104,13 @@ class Logger
 
     /**
      * Write an entry to the system log.
-     * Just a wrapper for COM_errorLog().
+     * Just a wrapper for the glFusion error log writer.
      *
      * @param   string  $msg        Message to log
      */
     public static function System($msg)
     {
-        COM_errorLog($msg);
+        Log::write('system', Log::ERROR, $msg);
     }
 
 
@@ -128,4 +129,3 @@ class Logger
 
 }
 
-?>

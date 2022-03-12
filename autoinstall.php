@@ -14,6 +14,7 @@
 if (!defined ('GVERSION')) {
     die ('This file can not be used on its own.');
 }
+use glFusion\Log\Log;
 
 /** @global string $_DB_dbms */
 global $_DB_dbms;
@@ -132,8 +133,10 @@ function plugin_install_membership()
 {
     global $INSTALL_plugin;
 
-    COM_errorLog("Attempting to install the " . Config::get('pi_display_name') . " plugin", 1);
-
+    Log::write(
+        'system', Log::ERROR,
+        "Attempting to install the " . Config::get('pi_display_name') . " plugin"
+    );
     $ret = INSTALLER_install($INSTALL_plugin[Config::PI_NAME]);
     if ($ret > 0) {
         return false;
@@ -273,21 +276,21 @@ function plugin_postinstall_membership()
     if (!file_exists($_CONF['path_log'] . $filename)) {
         $fp = fopen($_CONF['path_log'] . $filename, 'w+');
         if (!$fp) {
-            COM_errorLog("Failed to create logfile $filename");
+            Log::write('system', Log::ERROR, "Failed to create logfile $filename");
         } else {
             fwrite($fp, "*** Logfile Created ***\n");
         }
         if (!is_writable($_CONF['path_log'] . $filename)) {
-            COM_errorLog("Can't write to $filename");
+            Log::write('system', Log::ERROR, "Can't write to $filename");
         }
     }
 
     if (is_array($_MEMBERSHIP_SAMPLEDATA)) {
-        COM_errorLog("Installing sample data.");
+        Log::write('system', Log::ERROR, "Installing sample data.");
         foreach ($_MEMBERSHIP_SAMPLEDATA as $sql) {
             DB_query($sql, 1);
             if (DB_error()) {
-                COM_errorLog("Sample Data SQL Error: $sql");
+                Log::write('system', Log::ERROR, "Sample Data SQL Error: $sql");
             }
         }
     }

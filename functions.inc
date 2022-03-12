@@ -43,6 +43,9 @@ spl_autoload_register(function ($class)
     }
 });
 use Membership\Config;
+use glFusion\Log\Log;
+use glFusion\Database\Database;
+
 Config::set('pi_path', __DIR__ . '/');
 Config::set('url', $_CONF['site_url'] . '/' . Config::PI_NAME);
 Config::set('admin_url', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAME);
@@ -197,9 +200,14 @@ function plugin_enablestatechange_membership($enabled)
     // take no action and return
     if ($enabled && !in_array('lglib', $_PLUGINS)) {
         // Re-disable the plugin
-        DB_change($_TABLES['plugins'], 'pi_enabled', 0, 'pi_name', 'membership');
-        $enable = false;
-        $enabled = 0;
+        $db = Database::getInstance();
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['plugins']} SET pi_enabled = 0 WHERE pi_name = 'membership"
+            );
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+        }
     }
     return $enabled;
 }
@@ -211,14 +219,20 @@ function plugin_enablestatechange_membership($enabled)
  * @param   mixed   $id     Item ID
  * @param   string  $type   Plugin Name
  */
-function plugin_itemdeleted_membership($id, $type)
+function plugin_itemdeleted_membership($id, $type) : void
 {
     global $_TABLES;
 
     // If the lgLib plugin is disabled or removed, disable thie plugin
     if ($type == 'lglib' && $id == '*') {
         plugin_enablestatechange_membership(false);
-        DB_change($_TABLES['plugins'], 'pi_enabled', 0, 'pi_name', 'membership');
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['plugins']} SET pi_enabled = 0 WHERE pi_name = 'membership"
+            );
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+        }
     }
 }
 
@@ -594,14 +608,20 @@ function MEMBERSHIP_groupSelection()
 {
     global $_TABLES;
 
-    $A = array();
-    $query = "SELECT grp_id, grp_name FROM {$_TABLES['groups']}";
-    $result = DB_query($query);
-    while ($row = DB_fetchArray($result)) {
-        $row['grp_name'] = htmlspecialchars($row['grp_name']);
-        $A[$row['grp_name']] = $row['grp_id'];
+    $retval = array();
+    $sql = "SELECT grp_id, grp_name FROM {$_TABLES['groups']}";
+    $db = Database::getInstance();
+    try {
+        $data = $db->conn->executeQuery($sql)->fetchAll(Database::ASSOCIATIVE);
+    } catch (\Throwable $e) {
+        Log::write('system', Log::ERROR, $e->getMessage());
+        $data = array();
     }
-    return $A;
+    foreach ($data as $A) {
+        $A['grp_name'] = htmlspecialchars($A['grp_name']);
+        $retval[$A['grp_name']] = $A['grp_id'];
+    }
+    return $retval;
 }
 
 
@@ -795,15 +815,24 @@ function plugin_user_delete_membership($uid)
  * @param  integer $origUID    Original (remote) user ID
  * @param  integer $destUID    Merged (local) user ID
  */
-function plugin_user_move_membership($origUID, $destUID)
+function plugin_user_move_membership($origUID, $destUID) : void
 {
     global $_TABLES;
 
     $origUID = (int)$origUID;
     $destUID = (int)$destUID;
 
-    DB_query("UPDATE {$_TABLES['membership_members']}
-            SET uid = $destUID WHERE uid = $origUID", 1);
+    $db = Database::getInstance();
+    try {
+        $db->conn->executeQuery(
+            "UPDATE {$_TABLES['membership_members']}
+            SET uid = ? WHERE uid = ?",
+            array($destUID, $origUID),
+                array(Database::INTEGER, Database::INTEGER)
+        );
+    } catch (\Throwable $e) {
+        Log::write('system', Log::ERROR, $e->getMessage());
+    }
 }
 
 

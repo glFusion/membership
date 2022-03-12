@@ -3,14 +3,17 @@
  * Class to handle board and committee possitions.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2014-2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2014-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.0
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership;
+use glFusion\Database\Database;
+use glfusion\Log\Log;
+
 
 /**
  * Class to handle board and committee positions.
@@ -123,26 +126,29 @@ class Position
      * @param   integer $id     Optional ID, current ID if empty
      * @return  boolean     True on success, False on failure
      */
-    public function Read($id = 0)
+    public function Read(?int $id = NULL) : bool
     {
         global $_TABLES;
 
-        if ($id == 0) $id = $this->id;
+        if (empty($id)) $id = $this->id;
         if ($id == 0) return false;     // need a valid ID
-        $id = (int) $id;
 
-        $sql = "SELECT p.*, pg.pg_id, pg.pg_tag, pg.pg_title
-            FROM {$_TABLES['membership_positions']} p
-            LEFT JOIN {$_TABLES['membership_posgroups']} pg
-            ON p.pg_id = pg.pg_id
-            WHERE p.id = $id";
-        $r = DB_query($sql);
-        if ($r) {
-            $A = DB_fetchArray($r, false);
-            if (is_array($A)) {
-                $this->setVars($A);
-                return true;
-            }
+        $qb = Database::getInstance()->conn->createQueryBuilder();
+        try {
+            $data = $qb->select('p.*, pg.pg_id', 'pg.pg_tag', 'pg.pg_title')
+               ->from($_TABLES['membership_positions'], 'p')
+               ->leftJoin('p', $_TABLES['membership_posgroups'], 'pg', 'p.pg_id=pg.pg_id')
+               ->where('p.id = ?')
+               ->setParameter(0, $id, Database::INTEGER)
+               ->execute()
+               ->fetch(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+        if (is_array($data) && !empty($data)) {
+            $this->setVars($data);
+            return true;
         }
         return false;
     }
@@ -209,32 +215,53 @@ class Position
             $this->pg_id = $PG->getID();
         }
 
+        $qb = Database::getInstance()->conn->createQueryBuilder();
         if ($this->id == 0) {
-            $sql1 = "INSERT INTO {$_TABLES['membership_positions']} SET ";
-            $sql3 = '';
+            $qb->insert($_TABLES['membership_positions'])
+               ->values(array(
+                   'pg_id' => ':pg_id',
+                   'uid' => ':uid',
+                   'descr' => ':dscp',
+                   'contact' => ':contact',
+                   'show_vacant' => ':show_vacant',
+                   'orderby' => ':orderby',
+                   'enabled' => ':enabled',
+                   'in_lists' => ':in_lists',
+                   'grp_id' => ':grp_id',
+               ));
         } else {
-            $sql1 = "UPDATE {$_TABLES['membership_positions']} SET ";
-            $sql3 = " WHERE id = {$this->id}";
+            $qb->update($_TABLES['membership_positions'])
+               ->set('pg_id', ':pg_id')
+               ->set('uid', ':uid')
+               ->set('descr', ':dscp')
+               ->set('contact', ':contact')
+               ->set('show_vacant', ':show_vacant')
+               ->set('orderby', ':orderby')
+               ->set('enabled', ':enabled')
+               ->set('in_lists', ':in_lists')
+               ->set('grp_id', ':grp_id')
+               ->where('id = :id')
+               ->setParameter('id', $this->id, Database::INTEGER);
         }
-
-        $sql2 = "pg_id = '{$this->pg_id}',
-                uid = {$this->uid},
-                descr = '" . DB_escapeString($this->dscp) . "',
-                contact = '" . DB_escapeString($this->contact) . "',
-                show_vacant = {$this->show_vacant},
-                orderby = {$this->orderby},
-                enabled = {$this->enabled},
-                in_lists = {$this->in_lists},
-                grp_id = {$this->grp_id} ";
-        //echo $sql1 . $sql2 . $sql3;die;
-        DB_query($sql1 . $sql2 . $sql3, 1);
-        if (!DB_error()) {
-            self::Reorder($this->pg_id);
-            // Check and change group memberships if necessary
-            $this->_updateGroups();
-            return true;
+        try {
+            $qb->setParameter('pg_id', $this->pg_id, Database::INTEGER)
+               ->setParameter('uid', $this->uid, Database::INTEGER)
+               ->setParameter('dscp', $this->dscp, Database::STRING)
+               ->setParameter('contact', $this->contact, Database::STRING)
+               ->setParameter('show_vacant', $this->show_vacant, Database::INTEGER)
+               ->setParameter('orderby', $this->orderby, Database::INTEGER)
+               ->setParameter('enabled', $this->enabled, Database::INTEGER)
+               ->setParameter('in_lists', $this->in_lists, Database::INTEGER)
+               ->setParameter('grp_id', $this->grp_id, Database::INTEGER)
+               ->execute();
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            return false;
         }
-        return false;
+        self::reOrder($this->pg_id);
+        // Check and change group memberships if necessary
+        $this->_updateGroups();
+        return true;
     }
 
 
@@ -257,16 +284,24 @@ class Position
      * @param   integer $uid    Member's User ID
      * @return  array       Array of position IDs
      */
-    public static function getByMember($uid)
+    public static function getByMember(int $uid) : array
     {
         global $_TABLES;
 
         $retval = array();
-        $uid = (int)$uid;
-        $sql = "SELECT * FROM {$_TABLES['membership_positions']}
-                WHERE uid = '$uid'";
-        $res = DB_query($sql);
-        while ($A = DB_fetchArray($res, false)) {
+        $db = Database::getInstance();
+        try {
+            $data = $db->conn->executeQuery(
+                "SELECT * FROM {$_TABLES['membership_positions']}
+                WHERE uid = ?",
+                array($uid),
+                array(Database::INTEGER)
+            )->fetch(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+        foreach ($data as $A) {
             $retval[] = new self($A);
         }
         return $retval;
@@ -281,7 +316,7 @@ class Position
      * @param   integer $id         ID number of element to modify
      * @return         New value, or old value upon failure
      */
-    public static function toggle($oldvalue, $field, $id)
+    public static function toggle(int $oldvalue, string $field, int $id) : int
     {
         global $_TABLES;
 
@@ -300,12 +335,20 @@ class Position
         // Determing the new value (opposite the old)
         $newvalue = $oldvalue == 1 ? 0 : 1;
 
-        $sql = "UPDATE {$_TABLES['membership_positions']}
-                SET $field = $newvalue
-                WHERE id = " . (int)$id;
-        //echo $sql;die;
-        DB_query($sql, 1);
-        return DB_error() ? $oldvalue : $newvalue;
+        $db = Database::getInstance();
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['membership_positions']}
+                SET $field = ?
+                WHERE id = ?",
+                array($newvalue, $id),
+                array(Database::INTEGER, Database::INTEGER)
+            );
+            return $newvalue;
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            return $oldvalue;
+        }
     }
 
 
@@ -322,7 +365,13 @@ class Position
         $this->_updateGroups();
 
         // Then delete the position record
-        DB_delete($_TABLES['membership_positions'], 'id', $this->id);
+        $db = Database::getInstance();
+        $db->conn->delete(
+            $_TABLES['membership_positions'],
+            array('id'),
+            array($this->id),
+            array(Database::INTEGER)
+        );
     }
 
 
@@ -374,32 +423,45 @@ class Position
      *
      * @param   integer $pg_id  Position Group record ID
      */
-    public static function Reorder($pg_id)
+    public static function reOrder($pg_id)
     {
         global $_TABLES;
 
-        $pg_id = (int)$pg_id;
-        $sql = "SELECT id, orderby FROM {$_TABLES['membership_positions']}
-                WHERE pg_id = '$pg_id'
-                ORDER BY orderby ASC";
-        $result = DB_query($sql);
+        $db = Database::getInstance();
+        try {
+            $data = $db->conn->executeQuery(
+                "SELECT id, orderby FROM {$_TABLES['membership_positions']}
+                WHERE pg_id = ?
+                ORDER BY orderby ASC",
+                array($pg_id),
+                array(Database::INTEGER)
+            )->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
 
         $order = 10;
         $stepNumber = 10;
-
-        while ($A = DB_fetchArray($result, false)) {
+        $retval = '';
+        foreach ($data as $A) {
             if ($A['orderby'] != $order) {  // only update incorrect ones
-                $sql = "UPDATE {$_TABLES['membership_positions']}
-                    SET orderby = '$order'
-                    WHERE id = '{$A['id']}'";
-                DB_query($sql, 1);
-                if (DB_error()) {
-                    return 5;
+                try {
+                    $db->conn->executeUpdate(
+                        "UPDATE {$_TABLES['membership_positions']}
+                        SET orderby = '$order'
+                        WHERE id = '{$A['id']}'",
+                        array($order, $A['id']),
+                        array(Database::INTEGER, Database::INTEGER)
+                    );
+                } catch (\Throwable $e) {
+                    Log::write('system', Log::ERROR, $e->getMessage());
+                    $retval = '5';
                 }
             }
             $order += $stepNumber;
         }
-        return '';
+        return $retval;
     }
 
 
@@ -410,7 +472,7 @@ class Position
      * @param   integer $pg_id      Position Group ID
      * @param   string  $where  Direction to move ('up' or 'down')
      */
-    public static function Move($id, $pg_id, $where)
+    public static function Move(int $id, int $pg_id, string $where) : string
     {
         global $_CONF, $_TABLES, $LANG21;
 
@@ -431,18 +493,20 @@ class Position
             return '';
             break;
         }
-        $sql = "UPDATE {$_TABLES['membership_positions']}
+        $db = Database::getInstance();
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['membership_positions']}
                 SET orderby = orderby $sign 11
-                WHERE id = '$id'";
-        //echo $sql;die;
-        DB_query($sql, 1);
-
-        if (!DB_error()) {
-            // Reorder fields to get them separated by 10
-            self::Reorder($pg_id);
+                WHERE id = ?",
+                array($id),
+                array(Database::INTEGER)
+            );
+            self::reOrder($pg_id);
             $msg = '';
-        } else {
-            $msg = 5;
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $msg = '5';
         }
         return $msg;
     }

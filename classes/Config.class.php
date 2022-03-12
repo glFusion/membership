@@ -3,10 +3,10 @@
  * Class to read and manipulate Membership configuration values.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2019 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     TBD
- * @since       TBD
+ * @version     v1.0.0
+ * @since       v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -50,11 +50,15 @@ final class Config
      */
     private function __construct()
     {
-        if (
-            $this->properties === NULL
-        ) {
+        global $_CONF;
+
+        if ($this->properties === NULL) {
             $this->properties = \config::get_instance()
-                ->get_config(self::PI_NAME);
+                 ->get_config(self::PI_NAME);
+
+            $this->properties['path'] = $_CONF['path'] . '/plugins/membership/';
+            $this->properties['pi_display_name'] = 'Membership';
+            $this->properties['pi_url'] =  'http://www.glfusion.org';
         }
     }
 
@@ -123,4 +127,3 @@ final class Config
 
 }
 
-?>

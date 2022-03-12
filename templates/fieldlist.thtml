@@ -8,18 +8,6 @@
     ><i class="uk-icon uk-icon-hover uk-icon-justifiy uk-icon-eye uk-text-primary"></i></a>
 <!-- END field-view -->
 
-<!-- BEGIN field-delete-button -->
-    <button name="{button_name}" class="uk-button uk-button-mini uk-button-danger"
-    <!-- BEGIN attr -->
-        {name}="{value}"
-    <!-- END attr -->
-    ><i class="uk-icon uk-icon-remove"></i>
-{!if text}
-    &nbsp;{text}
-{!endif}
-    </button>
-<!-- END field-delete-button -->
-
 <!-- BEGIN field-renew-button -->
     <button name="{button_name}" class="uk-button uk-button-mini uk-button-success"
     <!-- BEGIN attr -->
@@ -55,16 +43,5 @@
 {!endif}
     </button>
 <!-- END field-regen-button -->
-
-
-{# Begin glFusion2.0 fields #}
-<!-- BEGIN field-checkbox -->
-	<input type="checkbox"
-    <!-- BEGIN attr -->
-    {name}="{value}"
-    <!-- END attr -->
-    >
-<!-- END field-checkbox -->
-
 
 {# begin {templatename} #}

@@ -21,6 +21,7 @@ use Membership\Menu;
 use Membership\Position;
 use Membership\PosGroup;
 use Membership\Logger;
+use glFusion\Database\Database;
 
 // Make sure the plugin is installed and enabled
 if (!in_array('membership', $_PLUGINS)) {
@@ -37,6 +38,7 @@ if (!MEMBERSHIP_isManager()) {
 
 $content = '';
 $footer = '';
+$db = Database::getInstance();
 
 // so we'll check for it and see if we should use it, but by using $action
 // and $view we don't tend to conflict with glFusion's $mode.
@@ -89,26 +91,48 @@ case 'regenbutton':
     }
 
     $members = implode(',', $_POST['delitem']);
-    $sql = "SELECT mem_uid, mem_number
+    try {
+        $data = $db->conn->executeQuery(
+            "SELECT mem_uid, mem_number
             FROM {$_TABLES['membership_members']}
-            WHERE mem_uid in ($members)";
-    $res = DB_query($sql, 1);
-    while ($A = DB_fetchArray($res, false)) {
-        $new_mem_num = Membership::createMemberNumber($A['mem_uid']);
+            WHERE mem_uid IN (?)",
+            array($_POST['delitem']),
+            array(Database::PARAM_INT_ARRAY)
+        )->fetchAll();
+    } catch (\Throwable $e) {
+        Log::write('system', Log::ERROR, $e->getMessage());
+        $data = array();
+    }
+    foreach ($data as $A) {
+        $new_mem_num = Membership::createMemberNumber((int)$A['mem_uid']);
         if ($new_mem_num != $A['mem_number']) {
-            $sql = "UPDATE {$_TABLES['membership_members']}
-                    SET mem_number = '" . DB_escapeString($new_mem_num) . "'
-                    WHERE mem_uid = '{$A['mem_uid']}'";
-            DB_query($sql);
+            try {
+                $db->conn->executeUpdate(
+                    "UPDATE {$_TABLES['membership_members']}
+                    SET mem_number = ?
+                    WHERE mem_uid = ?",
+                    array($new_mem_num, $A['mem_uid']),
+                    array(Database::STRING, Database::INTEGER)
+                );
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+                $data = array();
+            }
         }
     }
     COM_refresh(Config::get('admin_url') . '/index.php?' . $view);
     break;
 
 case 'importusers':
-    require_once Config::get('pi_path') . 'import_members.php';
-    $view = 'importform';
-    $footer .= MEMBERSHIP_import();
+    if (isset($_POST['frm_group'])) {
+        $msg = Membership\Util\Import(
+            (int)$_POST['frm_group'], $_POST['plan_id'], $_POST['exp']
+        );
+    } else {
+        $msg = $LANG_MEMBERSHIP['no_import_grp'];
+    }
+    COM_setMsg($msg);
+    COM_refresh(Config::get('admin_url') . '/index.php?importform');
     break;
 
 case 'quickrenew':
@@ -242,11 +266,17 @@ case 'importform':
         $content .= "Imported $successes successfully<br />\n";
         $content .= "$import_failures failed<br />\n";
     }
-    $sql = "SELECT plan_id, name
-        FROM {$_TABLES['membership_plans']}";
-    $res = DB_query($sql);
+    try {
+        $data = $db->conn->executeQuery(
+            "SELECT plan_id, name
+            FROM {$_TABLES['membership_plans']}"
+        )->fetchAll(Database::ASSOCIATIVE);
+    } catch (\Throwable $e) {
+        Log::write('system', Log::ERROR, $e->getMessage());
+        $data = array();
+    }
     $plan_sel = '';
-    while ($A = DB_fetchArray($res, false)) {
+    foreach ($data as $A) {
         $plan_sel .= '<option value="' . $A['plan_id'] . '">' . $A['name'] .
                 '</option>' . LB;
     }

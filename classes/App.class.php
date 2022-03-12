@@ -3,14 +3,17 @@
  * Class to handle membership application viewing and editing.
  *
  * @author     Lee Garner <lee@leegarner.com>
- * @copyright  Copyright (c) 2012-2018 Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package    membership
- * @version    0.2.0
+ * @version    v1.0.0
  * @license    http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership;
+use glFusion\Database\Database;
+use glFusion\Log\Log;
+
 
 /**
  * Class for a membership application.
@@ -202,7 +205,7 @@ class App
 
 
     /**
-     * Create radio buttons to select the membership type on the application.
+     * Create radio buttons to select the membership plan type.
      *
      * @param   string  $sel        Selected value. Optional
      * @return  string          HTML for radio button selections
@@ -215,12 +218,18 @@ class App
         if (!MEMBERSHIP_isManager()) {
             $sql .= ' WHERE grp_access = 2';
         }
-        $res = DB_query($sql);
+        $db = Database::getInstance();
+        try {
+            $data = $db->conn->executeQuery($sql)->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
         $P = new Plan();
         $retval = array();
         // If selection is populated, this can't be a new membership
         $isNew = $sel == '' ? true : false;
-        while ($A = DB_fetchArray($res, false)) {
+        foreach ($data as $A) {
             $P->setVars($A, true);
             $retval[$P->getPlanID()] = array(
                 'plan_id' => $P->getPlanID(),
@@ -247,28 +256,46 @@ class App
         global $_TABLES, $_CONF, $_USER;
 
         $uid = (int)$_POST['mem_uid'];
-        $initials = DB_escapeString(trim(substr($_POST['terms_initial'], 0, 10)));
 
         if (MEMB_getVar($_POST, 'terms_accept', 'integer') > 0) {
             // Update the terms-accepted checkbox first since it will
             // be checked in Validate()
-            $dt = new \Date('now', $_CONF['timezone']);
+            $dt = $_CONF['_now']->toMySQL(false);
             $type = 'Terms Accepted';
-            $data = 'Initial by ' . DB_escapeString(MEMB_getVar($_POST, 'terms_initial'));
-            $sql = "INSERT INTO {$_TABLES['membership_users']} SET
-                uid = $this->uid,
-                initials = '$initials',
-                terms_accept = UNIX_TIMESTAMP()
-                ON DUPLICATE KEY UPDATE
-                initials = '$initials',
-                terms_accept = UNIX_TIMESTAMP()";
-            //echo $sql;die;
-            DB_query($sql);
-            DB_query("INSERT INTO {$_TABLES['membership_log']}
-                    (uid, dt, type, data)
-                VALUES
-                    ($this->uid, '$dt', '$type', '$data')"
-            );
+            $data = 'Initial by ' . MEMB_getVar($_POST, 'terms_initial');
+            $db = Database::getInstance();
+            try {
+                $db->conn->executeUpdate(
+                    "INSERT INTO {$_TABLES['membership_users']} SET
+                    uid = ?,
+                    initials = ?,
+                    terms_accept = ?",
+                    array($this->uid, $initials, now()),
+                    array(Database::INTEGER, Database::STRING, Database::INTEGER)
+                );
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
+                $db->conn->executeUpdate(
+                    "UPDATE {$_TABLES['membership_users']} SET
+                    initials = ?,
+                    terms_accept = ?
+                    WHERE uid = ?",
+                    array($initials, now(), $this->uid),
+                    array(Database::STRING, Database::INTEGER, Database::INTEGER)
+                );
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+            }
+
+            try {
+                $db->conn->executeUpdate(
+                    "INSERT INTO {$_TABLES['membership_log']} (uid, dt, type, data)
+                    VALUES (?, ?, ?, ?)",
+                    array($this->uid, $dt, $type, $data),
+                    array(Database::INTEGER, Database::STRING, Database::STRING, Database::STRING)
+                );
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+            }
         }
 
         if ($this->Validate($_POST)) {

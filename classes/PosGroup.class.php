@@ -12,6 +12,8 @@
  * @filesource
  */
 namespace Membership;
+use glFusion\Log\Log;
+use glfusion\Database\Database;
 
 
 /**
@@ -42,9 +44,9 @@ class PosGroup
      *
      * @param   string  $grpname    Group name to list
      */
-    public function __construct($pg_id = 0)
+    public function __construct(?int $pg_id=NULL)
     {
-        if ($pg_id > 0) {
+        if (is_integer($pg_id) && $pg_id > 0) {
             $this->Read($pg_id);
         }
     }
@@ -56,18 +58,25 @@ class PosGroup
      * @param   integer $pg_id  Record ID to retrieve
      * @return  object  $this
      */
-    public function Read($pg_id)
+    public function Read(int $pg_id) : self
     {
         global $_TABLES;
 
         if ($pg_id > 0) {
-            $pg_id = (int)$pg_id;
-            $sql = "SELECT * FROM {$_TABLES['membership_posgroups']}
-                WHERE pg_id = $pg_id";
-            $res = DB_query($sql);
-            $A = DB_fetchArray($res, false);
-            if (is_array($A)) {
-                $this->setVars($A);
+            $db = Database::getInstance();
+            try {
+                $data = $db->conn->executeQuery(
+                    "SELECT * FROM {$_TABLES['membership_posgroups']}
+                    WHERE pg_id = ?",
+                    array($pg_id),
+                    array(Database::INTEGER)
+                )->fetch(Database::ASSOCIATIVE);
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+                $data = NULL;
+            }
+            if (is_array($data)) {
+                $this->setVars($data);
             }
         }
         return $this;
@@ -98,18 +107,26 @@ class PosGroup
      * @param   string  $pg_tag     Group tag, e.g. "Officers"
      * @return  object      PosGroup object
      */
-    public static function getByTag($pg_tag)
+    public static function getByTag(string $pg_tag) : self
     {
         global $_TABLES;
 
         $Obj = new self;
-        $sql = "SELECT * FROM {$_TABLES['membership_posgroups']}
-            WHERE pg_tag = '" . DB_escapeString($pg_tag) . "'
-            ORDER BY pg_id LIMIT 1";
-        $res = DB_query($sql);
-        if ($res && DB_numRows($res) == 1) {
-            $A = DB_fetchArray($res, false);
-            $Obj->setVars($A);
+        $db = Database::getInstance();
+        try {
+            $data = $db->conn->executeQuery(
+                "SELECT * FROM {$_TABLES['membership_posgroups']}
+                WHERE pg_tag = ?
+                ORDER BY pg_id LIMIT 1",
+                array($pg_tag),
+                array(Database::STRING)
+            )->fetch(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = NULL;
+        }
+        if (is_array($data)) {
+            $Obj->setVars($data);
         }
         return $Obj;
     }
@@ -156,17 +173,27 @@ class PosGroup
      * @param   string  $pg_tag     Group Tag
      * @return  object      Group object
      */
-    public static function create($pg_tag)
+    public static function create(string $pg_tag) : string
     {
         global $_TABLES;
 
         $Obj = self::getByTag($pg_tag);
         if ($Obj->isNew()) {
-            $sql = "INSERT INTO {$_TABLES['membership_posgroups']}
-                SET pg_tag = '" . DB_escapeString($pg_tag) . "'";
-            $res = DB_query($sql);
-            $retval = (int)DB_insertId($res);
+            $db = Database::getInstance();
+            try {
+                $db->conn->executeUpdate(
+                    "INSERT INTO {$_TABLES['membership_posgroups']}
+                    SET pg_tag = ?",
+                    array($pg_tag),
+                    array(Database::STRING)
+                );
+                $retval = $db->conn->lastInsertId();
+            } catch (\Throwable $e) {
+                Log::write('system', Log::ERROR, $e->getMessage());
+                $retval = 0;
+            }
         } else {
+            // Already exists, just return its ID.
             $retval = $Obj->getID();
         }
         return $retval;
@@ -213,19 +240,32 @@ class PosGroup
     {
         global $_TABLES;
 
-        $sql = "SELECT pg_id, pg_orderby
+        $db = Database::getInstance();
+        try {
+            $data = $db->conn->executeQuery(
+                "SELECT pg_id, pg_orderby
                 FROM {$_TABLES['membership_posgroups']}
-                ORDER BY pg_orderby ASC;";
-        $result = DB_query($sql);
-
+                ORDER BY pg_orderby ASC;"
+            )->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
         $order = 10;
         $stepNumber = 10;
-        while ($A = DB_fetchArray($result, false)) {
+        foreach ($data as $A) {
             if ($A['pg_orderby'] != $order) {  // only update incorrect ones
-                $sql = "UPDATE {$_TABLES['membership_posgroups']}
-                    SET pg_orderby = '$order'
-                    WHERE pg_id = '" . (int)$A['pg_id'] . "'";
-                DB_query($sql);
+                try {
+                    $db->conn->executeUpdate(
+                        "UPDATE {$_TABLES['membership_posgroups']}
+                        SET pg_orderby = ? WHERE pg_id = ?",
+                        array($order, $A['pg_id']),
+                        array(Database::INTEGER, Database::INTEGER)
+                    );
+                } catch (\Throwable $e) {
+                    // log the error but just keep going
+                    Log::write('system', Log::ERROR, $e->getMessage());
+                }
             }
             $order += $stepNumber;
         }
@@ -295,18 +335,20 @@ class PosGroup
             return '';
             break;
         }
-        $sql = "UPDATE {$_TABLES['membership_posgroups']}
-                SET pg_orderby = pg_orderby $sign 11
-                WHERE pg_id = '$id'";
-        //echo $sql;die;
-        DB_query($sql, 1);
-
-        if (!DB_error()) {
-            // Reorder fields to get them separated by 10
-            self::Reorder();
+        $db = Database::getInstance();
+        try {
+            $db->conn->executeUpdate(
+                "UPDATE {$_TABLES['membership_posgroups']}
+                SET pg_orderby = pg_orderby $sign 11 WHERE pg_id = '$id'",
+                array($id),
+                array(Database::INTEGER)
+            );
+            self::reOrder();
             $msg = '';
-        } else {
-            $msg = 5;
+        } catch (\Throwable $e) {
+            // log the error but just keep going
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $msg = '5';
         }
         return $msg;
     }
@@ -318,7 +360,7 @@ class PosGroup
      * @param   array   $A  Optional array, current values used if empty
      * @return  boolean     True on success, False on failure
      */
-    public function Save($A = array())
+    public function Save(?array $A = NULL) : bool
     {
         global $_TABLES;
 
@@ -326,28 +368,33 @@ class PosGroup
             $this->setVars($A, false);
         }
 
+        $db = Database::getInstance();
+        $qb = $db->conn->createQueryBuilder();
         if ($this->pg_id == 0) {
-            $sql1 = "INSERT INTO {$_TABLES['membership_posgroups']} SET ";
-            $sql3 = '';
+            $qb->insert($_TABLES['membership_posgroups']);
         } else {
-            $sql1 = "UPDATE {$_TABLES['membership_posgroups']} SET ";
-            $sql3 = " WHERE pg_id = {$this->pg_id}";
+            $qb->update($_TABLES['membership_posgroups'])
+               ->where('pg_id = :pg_id')
+               ->setParameter('pg_id', $this->pg_id, Database::INTEGER);
+        }
+        try {
+            $qb->set('pg_tag', ':pg_tag')
+               ->set('pg_title', ':pg_title')
+               ->set('pg_orderby', ':pg_orderby')
+               ->setParameter('pg_tag', $this->pg_tag, Database::STRING)
+               ->setParameter('pg_title', $this->pg_title, Database::STRING)
+               ->setParameter('pg_orderby', $this->pg_orderby, Database::STRING)
+               ->execute();
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            return false;
+        }
+        self::reOrder();
+        if ($this->isNew()) {
+            $this->pg_id = $db->conn->lastInsertId();
         }
 
-        $sql2 = "pg_tag = '" . DB_escapeString($this->pg_tag) . "',
-                pg_title = '" . DB_escapeString($this->pg_title) . "',
-                pg_orderby = {$this->pg_orderby}";
-        //echo $sql1 . $sql2 . $sql3;die;
-        DB_query($sql1 . $sql2 . $sql3, 1);
-        if (!DB_error()) {
-            if ($this->isNew()) {
-                $this->pg_id = (int)DB_insertID();
-            }
-            self::Reorder();
-            // Check and change group memberships if necessary
-            return true;
-        }
-        return false;
+        return true;
     }
 
 
@@ -358,17 +405,33 @@ class PosGroup
     {
         global $_TABLES;
 
-        $sql = "SELECT * FROM {$_TABLES['membership_positions']}
-            WHERE pg_id = {$pg_id}";
-        $res = DB_query($sql);
-        if ($res && DB_numRows($res) > 0) {
-            while ($A = DB_fetchArray($res, false)) {
-                $P = new Position($A);
-                $P->Delete();
-            }
+        $db = Database::getInstance();
+        try {
+            $data = $db->conn->executeQuery(
+                "SELECT * FROM {$_TABLES['membership_positions']}
+                WHERE pg_id = {$pg_id}",
+                array($pg_id),
+                array(Database::INTEGER)
+            )->fetch(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+            $data = array();
+        }
+
+        foreach ($data as $A) {
+            $P = new Position($A);
+            $P->Delete();
         }
         // Then delete the position group record
-        DB_delete($_TABLES['membership_posgroups'], 'pg_id', $pg_id);
+        try {
+            $db->conn->delete(
+                $_TABLES['membership_posgroups'],
+                array('pg_id' => $pg_id),
+                array(Database::INTEGER)
+            );
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, $e->getMessage());
+        }
     }
 
 

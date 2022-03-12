@@ -3,9 +3,9 @@
  * Upgrade routines for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.0
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -15,6 +15,7 @@
 global $_CONF, $_TABLES, $_UPGRADE_SQL;
 
 use Membership\Config;
+use glFusion\Log\Log;
 
 /** Include database definitions */
 require_once __DIR__ . '/sql/mysql_install.php';
@@ -129,7 +130,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
                     ($idx, '{$A['type']}', '{$A['type']}', $orderby)";
             }
         } else {
-            COM_errorLog("Membership 0.2.2, type column already converted");
+            Log::write('system', Log::ERROR, "Membership 0.2.2, type column already converted");
         }
         if (!_MEMBtableHasColumn('membership_plans', 'notify_exp')) {
             // If adding the notification count, change the existing flag values
@@ -195,9 +196,9 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
         $sql_err_msg .= ' - Ignored';
     }
     // Execute SQL now to perform the upgrade
-    COM_errorLog("--Updating Membership to version $version");
+    Log::write('system', Log::ERROR, "--Updating Membership to version $version");
     foreach ($_UPGRADE_SQL[$version] as $q) {
-        COM_errorLog("Membership Plugin $version update: Executing SQL => $q");
+        Log::write('system', Log::ERROR, "Membership Plugin $version update: Executing SQL => $q");
         DB_query($q, '1');
         if (DB_error()) {
             Membership\Logger::System($sql_err_msg, 1);
@@ -297,18 +298,23 @@ function _MEMB_remove_old_files()
             'templates/import_form.uikit.thtml',
             'templates/plan_form.uikit.thtml',
             'templates/position_form.uikit.thtml',
+            'membership_functions.inc.php',
+            // 1.0.0
+            'import_members.php',
         ),
         // public_html/membership
         $_CONF['path_html'] . 'membership' => array(
         ),
         // admin/plugins/membership
         $_CONF['path_html'] . 'admin/plugins/membership' => array(
+            // 1.0.0
+            'importsub.php',
         ),
     );
 
     foreach ($paths as $path=>$files) {
         foreach ($files as $file) {
-            COM_errorLog("removing $path/$file");
+            Log::write('error', Log::ERROR, "removing $path/$file");
             _MEMB_rmdir("$path/$file");
         }
     }

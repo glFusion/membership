@@ -1,15 +1,15 @@
 <?php
 /**
- *   Membership Application.
- *   Calls on the Forms plugin to provide a membership application
+ * Membership Application.
+ * Calls on the Forms plugin to provide a membership application
  *
- *   @author     Lee Garner <lee@leegarner.com>
- *   @copyright  Copyright (c) 2012 Lee Garner
- *   @package    membership
- *   @version    0.0.1
- *   @license    http://opensource.org/licenses/gpl-2.0.php
- *               GNU Public License v2 or later
- *   @filesource
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2022 Lee Garner
+ * @package     membership
+ * @version     v1.0.0
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
  */
 
 /** Import core glFusion libraries */
@@ -61,7 +61,7 @@ default:
 switch ($view) {
 case 'prt':
     // Create a printable view of the application
-    $content .= displayApp($uid);
+    $content = \Membership\App::getInstance($uid)->Display();
     if (empty($content)) {
         COM_404();
     } else {
@@ -72,7 +72,6 @@ case 'prt':
 
 case 'view':
 default:
-
     // Display the application within the normal glFusion site.
     $content .= \Membership\App::getInstance($uid)->Display();
     if (!empty($content)) {
@@ -95,23 +94,3 @@ $display .= $content;
 $display .= \Membership\Menu::siteFooter();
 echo $display;
 
-
-/**
- * Display the app form.
- *
- * @param   integer $uid    User ID being displayed.
- * @return  string      Content to display
- */
-function displayApp($uid = 0)
-{
-    global $_USER;
-
-    $content = \Membership\App::getInstance($uid)->Display();
-    if (empty($content)) {
-        COM_404();
-    } else {
-        return $content;
-    }
-}
-
-?>

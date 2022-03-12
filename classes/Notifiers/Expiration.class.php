@@ -5,8 +5,8 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.2
- * @since       v0.3.2
+ * @version     v1.0.0
+ * @since       v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -17,6 +17,7 @@ use Membership\Config;
 use Membership\Status;
 use Membership\Logger;
 use Membership\Cache;
+use glFusion\Database\Database;
 
 
 /**
@@ -42,28 +43,37 @@ class Expiration extends \Membership\BaseNotifier
             return;
         }
 
+        $db = Database::getInstance();
         // By default only active members are notified.
-        $stat = Status::ACTIVE;
-        $sql = "SELECT m.mem_uid, m.mem_notified, m.mem_expires, m.mem_plan_id,
-                u.email, u.username, u.fullname, u.language,
-                p.name, p.description
-            FROM {$_TABLES['membership_members']} m
-            LEFT JOIN {$_TABLES['membership_plans']} p
-                ON p.plan_id = m.mem_plan_id
-            LEFT JOIN {$_TABLES['users']} u
-                ON u.uid = m.mem_uid ";
-        if (!empty($this->uids)) {
-            // Force the notification and disregard the notification counter
-            $sql .= "WHERE m.mem_uid IN (" . implode(',', $this->uids) . ")";
-        } else {
-            // Get the members based on notification counter and expiration
-            $sql .= "WHERE m.mem_notified > 0
-            AND m.mem_expires < DATE_ADD(now(), INTERVAL (m.mem_notified * $interval) DAY)
-            AND m.mem_status IN ($stat)";
+        $stats = array(Status::ACTIVE);
+        $qb = $db->conn->createQueryBuilder();
+        try {
+            $qb->select(
+                'm.mem_uid', 'm.mem_notified', 'm.mem_expires', 'm.mem_plan_id',
+                'u.email', 'u.username', 'u.fullname', 'u.language',
+                'p.name', 'p.description'
+            )
+               ->from($_TABLES['membership_members'], 'm')
+            ->leftJoin('m', $_TABLES['membership_plans'], 'p', 'p.plan_id=m.mem_plan_id')
+            ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid');
+            if (!empty($this->uids)) {
+                // Force the notification and disregard the notification counter
+                $qb->where('m.mem_uid IN (:uids)')
+                   ->setParameter('uids', $this->uids, Database::PARM_INT_ARRAY);
+            } else {
+                // Get the members based on notification counter and expiration
+                $qb->where('m.mem_notified > 0')
+                   ->andWhere('m.mem_expires < DATE_ADD(now(), INTERVAL (m.mem_notified * :interval) DAY')
+                   ->andWhere('m.mem_status IN (:stat)');
+                   ->setParameter('interval', $interval, Database::INTEGER)
+                   ->setParameter('stat', $stats);
+            }
+            $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
+        } catch (\Throwable $e) {
+            Logger::System($e->getMessage());
+            $data = array();
         }
-        //Logger::System($sql);
-        $r = DB_query($sql);
-        if (!$r || DB_numRows($r) == 0) {
+        if (empty($data)) {
             return;
         }
 
@@ -84,7 +94,7 @@ class Expiration extends \Membership\BaseNotifier
         // members.
         $get_pmt_btn = true;
 
-        while ($row = DB_fetchArray($r, false)) {
+        foreach ($data as $A) {
             if (Config::get('notifymethod') & Membership::NOTIFY_EMAIL) {
                 // Create a notification email message.
                 $username = COM_getDisplayName($row['mem_uid']);
@@ -232,13 +242,16 @@ class Expiration extends \Membership\BaseNotifier
         // Mark that the expiration notification has been sent, if not forced
         // or triggered by Membership::Expires() or Membership::Arrears().
         if (!$this->is_manual && !empty($notified_ids)) {
-            $notified_ids = implode(',', $notified_ids);
-            $sql = "UPDATE {$_TABLES['membership_members']}
-                SET mem_notified = mem_notified - 1
-                WHERE mem_uid IN ($notified_ids)";
-            DB_query($sql, 1);
-            if (DB_error()) {
-                Logger::System("membership: error executing $sql");
+            try {
+                $db->conn->executeUpdate(
+                    "UPDATE {$_TABLES['membership_members']}
+                    SET mem_notified = mem_notified - 1
+                    WHERE mem_uid IN ($notified_ids)",
+                    array($notifed_ids)
+                    array(Database::PARAM_INT_ARRAY)
+                );
+            } catch (\Throwable $e) {
+                Logger::System("membership: error " . $e->getMessage());
             }
             Cache::clear('members');
         }
