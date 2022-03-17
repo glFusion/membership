@@ -191,6 +191,10 @@ $_UPGRADE_SQL = array(
           PRIMARY KEY (`uid`)
         ) ENGINE=MyISAM",
     ),
+    '1.0.0' => array(
+        "UPDATE {$_TABLES['membership_members']} SET mem_notified = mem_notified + 1
+            WHERE mem_notified > 0",
+    ),
 );
 
 $_MEMBERSHIP_SAMPLEDATA = array(

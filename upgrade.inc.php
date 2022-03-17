@@ -157,6 +157,18 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
 
+    if (!COM_checkVersion($current_ver, '1.0.0')) {
+        $current_ver = '1.0.0';
+        // Increase the notification count to include the final notification.
+        $not_count = (int)Config::get('notifycount');
+        if ($not_count > 0) {
+            Config::write('notifycount', $not_count + 1);
+        }
+        if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
+        if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
+    }
+
+
     // Final version update to catch updates that don't go through
     // any of the update functions, e.g. code-only updates
     if (!COM_checkVersion($current_ver, $installed_ver)) {

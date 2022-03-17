@@ -131,7 +131,7 @@ $membershipConfigData = array(
     // Number of notifications to send before expiration at "notifydays" interval
     array(
         'name' => 'notifycount',
-        'default_value' => '0',
+        'default_value' => '1',
         'type' => 'text',
         'subgroup' => 0,
         'fieldset' => 0,

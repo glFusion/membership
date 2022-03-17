@@ -6,6 +6,7 @@ Release TBD
 - Fix typo in application print popup.
 - Show notification interval on member editing page.
 - Deprecate import from Subscription plugin.
+- Include the final expiration count in notifycount.
 
 ## 0.3.1
 Release 2022-01-05
