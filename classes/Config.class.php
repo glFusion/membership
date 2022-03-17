@@ -125,5 +125,17 @@ final class Config
         }
     }
 
+
+    /**
+     * Write a value to the config table. Does not set a local property.
+     *
+     * @param   string  $key    Config key name
+     * @param   string  $val    Value
+     */
+    public function write($key, $val)
+    {
+        \config::get_instance()->set($key, $val, self::PI_NAME);
+    }
+
 }
 
