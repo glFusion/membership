@@ -90,8 +90,8 @@
 <!-- BEGIN FeeTable -->
                 <tr>
                     <td>{text}</td>
-                    <td><input style="text-align:right" type="text" name="fee[new][{counter}]" value="{new_fee}" /></td>
-                    <td><input style="text-align:right" type="text" name="fee[renew][{counter}]" value="{renew_fee}" /></td>
+                    <td><input class="uk-input uk-form-width-small" style="text-align:right" type="text" name="fee[new][{counter}]" value="{new_fee}" /></td>
+                    <td><input class="uk-input uk-form-width-small" style="text-align:right" type="text" name="fee[renew][{counter}]" value="{renew_fee}" /></td>
                 </tr>
 <!-- END FeeTable -->
             </table>
@@ -108,7 +108,7 @@
     </div>
     </fieldset>
 
-{!if has_members}
+{!if xfer_plan_select}
     <fieldset style="margin-top:20px">
     <legend>{$LANG_MEMBERSHIP['fs_deleteplan']}</legend>
     <div class="uk-form-row uk-margin">{$LANG_MEMBERSHIP['hlp_transfer_plan']}</div>

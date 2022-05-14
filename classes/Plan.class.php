@@ -3,7 +3,7 @@
  * Class to manage membership plans.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2011-2020 Lee Garner
+ * @copyright   Copyright (c) 2011-2022 Lee Garner
  * @package     membership
  * @version     1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
@@ -619,31 +619,14 @@ class Plan
         }
 
         if ($this->hasMembers()) {
-            $sel = '';
-            foreach (self::getPlans() as $P) {
-                if ($P->getPlanID() != $this->plan_id) {
-                    $sel .= '<option value="' . $P->getPlanID() . '">' . $P->getName() .
-                        '</option>' . LB;
-                }
-            }
-            $T->set_var(array(
-                'has_members'   => 'true',
-                'xfer_plan_select' => $sel,
-            ) );
+            // Add a selection to transfer members to another plan.
+            $T->set_var('xfer_plan_select', self::optionList(NULL, $this->plan_id));
         }
-
-        /*@setcookie(
-            $_CONF['cookie_name'].'fckeditor',
-            SEC_createTokenGeneral('advancededitor'),
-            time() + 1200, $_CONF['cookie_path'],
-            $_CONF['cookiedomain'],
-            $_CONF['cookiesecure']
-        );*/
 
         $retval .= $T->parse('output', 'product');
         $retval .= COM_endBlock();
         return $retval;
-    }   // function Edit()
+    }
 
 
     /**
@@ -1169,7 +1152,7 @@ class Plan
      *
      * @return  boolean     True if the integration is enabled, False if not.
      */
-    public static function ShopEnabled()
+    public static function ShopEnabled() : bool
     {
         global $_PLUGINS;
 
@@ -1193,7 +1176,7 @@ class Plan
      *
      * @return  boolean     True if purchase is allowed, False if not
      */
-    public function canPurchase()
+    public function canPurchase() : bool
     {
         return SEC_inGroup($this->grp_access);
     }
@@ -1284,48 +1267,33 @@ class Plan
         $pi_admin_url = Config::get('admin_url');
         switch($fieldname) {
         case 'edit':
-            $retval = COM_createLink(
-                Icon::getHTML('edit'),
-                Config::get('admin_url') . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
-            );
+            $retval = FieldList::edit(array(
+                'url' => Config::get('admin_url') . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
+            ) );
             break;
 
         case 'delete':
             // Deprecated
             if (!Plan::hasMembers($A['plan_id'])) {
-                $retval = COM_createLink(
-                    "<img src=\"{$_CONF['layout_url']}/images/admin/delete.png\"
-                    height=\"16\" width=\"16\" border=\"0\"
-                    onclick=\"return confirm('{$LANG_MEMBERSHIP['q_del_member']}');\"
-                    >",
-                    Config::get('admin_url') . '/index.php?deleteplan=x&plan_id=' .
-                    $A['plan_id']
-                );
+                $retval = FieldList::delete(array(
+                    'delete_url' => Config::get('admin_url') . '/index.php?deleteplan=x&plan_id=' .
+                        $A['plan_id'],
+                    'attr' => array(
+                        'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_member']}');",
+                    ),
+                ) );
             } else {
                 $retval = '';
             }
            break;
 
         case 'enabled':
-            if ($fieldvalue == 1) {
-                $chk = ' checked="checked" ';
-                $enabled = 1;
-            } else {
-                $chk = '';
-                $enabled = 0;
-            }
-            $retval = "<input name=\"{$fieldname}_{$A['plan_id']}\" " .
-                "id=\"{$fieldname}_{$A['plan_id']}\" ".
-                "type=\"checkbox\" $chk " .
-                "onclick='MEMB_toggle(this, \"{$A['plan_id']}\", \"plan\", \"{$fieldname}\", \"{$pi_admin_url}\");' />\n";
-            /* TODO: glFusion 2.0
             $retval = FieldList::checkbox(array(
                 'name' => "{$fieldname}_{$A['plan_id']}",
                 'id' => "{$fieldname}_{$A['plan_id']}",
                 'checked' => $fieldvalue == 1,
                 'onclick' => "MEMB_toggle(this, '{$A['plan_id']}', 'plan', '{$fieldname}', '{$pi_admin_url}');",
             ) );
-             */
             break;
 
         default:
@@ -1343,15 +1311,21 @@ class Plan
      * @param   string  $sel    Optional selected plan
      * @return  string      Option elements
      */
-    public static function optionList(?string $sel=NULL) : string
+    public static function optionList(?string $sel=NULL, ?string $exclude=NULL) : string
     {
         global $_TABLES;
 
+        if (!empty($exclude)) {
+            $where = "plan_id <> '" . DB_escapeString($exclude) . "'";
+        } else {
+            $where = '';
+        }
         return COM_optionList(
             $_TABLES['membership_plans'],
             'plan_id,name',
             $sel,
-            1
+            1,
+            $where
         );
     }
 
