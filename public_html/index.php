@@ -123,7 +123,10 @@ case 'editapp':
     if (!COM_isAnonUser()) {
         $F = Membership\App::getInstance($uid);
         if (!$F->isValidForm()) {
-            Membership\Logger::System("Membership: Application form invalid - " . print_r($F,true));
+            glFusion\Log\Log::write(
+                Config::PI_NAME, Log::ERROR,
+                "Membership: Application form invalid - " . print_r($F,true)
+            );
             COM_404();
             exit;
         }

@@ -20,10 +20,10 @@ use Membership\Membership;
 use Membership\Menu;
 use Membership\Position;
 use Membership\PosGroup;
-use Membership\Logger;
 use Membership\Models\Transaction;
 use Membership\Models\MemberNumber;
 use glFusion\Database\Database;
+use glFusion\Log\Log;
 
 // Make sure the plugin is installed and enabled
 if (!in_array('membership', $_PLUGINS)) {
@@ -33,7 +33,9 @@ if (!in_array('membership', $_PLUGINS)) {
 // Only let admin users access this page
 if (!MEMBERSHIP_isManager()) {
     // Someone is trying to illegally access this page
-    Logger::System("Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR",1);
+    Log::write('system', Log::ERROR,
+        "Someone has tried to illegally access the Membership Admin page.  User id: {$_USER['uid']}, Username: {$_USER['username']}, IP: $REMOTE_ADDR"
+    );
     COM_404();
     exit;
 }

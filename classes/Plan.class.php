@@ -411,7 +411,7 @@ class Plan
         $qb = $db->conn->createQueryBuilder();
         // Insert or update the record, as appropriate
         if ($this->isNew) {
-            Logger::debug('Preparing to save a new product.');
+            Log::write(Config::PI_NAME, Log::DEBUG, 'Preparing to save a new product.');
             $qb->insert($_TABLES['membership_plans']);
         } else {
             // Updating a plan.  Make sure that if the plan_id is changed it
@@ -430,7 +430,7 @@ class Plan
             $qb->update($_TABLES['membership_plans'])
                ->where('plan_id = :old_plan_id')
                ->setParameter('old_plan_id', $old_plan_id, Database::STRING);
-            Logger::debug('Preparing to update product id ' . $this->plan_id);
+            Log::write(Config::PI_NAME, Log::DEBUG, 'Preparing to update product id ' . $this->plan_id);
         }
 
         $price = number_format($this->price, 2, '.', '');
@@ -461,7 +461,7 @@ class Plan
             $status = 'Error Saving';
         }
 
-        Logger::debug('Status of last update: ' . print_r($status,true));
+        Log::write(Config::PI_NAME, Log::DEBUG, 'Status of last update: ' . print_r($status,true));
         $msg = $LANG_MEMBERSHIP['update_of_plan'] . ' ' . $this->plan_id . ' ';
         if (!$this->hasErrors()) {
             $retval = true;
@@ -535,10 +535,10 @@ class Plan
         }
 
         if ($this->hasErrors()) {
-            Logger::debug('Errors encountered: ' . print_r($this->Errors,true));
+            Log::write(Config::PI_NAME, Log::DEBUG, __METHOD__ . ': Errors encountered: ' . print_r($this->Errors,true));
             return false;
         } else {
-            Logger::debug('isValidRecord(): No errors');
+            Log::write(Config::PI_NAME, Log::DEBUG, __METHOD__ . ': No errors');
             return true;
         }
     }

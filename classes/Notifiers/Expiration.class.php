@@ -16,7 +16,6 @@ use Membership\Membership;
 use Membership\Config;
 use Membership\Status;
 use Membership\Cache;
-use Membership\Logger;
 use Membership\Notifiers\Popup;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
@@ -72,8 +71,8 @@ class Expiration extends \Membership\BaseNotifier
             }
             $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
         } catch (\Exception $e) {
-            Logger::System($e->getMessage());
-            $data = array();
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $data = false;
         }
         if (empty($data)) {
             return;

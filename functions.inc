@@ -56,7 +56,7 @@ Log::config(
         'type'  => 'file',
         'path'  => $_CONF['path_log'],
         'file'  => Config::PI_NAME . '.log',
-        'level' => $_CONF['log_level'],
+        'level' => Config::get('log_level'),
     )
 );
 
@@ -810,7 +810,7 @@ function plugin_user_create_membership($uid)
  */
 function plugin_user_delete_membership($uid)
 {
-    Membership\Logger::Audit(
+    Log::write(Config::PI_NAME, Log::INFO,
         'Membership deleted for user ' . $uid . ' (' .
         COM_getDisplayName($uid) . ') due to account deletion.'
     );

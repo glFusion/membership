@@ -313,6 +313,7 @@ function _MEMB_remove_old_files()
             'membership_functions.inc.php',
             // 1.0.0
             'import_members.php',
+            'classes/Logger.class.php',
         ),
         // public_html/membership
         $_CONF['path_html'] . 'membership' => array(
