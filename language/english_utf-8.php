@@ -21,8 +21,8 @@ $LANG_MEMBERSHIP = array(
 'new_plan'      => 'New Plan',
 'new_position'  => 'New Position',
 'new_pg'        => 'New Position Group',
-'list_plans'    => 'List Plans',
-'list_members'  => 'List Members',
+'list_plans'    => 'Plans',
+'list_members'  => 'Members',
 'plan_info'     => 'Plan Information',
 'plan_id'       => 'Plan ID',
 'plan'          => 'Plan',
@@ -221,6 +221,13 @@ $LANG_MEMBERSHIP = array(
 'at_x_interval' => 'at %d-day intervals',
 'no_import_grp' => 'No import group was provided.',
 'all' => 'All',
+'system_message' => 'System Message',
+);
+$LANG_MEMBERSHIP_PMTTYPES = array(
+    'check' => 'Check',
+    'cash' => 'Cash',
+    'cc' => 'Credit Card',
+    'transfer' => 'Transfer',
 );
 
 $LANG_MYACCOUNT['pe_membership'] = 'Membership';
@@ -335,4 +342,3 @@ $LANG_configselects['membership'] = array(
     20 => array('Disabled' => 0, 'Cart Only' => 1, 'Buy Now + Cart' => 2),
 );
 
-?>

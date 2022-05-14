@@ -3,9 +3,9 @@
  * Public API functions for the Membership plugin for glFusion.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.0
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -49,6 +49,16 @@ use glFusion\Database\Database;
 Config::set('pi_path', __DIR__ . '/');
 Config::set('url', $_CONF['site_url'] . '/' . Config::PI_NAME);
 Config::set('admin_url', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAME);
+
+Log::config(
+    Config::PI_NAME,
+    array(
+        'type'  => 'file',
+        'path'  => $_CONF['path_log'],
+        'file'  => Config::PI_NAME . '.log',
+        'level' => $_CONF['log_level'],
+    )
+);
 
 /** Include static plugin config values */
 require_once 'membership.php';
@@ -206,7 +216,7 @@ function plugin_enablestatechange_membership($enabled)
                 "UPDATE {$_TABLES['plugins']} SET pi_enabled = 0 WHERE pi_name = 'membership"
             );
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __FUNCTION__ . '(): ' . $e->getMessage());
         }
     }
     return $enabled;
@@ -231,7 +241,7 @@ function plugin_itemdeleted_membership($id, $type) : void
                 "UPDATE {$_TABLES['plugins']} SET pi_enabled = 0 WHERE pi_name = 'membership"
             );
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __FUNCTION__ . '(): ' . $e->getMessage());
         }
     }
 }
@@ -614,7 +624,7 @@ function MEMBERSHIP_groupSelection()
     try {
         $data = $db->conn->executeQuery($sql)->fetchAll(Database::ASSOCIATIVE);
     } catch (\Throwable $e) {
-        Log::write('system', Log::ERROR, $e->getMessage());
+        Log::write('system', Log::ERROR, __FUNCTION__ . '(): ' . $e->getMessage());
         $data = array();
     }
     foreach ($data as $A) {
@@ -784,12 +794,11 @@ function plugin_user_create_membership($uid)
 
     $uid = (int)$uid;
     if (empty($LANG_MEMBERSHIP['new_acct_msg']) || $uid < 3) return;
-    LGLIB_storeMessage(array(
-        'message' => $LANG_MEMBERSHIP['new_acct_msg'],
-        'uid' => $uid,
-        'persist' => true,
-        'use_sess_id' => false,
-    ) );
+    $Msg = new Membership\Notifiers\Popup;
+    $Msg->withUid($uid)
+        ->withMessage($LANG_MEMBERSHIP['new_acct_msg'])
+        ->withPersists(true)
+        ->store();
 }
 
 
@@ -831,7 +840,7 @@ function plugin_user_move_membership($origUID, $destUID) : void
                 array(Database::INTEGER, Database::INTEGER)
         );
     } catch (\Throwable $e) {
-        Log::write('system', Log::ERROR, $e->getMessage());
+        Log::write('system', Log::ERROR, __FUNCTION__ . '(): ' . $e->getMessage());
     }
 }
 
@@ -905,6 +914,36 @@ function plugin_autotags_membership($op, $content = '', $autotag = '')
 function plugin_wsEnabled_membership()
 {
     return true;
+}
+
+
+/**
+ * Set template variables.
+ * Puts any messages to be displayed into the lglib_messags
+ * template variable, if used, or appends them to the info_block
+ * variable that should be part of every header.thtml template.
+ *
+ * @param   string  $templatename   Name of template, e.g. 'header'
+ * @param   ref     $template       Reference to actual template
+ */
+function plugin_templateSetVars_membership($templatename, &$template)
+{
+    static $messages = NULL;
+
+    // Get messages to display to the user and put them in the template
+    // This can be called more than once per page display, so load
+    // the messages only once.
+    if ($templatename == 'footer') {
+        // Have to do this during the 'footer' template to make sure it's
+        // only done once.
+        if ($messages === NULL) {
+            $messages = Membership\Notifiers\Popup::showAll();
+        }
+        if (!empty($messages)) {
+            $info_block = $template->get_var('info_block') . $messages;
+            $template->set_var('info_block', $info_block);
+        }
+    }
 }
 
 

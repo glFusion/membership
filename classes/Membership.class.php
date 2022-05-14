@@ -11,6 +11,9 @@
  * @filesource
  */
 namespace Membership;
+use Membership\Notifiers\Popup;
+use Membership\Models\Transaction;
+use Membership\Models\MemberNumber;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 
@@ -37,7 +40,6 @@ class Membership
     const NOTIFY_MESSAGE = 2;
     const NOTIFY_BOTH = 3;
 
-    // Message code for expiring messags, used by LGLIB_setMsg()
     const MSG_EXPIRING_CODE = 'memb_msg_expiring';
 
     /** Plan ID.
@@ -160,8 +162,8 @@ class Membership
             array(Database::INTEGER)
         )->fetch(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
-            $data = array();
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $data = false;
         }
         if (is_array($data) && !empty($data)) {
             $this->setVars($data);
@@ -379,7 +381,7 @@ class Membership
      */
     public function EditForm($action_url = '')
     {
-        global $_CONF, $_TABLES, $LANG_MEMBERSHIP;
+        global $_CONF, $_TABLES, $LANG_MEMBERSHIP, $LANG_MEMBERSHIP_PMTTYPES;
 
         $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file(array(
@@ -387,6 +389,7 @@ class Membership
             'tips' => 'tooltipster.thtml',
             'js' => 'editmember_js.thtml',
         ) );
+
         $T->set_var(array(
             'my_uid'    => $this->uid,
             'joined'    => $this->joined,
@@ -406,14 +409,23 @@ class Membership
             'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
             'lang_x_interval' => sprintf($LANG_MEMBERSHIP['at_x_interval'], Config::get('notifydays')),
         ) );
-        $T->set_block('editmember', 'expToSend', 'expTS');
 
+        $T->set_block('editmember', 'expToSend', 'expTS');
         for ($i = 0; $i <= Config::get('notifycount'); $i++) {
             $T->set_var(array(
                 'notify_val' => $i,
                 'sel' => $i == $this->notified ? 'selected="selected"' : '',
             ) );
             $T->parse('expTS', 'expToSend', true);
+        }
+
+        $T->set_block('editmember', 'pmttype_block', 'pt_blk');
+        foreach ($LANG_MEMBERSHIP_PMTTYPES as $key=>$val) {
+            $T->set_var(array(
+                'pmt_key' => $key,
+                'pmt_name' => $val,
+            ) );
+            $T->parse('pt_blk', 'pmttype_block', true);
         }
 
         if ($this->Plan) {
@@ -493,17 +505,19 @@ class Membership
             }
             $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
-            $data = array();
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $data = false;
         }
 
         $T->set_block('editmember', 'linkSelect', 'linksel');
-        foreach ($data as $A) {
-            $T->set_var(array(
-                'link_id'   => $A['uid'],
-                'link_name' => empty($A['fullname']) ? $A['username'] : $A['fullname'],
-            ) );
-            $T->parse('linksel', 'linkSelect', true);
+        if (is_array($data)) {
+            foreach ($data as $A) {
+                $T->set_var(array(
+                    'link_id'   => $A['uid'],
+                    'link_name' => empty($A['fullname']) ? $A['username'] : $A['fullname'],
+                ) );
+                $T->parse('linksel', 'linkSelect', true);
+            }
         }
         $T->parse('editmember_js', 'js');
         $T->parse('tooltipster_js', 'tips');
@@ -518,13 +532,16 @@ class Membership
      * @param   array   $A      Optional array of values to set
      * @return  boolean     Status, true for success, false for failure
      */
-    public function Save($A = '')
+    public function Save(?array $A = NULL) : bool
     {
         global $_TABLES;
 
         $db = Database::getInstance();
         $old_status = $this->status;  // track original status
-        if (is_array($A) && !empty($A)) {
+        if (!is_array($A)) {
+            $A = array();
+        }
+        if (!empty($A)) {
             if (isset($A['mem_plan_id']) && $A['mem_plan_id'] == '') {
                 // remove membership, leave record
                 $this->Cancel();
@@ -610,11 +627,11 @@ class Membership
             // Include trailing comma, be sure to place it appropriately in
             // the sql statement that follows
             if (
-                Config::get('use_mem_number') &&
+                Config::get('use_mem_number') == MemberNumber::AUTOGEN &&
                 $this->isNew &&
                 $this->mem_number == ''
             ) {
-                $this->mem_number = self::createMemberNumber($key);
+                $this->mem_number = MemberNumber::create($key);
             }
 
             try {
@@ -639,7 +656,7 @@ class Membership
                     ->setParameter('mem_notified', $this->notified, Database::INTEGER)
                     ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
                     ->execute();
-                    Logger::Audit("Member {$this->uid} " . COM_getDisplayName($this->uid) . " created.");
+                    Log::write(Config::PI_NAME, Log::INFO, "Member {$this->uid} " . COM_getDisplayName($this->uid) . " created.");
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
                 try {
                     $qb = $db->conn->createQueryBuilder();
@@ -663,13 +680,12 @@ class Membership
                        ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
                        ->where('mem_uid = :mem_uid')
                        ->execute();
-                    Logger::Audit("Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated.");
+                    Log::write(Config::PI_NAME, Log::INFO, "Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated.");
                 } catch (\Throwable $e) {
-                    Log::write('system', Log::ERROR, $e->getMessage());
+                    Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
                 } 
             } catch (\Throwable $e) {
-                Logger::System(__CLASS__ . '::Save() sql error: ' . $e->getMessage());
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
             }
 
             // Add the member to the groups if the status has changed,
@@ -678,7 +694,7 @@ class Membership
             // runScheduledTask
             if ($need_membership_update) {
                 if ($this->status == Status::ACTIVE && $need_membership_update) {
-                    Logger::debug("membership:: Adding user $key to group " . Config::get('member_group'));
+                    Log::write('system', Log::DEBUG, "membership:: Adding user $key to group " . Config::get('member_group'));
                     USER_addGroup(Config::get('member_group'), $key);
                 }
                 self::updatePlugins(array($key), $old_status, $this->status);
@@ -689,19 +705,22 @@ class Membership
         // log the transaction info.
         // This only logs transactions for profile updates; Shop
         // transactions are logged by the handlePurchase service function.
-        if (!empty($pmt_type) || $pmt_amt > 0 || $quickrenew == 1) {
-            $this->addTrans(
-                $A['mem_pmttype'],
-                $A['mem_pmtamt'],
-                $A['mem_pmtdesc']
-            );
-        }
+        /*if (!empty($pmt_type) || $pmt_amt > 0 || $quickrenew == 1) {
+            $Txn = new Transaction;
+            $Txn->withGateway($A['mem_pmttype'])
+                ->withUid($this->uid)
+                ->withPlanId($this->Plan->getPlanID())
+                ->withAmount((float)$A['mem_pmtamt'])
+                ->withTxnId($A['mem_pmtdesc'])
+                ->withExpiration($this->expires)
+                ->save();
+        }*/
 
         // Remove the renewal popup message
-        LGLIB_deleteMessage($this->uid, self::MSG_EXPIRING_CODE);
+        Popup::deleteOne($this->uid, self::MSG_EXPIRING_CODE);
         Cache::clear('members');
         return true;
-    }   // function Save
+    }
 
 
     /**
@@ -761,7 +780,7 @@ class Membership
                     array(Database::INTEGER, Database::PARAM_INT_ARRAY)
                 );
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
             }
             self::updatePlugins($update_keys, $old_status, $new_status);
         }
@@ -799,7 +818,7 @@ class Membership
             }
             $qb->execute();
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
         }
         $this->Expire($cancel_relatives, false);
     }
@@ -877,18 +896,22 @@ class Membership
      * @param   integer $joined     Date joined
      * @return  mixed       Expiration date, or false in case of error
      */
-    public function Add($uid = '', $plan_id = '', $exp = '', $joined = '')
+    //public function Add($uid = '', $plan_id = '', $exp = '', $joined = '')
+    public function Add(Transaction $Txn) : bool
     {
-        if ($uid != '') {
+        /*if ($uid != '') {
             $this->Read($uid);
-        }
+        }*/
+
+        $plan_id = $Txn->getPlanId();
         if (!empty($plan_id)) {
             $this->plan_id = $plan_id;
-            $this->Plan = new Plan($plan_id);
+            $this->Plan = Plan::getInstance($plan_id);
         }
         if ($this->Plan->getPlanID() == '') {
             return false;       // invalid plan requested
         }
+
         $this->notified = 0;
         $this->status = Status::ACTIVE;
         $this->istrial = 0;
@@ -900,6 +923,9 @@ class Membership
         if ($joined != '') $this->joined = $joined;
         $this->paid = Dates::Today();
         if ($this->Save()) {
+            $Txn->withExpiration($this->expires)
+                ->withUid($this->uid)
+                ->save();
             return $this->expires;
         } else {
             return false;
@@ -969,11 +995,13 @@ class Membership
                         array(Database::INTEGER)
                 )->fetchAll(Database::ASSOCIATIVE);
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
-                $data = array();
+                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+                $data = false;
             }
-            foreach ($data as $A) {
-                $positions[] = $A['descr'];
+            if (is_array($data)) {
+                foreach ($data as $A) {
+                    $positions[] = $A['descr'];
+                }
             }
         }
         $position = implode(', ', $positions);
@@ -1052,7 +1080,7 @@ class Membership
                 array(Database::STRING, Database::STRING)
             );
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
             return false;
         }
         return true;
@@ -1130,23 +1158,24 @@ class Membership
      * @param   array   $args   Array of arguments
      * @return  boolean     True on success, False on failure
      */
-    public function Renew($args = array())
+    public function Renew(Transaction $Txn) : bool
     {
-        if (!$this->istrial && $this->Plan !== NULL && !$this->isNew) {
-            $this->expires = isset($args['exp']) ? $args['exp'] :
-                    Dates::calcExpiration($this->expires);
-            // Set the plan ID so this isn't seen as a cancellation by Save()
-            if (!isset($args['mem_plan_id'])) {
-                $args['mem_plan_id'] = $this->plan_id;
-            }
-            $args['mem_expires'] = $this->expires;
-            $args['mem_quickrenew'] = 1;
-            $this->notified = (int)Config::get('notifycount');
-            $this->Save($args);
-            return true;
-        } else {
+        if ($this->istrial || $this->Plan !== NULL || !$this->isNew) {
             return false;
         }
+
+        $this->expires = isset($args['exp']) ? $args['exp'] :
+                Dates::calcExpiration($this->expires);
+        if (isset($args['mem_plan_id']) && $args['mem_plan_id'] != $this->plan_id) {
+            // if this is a different plan ID, re-read the Plan object
+            $this->plan_id = $args['mem_plan_id'];
+            $this->Plan = Plan::getInstance($this->plan_id);
+        }
+        $this->notified = (int)Config::get('notifycount');
+        $Txn->withPlanId($this->plan_id)
+            ->withExpiration($this->expires)
+            ->save();
+        return $this->Save();
     }
 
 
@@ -1176,7 +1205,7 @@ class Membership
                 array(Database::INTEGER)
             );
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
         }
         Cache::clear('members');     // Make sure members and links are cleared
         $this->_disableAccount();
@@ -1192,7 +1221,7 @@ class Membership
      * @param   string  $dt         Optional date, now() used if empty
      * @param   integer $by         Optional user ID, -1 for system gateway
      */
-    public function addTrans($gateway, $amt, string $txn_id='', ?string $dt=NULL, ?int $by=NULL)
+    public function XaddTrans($gateway, $amt, string $txn_id='', ?string $dt=NULL, ?int $by=NULL) : void
     {
         global $_TABLES, $_USER, $_CONF;
 
@@ -1215,17 +1244,17 @@ class Membership
                ->setValue('tx_amt', ':tx_amt')
                ->setValue('tx_exp', ':tx_exp')
                ->setValue('tx_txn_id', ':tx_txn_id')
-               ->setParam('tx_date', $now, Database::STRING)
-               ->setParam('tx_by', $by, Database::INTEGER)
-               ->setParam('tx_uid', $this->uid, Database::INTEGER)
-               ->setParam('tx_planid', $$this->Plan->getPlanID(), Database::STRING)
-               ->setParam('tx_gw', $gateway, Database::STRING)
-               ->setParam('tx_amt', $amt, Database::INTEGER)
-               ->setParam('tx_exp', $this->expires, Database::STRING)
-               ->setParam('tx_txn_id', $txn_id, Database::STRING)
+               ->setParameter('tx_date', $now, Database::STRING)
+               ->setParameter('tx_by', $by, Database::INTEGER)
+               ->setParameter('tx_uid', $this->uid, Database::INTEGER)
+               ->setParameter('tx_planid', $$this->Plan->getPlanID(), Database::STRING)
+               ->setParameter('tx_gw', $gateway, Database::STRING)
+               ->setParameter('tx_amt', $amt, Database::INTEGER)
+               ->setParameter('tx_exp', $this->expires, Database::STRING)
+               ->setParameter('tx_txn_id', $txn_id, Database::STRING)
                ->execute();
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
         }
     }
 
@@ -1246,7 +1275,9 @@ class Membership
             return;
         }
 
-        PLG_itemSaved('membership:' . $uid, Config::PI_NAME);
+        foreach ($uids as $uid) {
+            PLG_itemSaved('membership:' . $uid, Config::PI_NAME);
+        }
 
         // Update the image quota in mediagallery.
         // Mediagallery doesn't have a service function, have to update the
@@ -1299,7 +1330,7 @@ class Membership
                                     array(Database::INTEGER, Database::INTEGER)
                                 );
                             } catch (\Throwable $e) {
-                                Log::write('system', Log::ERROR, $e->getMessage());
+                                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
                             }
                         }
                     }
@@ -1314,10 +1345,11 @@ class Membership
      * Calls CUSTOM_createMemberNumber() if defined, otherwise
      * uses sprintf() and the member's uid to create the ID.
      *
+     * @deprecated
      * @param   integer $uid    User ID or other numeric key
      * @return  string          Membership number
      */
-    public static function createMemberNumber($uid)
+    public static function XcreateMemberNumber($uid)
     {
         if (function_exists('CUSTOM_createMemberNumber')) {
             $retval = CUSTOM_createMemberNumber($uid);
@@ -1382,7 +1414,7 @@ class Membership
                     array(Database::INTEGER, Database::INTEGER)
                 );
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
             }
         }
     }
@@ -1469,17 +1501,17 @@ class Membership
 
         $Mem1 = self::getInstance($uid1);
         if ($Mem1->isNew()) {
-            Logger::System("Cannot link user $uid2 to nonexistant membership for $uid1");
+            Log::write('system', Log::ERROR, __METHOD__ . "(): Cannot link user $uid2 to nonexistant membership for $uid1");
             return false;
         } elseif (!$Mem1->getPlan()->isFamily()) {
-            Logger::System("Cannot link $uid2 to a non-family plan");
+            Log::write('system', Log::ERROR, __METHOD__ . "(): Cannot link $uid2 to a non-family plan");
             return false;
         }
 
         $Mem2 = self::getInstance($uid2);
         if ($Mem2->isNew()) {
-            if (Config::get('use_mem_number')) {
-                $mem_number = self::createMemberNumber($uid2);
+            if (Config::get('use_mem_number') == MemberNumber::AUTOGEN) {
+                $mem_number = MemberNumber::create($uid2);
             } else {
                 $mem_number = '';
             }
@@ -1514,13 +1546,13 @@ class Membership
                  ->bindValue('notified', $Mem1->expToSend()(), Database::INTEGER)
                  ->bindValue('istrial', $Mem1->isTrial()(), Database::INTEGER);
             $stmt->executeUpdate();
-        } catch (\Throwable $e) {
-            Logger::System(__CLASS__ . "/addLink() error: " . $e->getMessage());
+        } catch (\Exception $e) {
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             return false;
         }
-         Logger::Audit("Member $uid linked to member $uid1");
-         Cache::clear('members');
-         return true;
+        Log::write(Config::PI_NAME, Log::INFO , "Member $uid linked to member $uid1");
+        Cache::clear('members');
+        return true;
     }
 
 
@@ -1549,10 +1581,10 @@ class Membership
                 array(Database::STRING, Database::INTEGER)
             );
         } catch (\Throwable $e) {
-            Logger::System(__CLASS__ . '/' . __FUNCTION__ . " error: " . $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             return false;
         }
-        Logger::Audit("Member $uid links removed");
+        Log::write('system', Log::INFO, "Member $uid links removed");
         Cache::clear('members');
         return true;
     }
@@ -1586,14 +1618,16 @@ class Membership
                     AND m.mem_uid <> ?",
                     array($this->guid, $this->uid),
                     array(Database::STRING, Database::INTEGER)
-                )->fetchAll(Databae::ASSOCIATIVE);
+                )->fetchAll(Database::ASSOCIATIVE);
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
-                $data = array();
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+                $data = false;
             }
-            foreach ($data as $A) {
-                $relatives[$A['mem_uid']] = empty($A['fullname']) ?
-                    $A['username'] : $A['fullname'];
+            if (is_array($data)) {
+                foreach ($data as $A) {
+                    $relatives[$A['mem_uid']] = empty($A['fullname']) ?
+                        $A['username'] : $A['fullname'];
+                }
             }
             Cache::set($cache_key, $relatives, 'members');
         }
@@ -1625,8 +1659,8 @@ class Membership
                 array(Database::INTEGER, Database::INTEGER, Database::STRING)
             )->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
-            $rAll = array();
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $rAll = false;
         }
 
         $T = new \Template(Config::get('pi_path') . 'templates');
@@ -1635,21 +1669,23 @@ class Membership
         $tot_current = 0;
         $tot_arrears = 0;
         $gtotal = 0;
-        foreach ($rAll as $A) {
-            $T->set_block('stats', 'statrow', 'srow');
-            $linetotal = $A['active'] + $A['arrears'];
-            $tot_current += $A['active'];
-            $tot_arrears += $A['arrears'];
-            $gtotal += $linetotal;
-            $T->set_var(array(
-                'plan'          => $A['mem_plan_id'],
-                'plan_url'      => Config::get('admin_url') .
-                    '/index.php?listmembers&plan=' . $A['mem_plan_id'],
-                'num_current'   => $A['active'],
-                'num_arrears'   => $A['arrears'],
-                'line_total'    => $linetotal,
-            ) );
-            $T->parse('srow', 'statrow', true);
+        if (is_array($rAll)) {
+            foreach ($rAll as $A) {
+                $T->set_block('stats', 'statrow', 'srow');
+                $linetotal = $A['active'] + $A['arrears'];
+                $tot_current += $A['active'];
+                $tot_arrears += $A['arrears'];
+                $gtotal += $linetotal;
+                $T->set_var(array(
+                    'plan'          => $A['mem_plan_id'],
+                    'plan_url'      => Config::get('admin_url') .
+                        '/index.php?listmembers&plan=' . $A['mem_plan_id'],
+                    'num_current'   => $A['active'],
+                    'num_arrears'   => $A['arrears'],
+                    'line_total'    => $linetotal,
+                ) );
+                $T->parse('srow', 'statrow', true);
+            }
         }
         $T->set_var(array(
             'tot_current'   => $tot_current,
@@ -1756,7 +1792,7 @@ class Membership
                 Dates::expGraceEnded()
             );
         }
-        if (isset($_REQUEST['plan'])) {
+        if (isset($_REQUEST['plan']) && !empty($_REQUEST['plan'])) {
             $sel_plan = DB_escapeString($_REQUEST['plan']);
             $exp_query .= " AND plan_id = '$sel_plan'";
         } else {
@@ -1775,6 +1811,8 @@ class Membership
             'query_fields' => array('u.fullname', 'u.email'),
             'default_filter' => '',
         );
+//            echo $query_arr['sql'];die;
+
         $text_arr = array(
             'has_extras' => true,
             'form_url'  => Config::get('admin_url') . '/index.php?listmembers',
@@ -1822,7 +1860,7 @@ class Membership
                 '&nbsp;&nbsp;' . $notify_action,
         );
 
-        if (Config::get('use_mem_number') == 2) {
+        if (Config::get('use_mem_number') == MemberNumber::AUTOGEN) {
             $options['chkactions'] .= FieldList::regenButton(array(
                 'name' => 'regenbutton',
                 'text' => $LANG_MEMBERSHIP['regen_mem_numbers'],
@@ -1831,11 +1869,14 @@ class Membership
                 ),
             ) );
         }
+        $extra = array(
+            'showexp' => isset($_POST['show_exp']),
+        );
         $form_arr = array();
         $retval .= ADMIN_list(
             'membership_memberlist',
             array(__CLASS__, 'getAdminField'),
-            $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
+            $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, $extra,
             $options, $form_arr
         );
         return $retval;
@@ -1851,7 +1892,7 @@ class Membership
      * @param  array   $icon_arr   Array of system icons
      * @return string              HTML for the field cell
      */
-    public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
+    public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr, $extra = array()) : string
     {
         global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP, $_TABLES, $LANG_ADMIN;
 
@@ -1860,7 +1901,7 @@ class Membership
 
         switch($fieldname) {
         case 'edit':
-            $showexp = isset($_POST['showexp']) ? '&amp;showexp' : '';
+            $showexp = $extra['showexp'] ? '&amp;showexp' : '';
             $retval = FieldList::edit(array(
                 'url' => Config::get('admin_url') . '/index.php?editmember=' . $A['mem_uid'] . $showexp,
             ) );
@@ -1875,11 +1916,6 @@ class Membership
                     'class' => 'tooltip',
                 )
             ) );
-            break;
-
-        case 'tx_fullname':
-            $retval = COM_createLink($fieldvalue,
-                Config::get('admin_url') . '/index.php?listtrans&amp;uid=' . $A['tx_uid']);
             break;
 
         case 'fullname':
@@ -1915,32 +1951,6 @@ class Membership
         case 'email':
             $retval = empty($fieldvalue) ? '' :
                 "<a href=\"mailto:$fieldvalue\">$fieldvalue</a>";
-            break;
-
-        case 'tx_by':
-            if ($fieldvalue == 0) {
-                $retval = $LANG_MEMBERSHIP['system_task'];
-            } else {
-                $retval = COM_getDisplayName($fieldvalue);
-            }
-            break;
-
-        case 'tx_txn_id':
-            $non_gw = array('', 'cc', 'check', 'cash');
-            $retval = $fieldvalue;
-            if (!empty($fieldvalue) && !in_array($A['tx_gw'], $non_gw)) {
-                $status = LGLIB_invokeService(
-                    'shop', 'getUrl',
-                    array(
-                        'id'    => $fieldvalue,
-                        'type'  => 'order',
-                    ),
-                    $output, $svc_msg
-                );
-                if ($status == PLG_RET_OK) {
-                    $retval = COM_createLink($fieldvalue, $output);
-                }
-            }
             break;
 
         default:
@@ -1995,107 +2005,6 @@ class Membership
 
 
     /**
-     * List transactions.
-     *
-     * @return  string  HTML output for the page
-     */
-    public static function listTrans()
-    {
-        global $_TABLES, $LANG_MEMBERSHIP, $_CONF;
-
-        $tx_from = MEMB_getVar($_POST, 'tx_from');
-        if (!empty($tx_from)) {
-            $from_sql = "AND tx_date >= '" . DB_escapeString($tx_from . ' 00:00:00') . "'";
-        } else {
-            $tx_from = '';
-            $from_sql = '';
-        }
-        $tx_to = MEMB_getVar($_POST, 'tx_to');
-        if (!empty($tx_to)) {
-            $to_sql = "AND tx_date <= '" . DB_escapeString($tx_to . ' 23:59:59') . "'";
-        } else {
-            $tx_to = '';
-            $to_sql = '';
-        }
-        $uid = MEMB_getVar($_GET, 'uid', 'integer');
-        if ($uid > 0) {
-            $user_sql = 'AND tx_uid = ' . (int)$_GET['uid'];
-        } else {
-            $user_sql = '';
-        }
-
-        $query_arr = array(
-            'table' => 'membership_trans',
-            'sql' => "SELECT tx.*, u.fullname as tx_fullname
-                FROM {$_TABLES['membership_trans']} tx
-                LEFT JOIN {$_TABLES['users']} u
-                    ON u.uid = tx.tx_uid
-                WHERE 1=1 $from_sql $to_sql $user_sql",
-            'query_fields' => array('u.fullname'),
-            'default_filter' => '',
-        );
-        $defsort_arr = array(
-            'field' => 'tx_date',
-            'direction' => 'DESC',
-        );
-        $text_arr = array(
-            'has_extras' => true,
-            'form_url'  => Config::get('admin_url') . '/index.php?listtrans',
-        );
-        $tx_from = MEMB_getVar($_POST, 'tx_from');
-        $tx_to = MEMB_getVar($_POST, 'tx_to');
-        $filter = $LANG_MEMBERSHIP['from'] .
-            ': <input id="f_tx_from" type="text" size="10" name="tx_from" data-uk-datepicker value="' . $tx_from . '" />&nbsp;' .
-            $LANG_MEMBERSHIP['to'] .
-            ': <input id="f_tx_to" type="text" size="10" name="tx_to" data-uk-datepicker value="' . $tx_to . '" />';
-        $header_arr = array(
-            array(
-                'text' => $LANG_MEMBERSHIP['date'],
-                'field' => 'tx_date',
-                'sort' => true,
-            ),
-            array(
-                'text' => $LANG_MEMBERSHIP['entered_by'],
-                'field' => 'tx_by',
-                'sort' => true,
-            ),
-            array(
-                'text' => $LANG_MEMBERSHIP['member_name'],
-                'field' => 'tx_fullname',
-                'sort' => true,
-            ),
-            array(
-                'text' => $LANG_MEMBERSHIP['plan'],
-                'field' => 'tx_planid',
-                'sort' => true,
-            ),
-            array(
-                'text' => $LANG_MEMBERSHIP['expires'],
-                'field' => 'tx_exp',
-                'sort' => true,
-            ),
-            array(
-                'text' => $LANG_MEMBERSHIP['pmt_method'],
-                'field' => 'tx_gw',
-                'sort' => true,
-            ),
-            array(
-                'text' => $LANG_MEMBERSHIP['txn_id'],
-                'field' => 'tx_txn_id',
-                'sort' => true,
-            ),
-        );
-        $form_arr = array();
-        return ADMIN_list(
-            'membership_listtrans',
-            array(__CLASS__, 'getAdminField'),
-            $header_arr, $text_arr, $query_arr, $defsort_arr, $filter, '',
-            '', $form_arr
-        );
-    }
-
-
-    /**
      * Expire memberships that have not been renewed within the grace period.
      */
     public static function batchExpire()
@@ -2117,19 +2026,22 @@ class Membership
                ->execute()
                ->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
-            $data = array();
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $data = false;
         }
-        foreach ($data as $A) {
-            self::getInstance($A['mem_uid'])->Expire(true);
-            Logger::Audit(
-                sprintf(
-                    $LANG_MEMBERSHIP['log_expired'],
-                    $A['mem_uid'],
-                    $A['fullname']
-                ),
-                true
-            );
+        if (is_array($data)) {
+            foreach ($data as $A) {
+                self::getInstance($A['mem_uid'])->Expire(true);
+                Log::write(
+                    Config::PI_NAME,
+                    Log::INFO,
+                    sprintf(
+                        $LANG_MEMBERSHIP['log_expired'],
+                        $A['mem_uid'],
+                        $A['fullname']
+                    )
+                );
+            }
         }
     }
 
@@ -2156,19 +2068,22 @@ class Membership
                ->execute()
                ->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
-            $data = array();
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $data = false;
         }
-        foreach ($data as $A) {
-            self::getInstance($row['mem_uid'])->Arrears(true);
-            Logger::Audit(
-                sprintf(
-                    $LANG_MEMBERSHIP['log_arrears'],
-                    $A['mem_uid'],
-                    $A['fullname']
-                ),
-                true
-            );
+        if (is_array($data)) {
+            foreach ($data as $A) {
+                self::getInstance($row['mem_uid'])->Arrears(true);
+                Log::write(
+                    Config::PI_NAME,
+                    Log::INFO,
+                    sprintf(
+                        $LANG_MEMBERSHIP['log_arrears'],
+                        $A['mem_uid'],
+                        $A['fullname']
+                    )
+                );
+            }
         }
     }
 
@@ -2178,7 +2093,7 @@ class Membership
      */
     public static function batchPurge()
     {
-        global $_TABLES;
+        global $_TABLES, $LANG_MEMBERSHIP;
 
         $days = (int)Config::get('drop_days');
         if ($days < 0) {
@@ -2196,12 +2111,13 @@ class Membership
             );
             $num = $stmt->rowCount();
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $num = 0;
         }
-        Logger::Audit(
-            sprintf($LANG_MEMBERSHIP['log_purged'], $num, $days),
-            true
+        Log::write(
+            Config::PI_NAME,
+            Log::INFO,
+            sprintf($LANG_MEMBERSHIP['log_purged'], $num, $days)
         );
     }
 

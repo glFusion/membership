@@ -5,9 +5,9 @@
  * as the Shop plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2016 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     0.1.1
+ * @version     1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -21,10 +21,11 @@ use Membership\Config;
 use Membership\Status;
 use Membership\Plan;
 use Membership\Membership;
-use Membership\Logger;
 use Membership\Dates;
-use Membership\Models\ProductInfo;
 use Membership\FieldList;
+use Membership\Models\ProductInfo;
+use Membership\Models\Transaction;
+use Membership\Models\MemberNumber;
 use glFusion\Log\Log;
 use glFusion\Database\Database;
 
@@ -133,14 +134,12 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     // Retrieve or create a membership record.
     $M = new Membership($uid);
 
-    if ($M->getPlanID() != $id[1]) {
-        // Changed membership plans
-        $M->setPlan($id[1]);
-    }
+    $oldPlanID = $M->getPlanID();
+    $newPlanID = $id[1];
 
-    if ($M->getPlan() === NULL && Config::get('use_mem_number') == 2) {
-        // New member, apply membership number if configured
-        $M->setMemNumber(Membership::createMemberNumber($uid));
+    if ($oldPlanID != $newPlanID) {
+        // Changed membership plans
+        $M->setPlan($newPlanId);
     }
 
     if (!SEC_inGroup($M->getPlan()->getGrpAccess(), $uid)) {
@@ -148,9 +147,14 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         return PLG_RET_NOACCESS;
     }
 
+    if ($oldPlanId === NULL && Config::get('use_mem_number') == MemberNumber::AUTOGEN) {
+        // New member, apply membership number if configured
+        $M->setMemNumber(MemberNumber::create($uid));
+    }
+
     $amount = (float)$ipn_data['pmt_gross'];
     if ($amount < $M->Price()) {    // insufficient funds
-        Logger::Audit('Insufficient funds for membership - ' . $ipn_data['txn_id'], true);
+        Log::write(Config::PI_NAME, Log::WARNING, 'Insufficient funds for membership - ' . $ipn_data['txn_id']);
         return PLG_RET_ERROR;
     }
 
@@ -163,19 +167,24 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         'price' =>  $amount,
     ));
 
-    Logger::Audit(
-        'Processing membership for ' . COM_getDisplayName($uid) . "($uid), plan {$id[1]}", true
+    Log::write(
+        Config::PI_NAME,
+        Log::INFO,
+        'Processing membership for ' . COM_getDisplayName($uid) . "($uid), plan {$newPlanID}"
     );
+
     if ($uid > 1) {
-        $status = $M->Add($uid, $M->getPlanID());
+        // Valid user ID, create a transaction and update the membership
+        $Txn = new Transaction;
+        $Txn->withGateway($ipn_data['gw_name'])
+            ->withPlanId($newPlanID)
+            ->withAmount((float)$ipn_data['pmt_gross'])
+            ->withTxnId($ipn_data['txn_id'])
+            ->withUid($uid)
+            ->withBy(0);
+        $status = $M->Add($Txn);
     } else {
         $status = false;
-    }
-    if ($status !== false) {
-        // if purchase went ok, log the transaction and remove any
-        // expiration message.
-        $M->addTrans($ipn_data['gw_name'], $ipn_data['pmt_gross'],
-            $ipn_data['txn_id'], '', 0);
     }
     return $status == true ? PLG_RET_OK : PLG_RET_ERROR;
 }
@@ -602,5 +611,3 @@ function service_getDetailPage_membership($args, &$output, &$svc_msg)
     return PLG_RET_OK;
 }
 
-
-?>

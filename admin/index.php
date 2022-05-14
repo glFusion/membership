@@ -21,6 +21,8 @@ use Membership\Menu;
 use Membership\Position;
 use Membership\PosGroup;
 use Membership\Logger;
+use Membership\Models\Transaction;
+use Membership\Models\MemberNumber;
 use glFusion\Database\Database;
 
 // Make sure the plugin is installed and enabled
@@ -74,7 +76,7 @@ case 'notify':      // Force-send expiration reminders
     if (isset($_POST['delitem']) && !empty($_POST['delitem'])) {
         Membership::notifyExpiration($_POST['delitem'], true);
     }
-    COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
 case 'genmembernum':
 case 'regenbutton_x':
@@ -83,44 +85,17 @@ case 'regenbutton':
     // Only if configured and valid data is received in delitem variable.
     $view = 'listmembers';
     if (
-        Config::get('use_mem_number') != 2 ||
+        Config::get('use_mem_number') != MemberNumber::AUTOGEN ||
+        !array_key_exists('delitem', $_POST) ||
         !is_array($_POST['delitem']) ||
         empty($_POST['delitem'])
     ) {
         break;
     }
 
-    $members = implode(',', $_POST['delitem']);
-    try {
-        $data = $db->conn->executeQuery(
-            "SELECT mem_uid, mem_number
-            FROM {$_TABLES['membership_members']}
-            WHERE mem_uid IN (?)",
-            array($_POST['delitem']),
-            array(Database::PARAM_INT_ARRAY)
-        )->fetchAll();
-    } catch (\Throwable $e) {
-        Log::write('system', Log::ERROR, $e->getMessage());
-        $data = array();
-    }
-    foreach ($data as $A) {
-        $new_mem_num = Membership::createMemberNumber((int)$A['mem_uid']);
-        if ($new_mem_num != $A['mem_number']) {
-            try {
-                $db->conn->executeUpdate(
-                    "UPDATE {$_TABLES['membership_members']}
-                    SET mem_number = ?
-                    WHERE mem_uid = ?",
-                    array($new_mem_num, $A['mem_uid']),
-                    array(Database::STRING, Database::INTEGER)
-                );
-            } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
-                $data = array();
-            }
-        }
-    }
-    COM_refresh(Config::get('admin_url') . '/index.php?' . $view);
+    $members = $_POST['delitem'];
+    MemberNumber::regen($members);
+    echo COM_refresh(Config::get('admin_url') . '/index.php?' . $view);
     break;
 
 case 'importusers':
@@ -132,15 +107,27 @@ case 'importusers':
         $msg = $LANG_MEMBERSHIP['no_import_grp'];
     }
     COM_setMsg($msg);
-    COM_refresh(Config::get('admin_url') . '/index.php?importform');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?importform');
     break;
 
 case 'quickrenew':
-    $M = new Membership($_POST['mem_uid']);
-    if (!$M->isNew()) {
-        $status = $M->Renew($_POST);
+    $uid = isset($_POST['mem_uid']) ? (int)$_POST['mem_uid'] : 0;
+    if ($uid > 1) {
+        $M = new Membership($uid);
+        if (!$M->isNew()) {
+            $Txn = new Transaction;
+            $pmt_amt = isset($A['mem_pmtamt']) ? (float)$A['mem_pmtamt'] : 0;
+            $pmt_dscp = isset($A['mem_pmtdesc']) ? $A['mem_pmtdesc'] : '';
+            $pmt_type = isset($A['mem_pmttype']) ? $A['mem_pmttype'] : '';
+            $Txn = new Transaction;
+            $Txn->withGateway($pmt_type)
+                ->withUid($uid)
+                ->withAmount($pmt_amt)
+                ->withTxnId($pmt_dscp);
+            $status = $M->Renew($Txn);
+        }
     }
-    COM_refresh(Config::get('admin_url') . '/index.php?editmember=' . $_POST['mem_uid']);
+    echo COM_refresh(Config::get('admin_url') . '/index.php?editmember=' . $uid);
     break;
 
 case 'savemember':
@@ -178,7 +165,7 @@ case 'deleteplan':
     if (!empty($plan_id)) {
         Plan::Delete($plan_id, $xfer_plan);
     }
-    COM_refresh(Config::get('admin_url') . '/index.php?listplans');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?listplans');
     break;
 
 case 'saveplan':
@@ -186,7 +173,7 @@ case 'saveplan':
     $P = new Plan($plan_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        COM_refresh(Config::get('admin_url') . '/index.php?listplans');
+        echo COM_refresh(Config::get('admin_url') . '/index.php?listplans');
     } else {
         $content .= Menu::Admin('editplan');
         $content .= $P->PrintErrors($LANG_MEMBERSHIP['error_saving']);
@@ -200,7 +187,7 @@ case 'savepg':
     $P = new PosGroup($pg_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
+        echo COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
         exit;
     } else {
         // Redisplay the edit form in case of error, keeping $_POST vars
@@ -215,7 +202,7 @@ case 'saveposition':
     $P = new Position($pos_id);
     $status = $P->Save($_POST);
     if ($status == true) {
-        COM_refresh(Config::get('admin_url') . '/index.php?positions');
+        echo COM_refresh(Config::get('admin_url') . '/index.php?positions');
         exit;
     } else {
         // Redisplay the edit form in case of error, keeping $_POST vars
@@ -231,7 +218,7 @@ case 'reorderpg':
     if ($id > 0 && $where != '') {
         $msg = PosGroup::Move($id, $where);
     }
-    COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
     break;
 
 case 'reorderpos':
@@ -241,13 +228,13 @@ case 'reorderpos':
     if ($type != '' && $id > 0 && $where != '') {
         $msg = Position::Move($id, $type, $where);
     }
-    COM_refresh(Config::get('admin_url') . '/index.php?positions');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?positions');
     break;
 
 case 'deletepos':
     $P = new Position($actionval);
     $P->Delete();
-    COM_refresh(Config::get('admin_url') . '/index.php?positions');
+    echo COM_refresh(Config::get('admin_url') . '/index.php?positions');
     exit;
     break;
 
@@ -266,25 +253,8 @@ case 'importform':
         $content .= "Imported $successes successfully<br />\n";
         $content .= "$import_failures failed<br />\n";
     }
-    try {
-        $data = $db->conn->executeQuery(
-            "SELECT plan_id, name
-            FROM {$_TABLES['membership_plans']}"
-        )->fetchAll(Database::ASSOCIATIVE);
-    } catch (\Throwable $e) {
-        Log::write('system', Log::ERROR, $e->getMessage());
-        $data = array();
-    }
-    $plan_sel = '';
-    foreach ($data as $A) {
-        $plan_sel .= '<option value="' . $A['plan_id'] . '">' . $A['name'] .
-                '</option>' . LB;
-    }
-    $groups = MEMBERSHIP_groupSelection();
-    $grp_options = '';
-    foreach ($groups as $grp_name=>$grp_id) {
-        $grp_options .= '<option value="' . $grp_id . '">' . $grp_name . "</option>\n";
-    }
+    $plan_sel = Plan::optionList();
+    $grp_options = COM_optionList($_TABLES['groups'], 'grp_id,grp_name', 1);
     $LT->set_var(array(
         'frm_grp_options' => $grp_options,
         'plan_sel'      => $plan_sel,
@@ -336,7 +306,7 @@ case 'none':
 
 case 'listtrans':
     $content .= Menu::Admin($view);
-    $content .= Membership::listTrans();
+    $content .= Transaction::adminList();
     break;
 
 case 'posgroups':

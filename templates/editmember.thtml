@@ -58,8 +58,8 @@ function togglePmtDiv()
 			</label>
 			<div class="uk-form-controls">
 				<input type="hidden" name="mem_joined_orig" value="{joined}" />
-				<input type="text" id="f_dtjoined" name="mem_joined" size="15" data-uk-datepicker
-					value="{joined}" maxlength="15" />
+				<input class="uk-input uk-form-width-medium datepicker" type="text" id="f_dtjoined"
+					name="mem_joined" value="{joined}" />
 			</div>
 		</div>
 
@@ -69,8 +69,8 @@ function togglePmtDiv()
 			</label>
 			<div class="uk-form-controls">
 				<input type="hidden" name="mem_expires_orig" value="{expires}"/>
-				<input type="text" id="f_dtexpire" name="mem_expires" size="15" data-uk-datepicker
-					value="{expires}" maxlength="15" />
+				<input class="uk-input uk-form-width-medium datepicker" type="text" id="f_dtexpire"
+					name="mem_expires" value="{expires}" />
 			</div>
 		</div>
 
@@ -195,8 +195,8 @@ function togglePmtDiv()
 					<span id="dtpaid" class="tooltip_cfg tooltipstered"></span>
 				</label>
 				<div class="uk-form-controls">
-					<input type="text" id="f_dtpaid" name="mem_pmtdate" size="25" data-uk-datepicker
-						value="{pmt_date}" maxlength="30" />
+					<input class="uk-input uk-form-width-medium datepicker" type="text"
+						id="f_dtpaid" name="mem_pmtdate" value="{pmt_date}" />
 				</div>
 			</div>
 
@@ -207,10 +207,9 @@ function togglePmtDiv()
 				<div class="uk-form-controls">
 					<select id="pmttype" name="mem_pmttype">
 						<option value="" selected="selected">--{$LANG_MEMBERSHIP['select']}--</option>
-						<option value="check">{$LANG_MEMBERSHIP['check']}</option>
-						<option value="cash">{$LANG_MEMBERSHIP['cash']}</option>
-						<option value="cc">{$LANG_MEMBERSHIP['cc']}</option>
-						<option value="transfer">{$LANG_MEMBERSHIP['transfer']}</option>
+<!-- BEGIN pmttype_block -->
+						<option value="{pmt_key}">{pmt_name}</option>
+<!-- END pmttype_block -->
 					</select>
 				</div>
 			</div>

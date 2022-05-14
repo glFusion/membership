@@ -15,9 +15,11 @@ namespace Membership\Notifiers;
 use Membership\Membership;
 use Membership\Config;
 use Membership\Status;
-use Membership\Logger;
 use Membership\Cache;
+use Membership\Logger;
+use Membership\Notifiers\Popup;
 use glFusion\Database\Database;
+use glFusion\Log\Log;
 
 
 /**
@@ -64,12 +66,12 @@ class Expiration extends \Membership\BaseNotifier
                 // Get the members based on notification counter and expiration
                 $qb->where('m.mem_notified > 0')
                    ->andWhere('m.mem_expires < DATE_ADD(now(), INTERVAL ((m.mem_notified -1) * :interval) DAY')
-                   ->andWhere('m.mem_status IN (:stat)');
+                   ->andWhere('m.mem_status IN (:stat)')
                    ->setParameter('interval', $interval, Database::INTEGER)
                    ->setParameter('stat', $stats);
             }
             $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             Logger::System($e->getMessage());
             $data = array();
         }
@@ -115,12 +117,13 @@ class Expiration extends \Membership\BaseNotifier
                         'item_name' => $P->getName(),
                         'btn_type' => 'buy_now',
                     );
-                    $status = LGLIB_invokeService(
-                        'shop',
-                        'genButton',
-                        $args,
-                        $output,
-                        $msg
+                    $status = PLG_callFunctionForOnePlugin(
+                        'service_genButton_shop',
+                        array(
+                            1 => $args,
+                            2 => &$output,
+                            3 => &$msg,
+                        )
                     );
                     $button = ($status == PLG_RET_OK) ? $output[0] : '';
                     if (empty($button)) {
@@ -194,7 +197,7 @@ class Expiration extends \Membership\BaseNotifier
                 $T->parse('textoutput', 'text_msg');
                 $text_msg = $T->finish($T->get_var('textoutput'));
 
-                Logger::Audit("Notifying $username at {$row['email']}");
+                Log::write(Config::PI_NAME, Log::INFO, "Notifying $username at {$row['email']}");
                 $msgData = array(
                     'htmlmessage' => $html_msg,
                     'textmessage' => $text_msg,
@@ -211,7 +214,7 @@ class Expiration extends \Membership\BaseNotifier
                 COM_emailNotification($msgData);
             }
 
-            if (Config::get('notifymethod') & Membership::NOTIFY_MESSAGE) {
+            if (Config::get('notifymethod') & Membership::NOTIFY_POPUP) {
                 // Save a message for the next time they log in.
                 $msg = sprintf(
                     $LANG_MEMBERSHIP['you_expire'],
@@ -225,14 +228,14 @@ class Expiration extends \Membership\BaseNotifier
                         strtotime($row['mem_expires'])
                     )
                 );
-                LGLIB_storeMessage(array(
-                    'message' => $msg,
-                    'expires' => $expire_msg,
-                    'uid' => $row['mem_uid'],
-                    'persist' => true,
-                    'pi_code' => Membership::MSG_EXPIRING_CODE,
-                    'use_sess_id' => false
-                ) );
+                $Msg = new Popup;
+                $Msg->withMessage($msg)
+                    ->withExpires($expire_msg)
+                    ->withUid($row['mem_uid'])
+                    ->withPersists(true)
+                    ->withPiCode(Membership::MSG_EXPIRING_CODE)
+                    ->withUnique(true)
+                    ->store();
             }
 
             // Record that we've notified this member
@@ -247,11 +250,11 @@ class Expiration extends \Membership\BaseNotifier
                     "UPDATE {$_TABLES['membership_members']}
                     SET mem_notified = mem_notified - 1
                     WHERE mem_uid IN ($notified_ids)",
-                    array($notifed_ids)
+                    array($notifed_ids),
                     array(Database::PARAM_INT_ARRAY)
                 );
-            } catch (\Throwable $e) {
-                Logger::System("membership: error " . $e->getMessage());
+            } catch (\Exception $e) {
+                Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             }
             Cache::clear('members');
         }
