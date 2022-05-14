@@ -106,6 +106,22 @@ $_SQL['membership_users'] = "CREATE TABLE `{$_TABLES['membership_users']}` (
   PRIMARY KEY (`uid`)
 ) ENGINE=MyISAM";
 
+$_SQL['membership_messages'] = "CREATE TABLE `{$_TABLES['membership_messages']}` (
+  `msg_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uid` int(11) NOT NULL DEFAULT 1,
+  `sess_id` varchar(80) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `message` text NOT NULL,
+  `pi_code` varchar(40) DEFAULT NULL,
+  `persist` tinyint(1) unsigned DEFAULT 0,
+  `dt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `expires` datetime DEFAULT NULL,
+  `level` tinyint(1) unsigned NOT NULL DEFAULT 1,
+  PRIMARY KEY (`msg_id`),
+  KEY `uid` (`uid`),
+  KEY `sess_id` (`sess_id`)
+) ENGINE=MyISAM";
+
 $_UPGRADE_SQL = array(
     '0.0.2' => array(
         "CREATE TABLE {$_TABLES['membership_log']} (
@@ -194,6 +210,21 @@ $_UPGRADE_SQL = array(
     '1.0.0' => array(
         "UPDATE {$_TABLES['membership_members']} SET mem_notified = mem_notified + 1
             WHERE mem_notified > 0",
+        "CREATE TABLE `{$_TABLES['membership_messages']}` (
+          `msg_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `uid` int(11) NOT NULL DEFAULT 1,
+          `sess_id` varchar(80) NOT NULL,
+          `title` varchar(255) DEFAULT NULL,
+          `message` text NOT NULL,
+          `pi_code` varchar(40) DEFAULT NULL,
+          `persist` tinyint(1) unsigned DEFAULT 0,
+          `dt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+          `expires` datetime DEFAULT NULL,
+          `level` tinyint(1) unsigned NOT NULL DEFAULT 1,
+          PRIMARY KEY (`msg_id`),
+          KEY `uid` (`uid`),
+          KEY `sess_id` (`sess_id`)
+        ) ENGINE=MyISAM",
     ),
 );
 
@@ -208,3 +239,4 @@ $_MEMBERSHIP_SAMPLEDATA = array(
         (0, 1, 30, 'Secretary'),
         (0, 1, 40, 'Treasurer')",
 );
+
