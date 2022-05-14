@@ -40,11 +40,13 @@ class App
      *
      * @param   integer $uid    User ID associated to the application
      */
-    public function __construct($uid = 0)
+    public function __construct(?int $uid = NULL)
     {
         global $_USER;
 
-        if ($uid == 0 || !MEMBERSHIP_isManager()) $uid = $_USER['uid'];
+        if (empty($uid)) {
+            $uid = $_USER['uid'];
+        }
         $this->uid = $uid;
         $this->plugin = Config::get('app_provider');
     }
@@ -222,7 +224,7 @@ class App
         try {
             $data = $db->conn->executeQuery($sql)->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $data = array();
         }
         $P = new Plan();
@@ -283,7 +285,7 @@ class App
                     array(Database::STRING, Database::INTEGER, Database::INTEGER)
                 );
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             }
 
             try {
@@ -294,7 +296,7 @@ class App
                     array(Database::INTEGER, Database::STRING, Database::STRING, Database::STRING)
                 );
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             }
         }
 

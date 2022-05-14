@@ -143,7 +143,7 @@ class Position
                ->execute()
                ->fetch(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = array();
         }
         if (is_array($data) && !empty($data)) {
@@ -255,7 +255,7 @@ class Position
                ->setParameter('grp_id', $this->grp_id, Database::INTEGER)
                ->execute();
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             return false;
         }
         self::reOrder($this->pg_id);
@@ -296,13 +296,15 @@ class Position
                 WHERE uid = ?",
                 array($uid),
                 array(Database::INTEGER)
-            )->fetch(Database::ASSOCIATIVE);
+            )->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
-            $data = array();
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
+            $data = false;
         }
-        foreach ($data as $A) {
-            $retval[] = new self($A);
+        if (is_array($data)) {
+            foreach ($data as $A) {
+                $retval[] = new self($A);
+            }
         }
         return $retval;
     }
@@ -346,7 +348,7 @@ class Position
             );
             return $newvalue;
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             return $oldvalue;
         }
     }
@@ -410,7 +412,7 @@ class Position
                             'grp_id,grp_name', $this->grp_id, 1),
             'old_grp_id'    => $this->old_grp_id,
             'old_uid'       => $this->old_uid,
-            'doc_url'       => LGLIB_getDocURL('position.html', 'membership'),
+            'doc_url'       => MEMBERSHIP_getDocURL('position.html', 'membership'),
             'pg_id'         => $this->pg_id,
             'orderby'       => $this->orderby,
          ) );
@@ -437,26 +439,28 @@ class Position
                 array(Database::INTEGER)
             )->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = array();
         }
 
         $order = 10;
         $stepNumber = 10;
         $retval = '';
-        foreach ($data as $A) {
-            if ($A['orderby'] != $order) {  // only update incorrect ones
-                try {
-                    $db->conn->executeUpdate(
-                        "UPDATE {$_TABLES['membership_positions']}
-                        SET orderby = '$order'
-                        WHERE id = '{$A['id']}'",
-                        array($order, $A['id']),
-                        array(Database::INTEGER, Database::INTEGER)
-                    );
-                } catch (\Throwable $e) {
-                    Log::write('system', Log::ERROR, $e->getMessage());
-                    $retval = '5';
+        if (is_array($data)) {
+            foreach ($data as $A) {
+                if ($A['orderby'] != $order) {  // only update incorrect ones
+                    try {
+                        $db->conn->executeUpdate(
+                            "UPDATE {$_TABLES['membership_positions']}
+                            SET orderby = '$order'
+                            WHERE id = '{$A['id']}'",
+                            array($order, $A['id']),
+                            array(Database::INTEGER, Database::INTEGER)
+                        );
+                    } catch (\Throwable $e) {
+                        Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
+                        $retval = '5';
+                    }
                 }
             }
             $order += $stepNumber;
@@ -505,7 +509,7 @@ class Position
             self::reOrder($pg_id);
             $msg = '';
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $msg = '5';
         }
         return $msg;

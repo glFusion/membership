@@ -12,6 +12,7 @@
  */
 namespace Membership;
 use glFusion\Database\Database;
+use glFusion\Log\Log;
 
 
 /**
@@ -120,7 +121,7 @@ class User
                     array(Database::INTEGER)
                 )->fetch(Database::ASSOCIATIVE);
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage();
+                Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
                 $A = array();
             }
             //Cache::set($cache_key, $A, 'users');

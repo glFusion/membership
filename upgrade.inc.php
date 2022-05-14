@@ -46,7 +46,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     if (!COM_checkVersion($current_ver, '0.0.2')) {
         // upgrade from 0.0.1 to 0.0.2
         $current_ver = '0.0.2';
-        Membership\Logger::System("Updating Plugin to $current_ver");
+        Log::write('system', Log::INFO, "Updating Plugin to $current_ver");
         if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;
         if (!MEMBERFSHIP_do_set_version($current_ver)) return false;
     }
@@ -54,7 +54,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     if (!COM_checkVersion($current_ver, '0.0.3')) {
         // upgrade from 0.0.2 to 0.0.3.
         $current_ver = '0.0.3';
-        Membership\Logger::System("Updating Plugin to $current_ver");
+        Log::write('system', Log::INFO, "Updating Plugin to $current_ver");
         if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;
         if (!MEMBERFSHIP_do_set_version($current_ver)) return false;
     }
@@ -69,7 +69,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     if (!COM_checkVersion($current_ver, '0.0.5')) {
         // upgrade from 0.0.4 to 0.0.5
         $current_ver = '0.0.5';
-        Membership\Logger::System("Updating Plugin to $current_ver");
+        Log::write('system', Log::INFO, "Updating Plugin to $current_ver");
         if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver)) return false;
     }
@@ -77,7 +77,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     if (!COM_checkVersion($current_ver, '0.0.6')) {
         // upgrade from 0.0.5 to 0.0.6
         $current_ver = '0.0.6';
-        Membership\Logger::System("Updating Plugin to $current_ver");
+        Log::write('system', Log::INFO, "Updating Plugin to $current_ver");
         if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;;
         if (!MEMBERSHIP_do_set_version($current_ver)) return false;
     }
@@ -104,7 +104,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
 
     if (!COM_checkVersion($current_ver, '0.1.2')) {
         $current_ver = '0.1.2';
-        Membership\Logger::System("Updating Plugin to $current_ver");
+        Log::write('system', Log::INFO, "Updating Plugin to $current_ver");
         if (!MEMBERSHIP_do_upgrade_sql($current_ver)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver)) return false;
     }
@@ -182,7 +182,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     _update_config('membership', $membershipConfigData);
     _MEMB_remove_old_files();
     Membership\Cache::clear();
-    Membership\Logger::System("Successfully updated the " . Config::get('pi_display_name') . ' Plugin', 1);
+    Log::write('system', Log::INFO, "Successfully updated the " . Config::get('pi_display_name') . ' Plugin');
     return true;
 }
 
@@ -200,7 +200,7 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
 
     // If no sql statements passed in, return success
     if (!isset($_UPGRADE_SQL[$version]) || !is_array($_UPGRADE_SQL[$version])) {
-        Membership\Logger::System("No SQL update for $version");
+        Log::write('system', Log::DEBUG, "No SQL update for $version");
         return true;
     }
     $sql_err_msg = 'SQL Error during Membership plugin update';
@@ -213,7 +213,7 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
         Log::write('system', Log::ERROR, "Membership Plugin $version update: Executing SQL => $q");
         DB_query($q, '1');
         if (DB_error()) {
-            Membership\Logger::System($sql_err_msg, 1);
+            Log::write('system', Log::ERROR, $sql_err_msg);
             if (!$dvlp) return false;
         }
     }
@@ -242,7 +242,7 @@ function MEMBERSHIP_do_set_version($ver)
 
     $res = DB_query($sql, 1);
     if (DB_error()) {
-        Membership\Logger::System("Error updating the " . Config::get('pi_display_name') . " Plugin version",1);
+        Log::write('system', Log::ERROR, "Error updating the " . Config::get('pi_display_name') . " Plugin version");
         return false;
     } else {
         return true;

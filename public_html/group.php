@@ -1,11 +1,11 @@
 <?php
 /**
- * Show members by group
+ * Show members by group.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2014-2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2014-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.2
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -28,4 +28,3 @@ echo Membership\Menu::siteHeader($title);
 echo $content;
 echo Membership\Menu::siteFooter();
 
-?>

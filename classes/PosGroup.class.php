@@ -72,7 +72,7 @@ class PosGroup
                     array(Database::INTEGER)
                 )->fetch(Database::ASSOCIATIVE);
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
                 $data = NULL;
             }
             if (is_array($data)) {
@@ -122,7 +122,7 @@ class PosGroup
                 array(Database::STRING)
             )->fetch(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = NULL;
         }
         if (is_array($data)) {
@@ -189,7 +189,7 @@ class PosGroup
                 );
                 $retval = $db->conn->lastInsertId();
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
                 $retval = 0;
             }
         } else {
@@ -248,23 +248,25 @@ class PosGroup
                 ORDER BY pg_orderby ASC;"
             )->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = array();
         }
         $order = 10;
         $stepNumber = 10;
-        foreach ($data as $A) {
-            if ($A['pg_orderby'] != $order) {  // only update incorrect ones
-                try {
-                    $db->conn->executeUpdate(
-                        "UPDATE {$_TABLES['membership_posgroups']}
-                        SET pg_orderby = ? WHERE pg_id = ?",
-                        array($order, $A['pg_id']),
-                        array(Database::INTEGER, Database::INTEGER)
-                    );
-                } catch (\Throwable $e) {
-                    // log the error but just keep going
-                    Log::write('system', Log::ERROR, $e->getMessage());
+        if (is_array($data)) {
+            foreach ($data as $A) {
+                if ($A['pg_orderby'] != $order) {  // only update incorrect ones
+                    try {
+                        $db->conn->executeUpdate(
+                            "UPDATE {$_TABLES['membership_posgroups']}
+                            SET pg_orderby = ? WHERE pg_id = ?",
+                            array($order, $A['pg_id']),
+                            array(Database::INTEGER, Database::INTEGER)
+                        );
+                    } catch (\Throwable $e) {
+                        // log the error but just keep going
+                        Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
+                    }
                 }
             }
             $order += $stepNumber;
@@ -347,7 +349,7 @@ class PosGroup
             $msg = '';
         } catch (\Throwable $e) {
             // log the error but just keep going
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $msg = '5';
         }
         return $msg;
@@ -386,7 +388,7 @@ class PosGroup
                ->setParameter('pg_orderby', $this->pg_orderby, Database::STRING)
                ->execute();
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             return false;
         }
         self::reOrder();
@@ -412,15 +414,17 @@ class PosGroup
                 WHERE pg_id = {$pg_id}",
                 array($pg_id),
                 array(Database::INTEGER)
-            )->fetch(Database::ASSOCIATIVE);
+            )->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = array();
         }
 
-        foreach ($data as $A) {
-            $P = new Position($A);
-            $P->Delete();
+        if (is_array($data)) {
+            foreach ($data as $A) {
+                $P = new Position($A);
+                $P->Delete();
+            }
         }
         // Then delete the position group record
         try {
@@ -430,7 +434,7 @@ class PosGroup
                 array(Database::INTEGER)
             );
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
         }
     }
 
