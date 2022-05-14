@@ -150,17 +150,18 @@ class GroupList
 
         $qb = Database::getInstance()->conn->createQueryBuilder();
         try {
-            $data = $qb->select('p.*', 'u.username', 'u.fullname', 'u.email')
+            $data = $qb->select('p.*', 'u.username', 'u.fullname', 'u.email', 'u.photo')
                ->from($_TABLES['membership_positions'], 'p')
                ->leftJoin('p', $_TABLES['membership_posgroups'], 'pg', 'pg.pg_id=p.pg_id')
                ->leftJoin('p', $_TABLES['users'], 'u', 'u.uid=p.pid')
                ->where('pg.pg_tag IN (:groups)')
+               ->andWhere('p.enabled = 1')
                ->orderBy('pg.pg_orderby', 'ASC')
                ->addOrderBy('p.orderby', 'ASC')
                ->execute()
                ->fetchAll(Database::ASSOCIATIVE());
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage();
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = array();
         }
 
@@ -176,7 +177,7 @@ class GroupList
                 $show_vacant = $A['show_vacant'] ? 'true' : '';
                 $username = '';
             } else {
-                $user_img = USER_getPhoto($A['uid']);
+                $user_img = USER_getPhoto($A['uid'], $A['photo'], $A['email'], 110);
                 $username = COM_getDisplayName(
                     $A['uid'],
                     $A['username'],
@@ -189,10 +190,18 @@ class GroupList
             } else {
                 $page_title = '';
             }
+            // Get the name parts, may be used with a custom template
+            $name_parts = PLG_callFunctionForOnePlugin(
+                'plugin_parseName_lglib',
+                array(1 => $A['fullname'], 2 => 'Parse')
+            );
+
             $T->set_var(array(
                 'title' => $page_title,
                 'position'  => $A['descr'],
                 'user_name' => $username,
+                'fname' => $name_parts['fname'],
+                'lname' => $name_parts['lname'],
                 'show_vacant' => $show_vacant,
                 'user_img'  => $user_img,
                 'user_email' => empty($A['contact']) ?

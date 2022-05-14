@@ -29,12 +29,15 @@ class Profile extends \Membership\App
         global $_USER, $_CONF;
 
         $retval = array();
-        $status = PLG_invokeService('profile', 'getValues',
+        $status = PLG_callFunctionForOnePlugin(
+            'service_getValues_' . $this->plugin,
             array(
-                'uid' => $this->uid,
+                1 => array(
+                    'uid' => $this->uid,
+                ),
             ),
             $output,
-            $svc_msg
+            $svc_msg,
         );
         if ($status == PLG_RET_OK && !empty($output)) {
             foreach ($output as $key=>$data) {

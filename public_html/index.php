@@ -59,9 +59,7 @@ case 'cancelapp':
 case 'saveapp':
     $status = Membership\App::getInstance()->Save();
     if ($status == PLG_RET_OK) {
-        LGLIB_storeMessage(array(
-            'message' => $LANG_MEMBERSHIP['your_info_updated'],
-        ) );
+        COM_setMsg($LANG_MEMBERSHIP['your_info_updated'], 'success');
         if ($_POST['mem_uid'] == $_USER['uid'] && !empty($_POST['purch_url'])) {
             if (!empty($_POST['app_membership_type'])) {
                 $url_extra = '&amp;plan_id=' . urlencode($_POST['app_membership_type']);
@@ -75,14 +73,10 @@ case 'saveapp':
                 exit;
             }
             if ($M->getExpires() > Membership\Dates::Today()) {
-                LGLIB_storeMessage(array(
-                    'message' => sprintf(
-                        $LANG_MEMBERSHIP['you_expire'],
-                        $M->getPlan()->getPlanID(),
-                        $M->getExpires()
-                    ),
-                    'persist' =>  true
-                ) );
+                COM_setMsg(
+                    sprintf($LANG_MEMBERSHIP['you_expire'], $M->getPlan()->getPlanID(), $M->getExpires()),
+                    'success'
+                );
             }
         }
         $view = 'app';

@@ -319,7 +319,7 @@ class Plan
             }
             $this->fees['fixed'] = (float)$row['fixed_fee'];
         } else {
-            var_dump($row);die;
+            Log::write('system', Log::ERROR, __METHOD__ . ': Error ' . var_dump($row, true));
         }
     }
 
@@ -330,7 +330,7 @@ class Plan
      * @param  integer $id Optional ID.  Current ID is used if zero.
      * @return boolean     True if a record was read, False on failure
      */
-    public function Read($id = '')
+    public function Read(?string $id=NULL) : bool
     {
         global $_TABLES;
 
@@ -343,17 +343,18 @@ class Plan
 
         $cache_key = 'plan_' . $id;
         $row = Cache::get($cache_key);
+        $row = NULL;
         if ($row === NULL) {
             $db = Database::getInstance();
             try {
                 $row = $db->conn->executeQuery(
                     "SELECT * FROM {$_TABLES['membership_plans']}
-                    WHERE plan_id='$id' ",
+                    WHERE plan_id = ?",
                     array($id),
-                    array(Database::INTEGER)
+                    array(Database::STRING)
                 )->fetch(Database::ASSOCIATIVE);
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
                 return false;
             }
             Cache::set($cache_key, $row, 'plans');
@@ -456,7 +457,7 @@ class Plan
             }
             $status = 'OK';
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $status = 'Error Saving';
         }
 
@@ -465,14 +466,13 @@ class Plan
         if (!$this->hasErrors()) {
             $retval = true;
             $msg .= $LANG_MEMBERSHIP['succeeded'];
+            COM_setMsg($msg, 'success');
             Cache::clear();     // clear all since this might affect memberships
         } else {
             $retval = false;
             $msg .= $LANG_MEMBERSHIP['failed'];
+            COM_setMsg($msg, 'error');
         }
-        LGLIB_storeMessage(array(
-            'message' => $msg,
-        ) );
         return $retval;
     }
 
@@ -493,24 +493,18 @@ class Plan
             $this->plan_id = '';
         }
         if (empty($id)) {
-            LGLIB_storeMessage(array(
-                'message' => $LANG_MEMBERSHIP['msg_missing_id'],
-            ) );
+            COM_setMsg($LANG_MEMBERSHIP['msg_missing_id'], 'error');
             return false;
         }
 
         if (self::hasMembers($id)) {
             if (!empty($xfer_plan)) {
                 if (!Membership::Transfer($id, $xfer_plan)) {
-                    LGLIB_storeMessage(array(
-                        'message' => $LANG_MEMBERSHIP['msg_unable_xfer_members'],
-                    ) );
+                    COM_setMsg($LANG_MEMBERSHIP['msg_unable_xfer_members']);
                     return false;
                 }
             } else {
-                LGLIB_storeMessage(array(
-                    'message' => $LANG_MEMBERSHIP['msg_plan_has_members'],
-                ) );
+                COM_setMsg($LANG_MEMBERSHIP['msg_plan_has_members']);
                 return false;
             }
         }
@@ -521,9 +515,7 @@ class Plan
             array($id)
         );
         Cache::clear();     // clear all since this might affect memberships
-        LGLIB_storeMessage(array(
-            'message' => $LANG_MEMBERSHIP['msg_plan_deleted'],
-        ) );
+        COM_setMsg($LANG_MEMBERSHIP['msg_plan_deleted']);
         return true;
     }
 
@@ -683,7 +675,7 @@ class Plan
                 array(Database::INTEGER, Database::INTEGER)
             );
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
         }
         Cache::clear();     // clear all since this might affect memberships
         return $newvalue;
@@ -851,12 +843,13 @@ class Plan
                 //'_ret_url'      => $return,
                 'unique'        => true,
             );
-            $status = LGLIB_invokeService(
-                'shop',
-                'genButton',
-                $vars,
-                $output,
-                $svc_msg
+            $status = PLG_callFunctionForOnePlugin(
+                'service_genButton_shop',
+                array(
+                    1 => $vars,
+                    2 => &$output,
+                    3 => &$svc_msg,
+                )
             );
             if ($status == PLG_RET_OK && is_array($output)) {
                 if (self::ShopEnabled()) {
@@ -960,23 +953,23 @@ class Plan
                ->setParameter('plan_id', $plan_id, Database::STRING);
         }
 
-        $cache_key = md5($qb->getSql());
+        /*$cache_key = md5($qb->getSql());
         $plans = Cache::get($cache_key);
         if ($plans !== NULL) {
             return $plans;
-        }
+        }*/
 
         $plans = array();
         try {
             $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = array();
         }
         foreach ($data as $A) {
             $plans[$A['plan_id']] = new self($A['plan_id']);
         }
-        Cache::set($cache_key, $plans, 'plans');
+        //Cache::set($cache_key, $plans, 'plans');
         return $plans;
     }
 
@@ -1341,6 +1334,25 @@ class Plan
         }
 
         return $retval;
+    }
+
+
+    /**
+     * Create an option selection of plan names.
+     *
+     * @param   string  $sel    Optional selected plan
+     * @return  string      Option elements
+     */
+    public static function optionList(?string $sel=NULL) : string
+    {
+        global $_TABLES;
+
+        return COM_optionList(
+            $_TABLES['membership_plans'],
+            'plan_id,name',
+            $sel,
+            1
+        );
     }
 
 }
