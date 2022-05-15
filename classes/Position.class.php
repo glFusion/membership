@@ -699,41 +699,37 @@ class Position
         $pi_admin_url = Config::get('admin_url');
         switch($fieldname) {
         case 'editpos':
-            $retval = COM_createLink(
-                Icon::getHTML('edit'),
-                Config::get('admin_url') . '/index.php?editpos=' . $A['id'],
-                array(
+            $retval = FieldList::edit(array(
+                'url' => Config::get('admin_url') . '/index.php?editpos=' . $A['id'],
+                'attr' => array(
                     'class' => 'tooltip',
                     'title' => $LANG_MEMBERSHIP['edit'],
-                )
-            );
+                ),
+            ) );
             break;
 
         case 'move':
             $base_url = Config::get('admin_url') .
                 '/index.php?type=' . urlencode($A['pg_id']) .
                 '&id=' . $A['id'] . '&reorderpos=';
-            $retval .= COM_createLink(
-                Icon::getHTML('arrow-up'),
-                $base_url . 'up'
-            );
-            $retval .= '&nbsp;' . COM_createLink(
-                Icon::getHTML('arrow-down'),
-                $base_url . 'down'
-            );
+            $retval .= FieldList::up(array(
+                'url' => $base_url . 'up',
+            ) );
+            $retval .= '&nbsp;' . FieldList::down(array(
+                'url' => $base_url . 'down',
+            ) );
             break;
 
         case 'deletepos':
-            $retval = COM_createLink(
-                Icon::getHTML('delete'),
-                Config::get('admin_url') . '/index.php?deletepos=' . $A['id'],
-                array(
+            $retval = FieldList::delete(array(
+                'delete_url' => Config::get('admin_url') . '/index.php?deletepos=' . $A['id'],
+                'attr' => array(
                     'onclick' => "return confirm('{$LANG_MEMBERSHIP['q_del_item']}');",
                     'class' => 'tooltip',
                     'title' => $LANG_MEMBERSHIP['hlp_delete'],
-                )
-            );
-           break;
+                ),
+            ) );
+            break;
 
         case 'pg_tag':
             $retval = COM_createLink(
@@ -755,23 +751,16 @@ class Position
 
         case 'enabled':
         case 'show_vacant':
-            if ($fieldvalue == 1) {
-                $chk = 'checked="checked"';
-                $enabled = 1;
-            } else {
-                $chk = '';
-                $enabled = 0;
-            }
-            $retval = '<input name="' . $fieldname . '_' . $A['id'] .
-                '" id="' . $fieldname . '_' . $A['id'] .
-                '" type="checkbox" ' . $chk .
-                ' title="' . $LANG_MEMBERSHIP['hlp_' . $fieldname] .
-                '" class="tooltip" ' .
-                'onclick=\'MEMB_toggle(this, "' . $A['id'] . '", "position", "' .
-                $fieldname . '", "' . $pi_admin_url . '");\' />' . LB;
+            $retval = FieldList::checkbox(array(
+                'id' => $fieldname . '_' . $A['id'],
+                'title' => $LANG_MEMBERSHIP['hlp_' . $fieldname],
+                'checked' => $fieldvalue == 1,
+                'class' => 'tooltip',
+                'onclick' => "MEMB_toggle(this, '{$A['id']}', 'position', '$fieldname', '$pi_admin_url');",
+            ) );
             break;
 
-            default:
+        default:
             $retval = $fieldvalue;
             break;
         }
