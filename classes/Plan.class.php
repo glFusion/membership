@@ -637,13 +637,14 @@ class Plan
      * @param   integer $id         ID number of element to modify
      * @return         New value, or old value upon failure
      */
-    private static function _toggle($oldvalue, $varname, $id)
+    private static function _toggle(int $oldvalue, string $varname, string $id) : int
     {
         global $_TABLES;
 
         // If it's still an invalid ID, return the old value
-        if (empty($id))
+        if (empty($id)) {
             return $oldvalue;
+        }
 
         // Determing the new value (opposite the old)
         $newvalue = $oldvalue == 1 ? 0 : 1;
@@ -655,7 +656,7 @@ class Plan
                 SET $varname = ?
                 WHERE plan_id= ?",
                 array($newvalue, $id),
-                array(Database::INTEGER, Database::INTEGER)
+                array(Database::INTEGER, Database::STRING)
             );
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
