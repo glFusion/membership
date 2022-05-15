@@ -100,7 +100,7 @@ class User
      *
      * @param   integer $uid    User ID to read
      */
-    public function Read($uid)
+    public function Read(int $uid) : void
     {
         global $_TABLES;
 
@@ -116,10 +116,10 @@ class User
                     FROM {$_TABLES['users']} u
                     LEFT JOIN {$_TABLES['membership_users']} m
                     ON m.uid = u.uid
-                    WHERE u.uid=$uid",
+                    WHERE u.uid = ?",
                     array($uid),
                     array(Database::INTEGER)
-                )->fetch(Database::ASSOCIATIVE);
+                )->fetchAssociative();
             } catch (\Throwable $e) {
                 Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
                 $A = array();
