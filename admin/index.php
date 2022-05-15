@@ -51,7 +51,7 @@ $expected = array(
     // Actions to perform
     'saveplan', 'deleteplan', 'savemember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
-    'savepg', 'notify', 'quickrenew',
+    'savepg', 'delpg', 'notify', 'quickrenew',
     'renewbutton', 'deletebutton', 'regenbutton',
     'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
     'reorderpg', 'deletepos', 'deletepg',
@@ -197,6 +197,17 @@ case 'savepg':
         $content .= $P->Edit();
         $view = 'none';
     }
+    break;
+
+case 'delpg':
+    $pg_id = (int)$actionval;
+    if ($pg_id > 0 && PosGroup::Delete($pg_id)) {
+        // noop
+    } else {
+        COM_setMsg($LANG_MEMBERSHIP['admin_error_occurred'], 'error');
+    }
+    echo COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
+    exit;
     break;
 
 case 'saveposition':

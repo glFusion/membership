@@ -402,30 +402,27 @@ class PosGroup
 
     /**
      * Remove the current position group, and all related positions.
+     *
+     * @return  boolean     True on success, False on error
      */
-    public static function Delete(int $pg_id) : void
+    public static function Delete(int $pg_id) : bool
     {
         global $_TABLES;
 
         $db = Database::getInstance();
+
+        // Delete all the position records
         try {
-            $data = $db->conn->executeQuery(
-                "SELECT * FROM {$_TABLES['membership_positions']}
-                WHERE pg_id = {$pg_id}",
+            $db->conn->executeUpdate(
+                "DELETE FROM {$_TABLES['membership_positions']} WHERE pg_id IN (?)",
                 array($pg_id),
                 array(Database::INTEGER)
-            )->fetchAll(Database::ASSOCIATIVE);
-        } catch (\Throwable $e) {
+            );
+        } catch (\Exception $e) {
             Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
-            $data = array();
+            return false;
         }
 
-        if (is_array($data)) {
-            foreach ($data as $A) {
-                $P = new Position($A);
-                $P->Delete();
-            }
-        }
         // Then delete the position group record
         try {
             $db->conn->delete(
@@ -433,9 +430,11 @@ class PosGroup
                 array('pg_id' => $pg_id),
                 array(Database::INTEGER)
             );
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
+            return false;
         }
+        return true;
     }
 
 
@@ -478,6 +477,10 @@ class PosGroup
                 'text' => $LANG_MEMBERSHIP['description'],
                 'field' => 'pg_title',
                 'sort' => false,
+            ),
+            array(
+                'text' => $LANG_ADMIN['delete'],
+                'field' => 'delete',
             ),
         );
         $query_arr = array(
@@ -540,27 +543,34 @@ class PosGroup
         $pi_admin_url = Config::get('admin_url');
         switch($fieldname) {
         case 'editpg':
-            $retval = COM_createLink(
-                Icon::getHTML('edit'),
-                Config::get('admin_url') . '/index.php?editpg=' . $A['pg_id'],
+            $retval = FieldList::edit(array(
+                'url' => Config::get('admin_url') . '/index.php?editpg=' . $A['pg_id'],
                 array(
                     'class' => 'tooltip',
                     'title' => $LANG_MEMBERSHIP['edit'],
-                )
-            );
+                ),
+            ) );
             break;
 
         case 'move':
             $base_url = Config::get('admin_url') .
                 '/index.php?id=' . $A['pg_id'] . '&reorderpg=';
-            $retval .= COM_createLink(
-                Icon::getHTML('arrow-up'),
-                $base_url . 'up'
-            );
-            $retval .= '&nbsp;' . COM_createLink(
-                Icon::getHTML('arrow-down'),
-                $base_url . 'down'
-            );
+            $retval .= FieldList::up(array(
+                'url' => $base_url . 'up',
+            ) );
+            $retval .= '&nbsp;' . FieldList::down(array(
+                'url' => $base_url . 'down',
+            ) );
+            break;
+
+        case 'delete':
+            $confirm = $LANG_MEMBERSHIP['q_del_item'] . ' ' . $LANG_MEMBERSHIP['q_del_posgroup'];
+            $retval = FieldList::delete(array(
+                'delete_url' => Config::get('admin_url') . '/index.php?delpg=' . $A['pg_id'],
+                'attr' => array(
+                    'onclick' => "return confirm('{$confirm}');",
+                ),
+            ) );
             break;
 
         default:

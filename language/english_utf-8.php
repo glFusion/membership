@@ -222,6 +222,8 @@ $LANG_MEMBERSHIP = array(
 'no_import_grp' => 'No import group was provided.',
 'all' => 'All',
 'system_message' => 'System Message',
+'q_del_posgroup' => 'All related positions will also be removed.',
+'admin_error_occurred' => 'An error occurred. See the system log.',
 );
 $LANG_MEMBERSHIP_PMTTYPES = array(
     'check' => 'Check',
