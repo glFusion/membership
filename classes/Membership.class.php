@@ -95,11 +95,11 @@ class Membership
      *
      * @param   integer $uid    Optional user ID
      */
-    public function __construct($uid=0)
+    public function __construct(?int $uid=NULL)
     {
         global $_USER;
 
-        if ($uid == 0) {
+        if ($uid === NULL) {
             $uid = (int)$_USER['uid'];
         }
         $this->uid = $uid;
@@ -234,7 +234,7 @@ class Membership
     public function getPlan()
     {
         if ($this->Plan === NULL) {
-            $this->Plan = new Plan($this->plan_id);
+            $this->Plan = Plan::getInstance($this->plan_id);
         }
         return $this->Plan;
     }
@@ -277,6 +277,19 @@ class Membership
 
 
     /**
+     * Set the membership number value.
+     *
+     * @param   string  $mem_num    Membership number
+     * @return  object  $this
+     */
+    public function setMemNumber(string $mem_num) : self
+    {
+        $this->mem_number = $mem_num;
+        return $this;
+    }
+
+
+    /**
      * Get the membership number.
      *
      * @return  string      Membership number
@@ -284,6 +297,13 @@ class Membership
     public function getMemNumber()
     {
         return $this->mem_number;
+    }
+
+
+    public function setTrial(bool $flag) : self
+    {
+        $this->istrial = $flag ? 1 : 0;
+        return $this;
     }
 
 
@@ -383,9 +403,16 @@ class Membership
     {
         global $_CONF, $_TABLES, $LANG_MEMBERSHIP, $LANG_MEMBERSHIP_PMTTYPES;
 
+        if ($this->uid == 0) {
+            $this->expires = Dates::calcExpiration();
+            $tpl = 'createmember.thtml';
+        } else {
+            $tpl = 'editmember.thtml';
+        }
+
         $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file(array(
-            'editmember' => 'editmember.thtml',
+            'editmember' => $tpl,
             'tips' => 'tooltipster.thtml',
             'js' => 'editmember_js.thtml',
         ) );
@@ -409,7 +436,26 @@ class Membership
             'is_family' => $this->Plan ? $this->Plan->isFamily() : 0,
             'lang_x_interval' => sprintf($LANG_MEMBERSHIP['at_x_interval'], Config::get('notifydays')),
         ) );
-
+        if ($this->uid == 0) {
+            try {
+                $db = Database::getInstance();
+                $data = $db->conn->executeQuery(
+                    "SELECT u.uid,u.fullname FROM {$_TABLES['users']} u
+                    LEFT JOIN {$_TABLES['membership_members']} m
+                    ON u.uid = m.mem_uid WHERE m.mem_uid IS NULL"
+                )->fetchAllAssociative();
+            } catch (\Exception $e) {
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+                $data = false;
+            }
+            if (!empty($data)) {
+                $opts = '';
+                foreach ($data as $A) {
+                    $opts .= '<option value="' . $A['uid'] . '">' . $A['fullname'] . '</option>' . LB;
+                }
+                $T->set_var('member_select', $opts);
+            }
+        }
         $T->set_block('editmember', 'expToSend', 'expTS');
         for ($i = 0; $i <= Config::get('notifycount'); $i++) {
             $T->set_var(array(
@@ -561,22 +607,12 @@ class Membership
             return false;
         }
 
-        // Get the payment and renewal values, if any.
-        $pmt_type = MEMB_getVar($A, 'mem_pmttype');
-        $pmt_amt = MEMB_getVar($A, 'mem_pmtamt', 'float', 0);
-        $quickrenew = MEMB_getVar($A, 'mem_quickrenew', 'integer', 0);
-        if ($quickrenew) {
-            $this->istrial = 0;
-            $this->expires = Dates::calcExpiration($this->expires);
-            $this->notified = Config::get('notifycount');
-        }
-
         // Set a flag to see if the membership status, group, etc. needs
         // to be updated based on form input. Quick renewal forces an update.
-        $need_membership_update = $quickrenew || !$this->Matches(self::getInstance($this->uid));
+        $need_membership_update = !$this->Matches(self::getInstance($this->uid));
 
         // The first thing is to check to see if we're removing this account
-        // from the family so we don't update other members incorrectly
+        // from the family so we don't update other members incorrectlya
         if ($this->Plan->isFamily()) {
             if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
                 self::remLink($this->uid);
@@ -584,12 +620,13 @@ class Membership
                 $orig_links = MEMB_getVar($A, 'mem_orig_links', 'array');
                 $new_links = MEMB_getVar($A, 'mem_links', 'array');
                 $arr = array_diff($orig_links, $new_links);
-                foreach ($arr as $link_id) {
-                    self::remLink($link_id);
+                foreach ($arr as $uid2) {
+                    self::remLink($uid2);
                 }
                 $arr = array_diff($new_links, $orig_links);
-                foreach ($arr as $link_id) {
-                    self::addLink($this->uid, $link_id);
+                foreach ($arr as $uid2) {
+                    //self::addLink($this->uid, $link_id);
+                    $this->addLink($uid2);
                 }
             }
         }
@@ -701,23 +738,6 @@ class Membership
             }
         }
 
-        // If this is a payment transaction, as opposed to a simple edit,
-        // log the transaction info.
-        // This only logs transactions for profile updates; Shop
-        // transactions are logged by the handlePurchase service function.
-        /*if (!empty($pmt_type) || $pmt_amt > 0 || $quickrenew == 1) {
-            $Txn = new Transaction;
-            $Txn->withGateway($A['mem_pmttype'])
-                ->withUid($this->uid)
-                ->withPlanId($this->Plan->getPlanID())
-                ->withAmount((float)$A['mem_pmtamt'])
-                ->withTxnId($A['mem_pmtdesc'])
-                ->withExpiration($this->expires)
-                ->save();
-        }*/
-
-        // Remove the renewal popup message
-        Popup::deleteOne($this->uid, self::MSG_EXPIRING_CODE);
         Cache::clear('members');
         return true;
     }
@@ -797,9 +817,13 @@ class Membership
      * @param   integer $uid    User ID to cancel
      * @param   boolean $cancel_relatives   True to cancel linked accounts
      */
-    public function Cancel($cancel_relatives=true)
+    public function Cancel(?bool $cancel_relatives=NULL) : void
     {
         global $_TABLES, $_CONF;
+
+        if ($cancel_relatives === NULL) {
+            $cancel_relatives = true;
+        }
 
         $db = Database::getInstance();
         $qb = $db->conn->createQueryBuilder();
@@ -903,25 +927,28 @@ class Membership
             $this->Read($uid);
         }*/
 
-        $plan_id = $Txn->getPlanId();
-        if (!empty($plan_id)) {
+        //$plan_id = $Txn->getPlanId();
+        //var_dumP($plan_id);die;
+        /*if (!empty($this->plan_id)) {
             $this->plan_id = $plan_id;
             $this->Plan = Plan::getInstance($plan_id);
-        }
-        if ($this->Plan->getPlanID() == '') {
+    }*/
+        if ($this->getPlan()->getPlanID() == '') {
             return false;       // invalid plan requested
         }
 
         $this->notified = 0;
         $this->status = Status::ACTIVE;
-        $this->istrial = 0;
-        if ($exp == '')  {
-            $this->expires = Dates::calcExpiration($this->expires);
-        } else {
-            $this->expires = $exp;
+        if ($this->expires == '')  {
+            $this->expires = Dates::Today();
         }
-        if ($joined != '') $this->joined = $joined;
-        $this->paid = Dates::Today();
+        if (!$this->istrial) {
+            $this->expires = Dates::calcExpiration($this->expires);
+        }
+
+        if ($this->joined == '') {
+            $this->joined = Dates::Today();
+        }
         if ($this->Save()) {
             $Txn->withExpiration($this->expires)
                 ->withUid($this->uid)
@@ -1160,21 +1187,30 @@ class Membership
      */
     public function Renew(Transaction $Txn) : bool
     {
-        if ($this->istrial || $this->Plan !== NULL || !$this->isNew) {
+        /*if ($this->istrial || $this->Plan !== NULL || !$this->isNew) {
             return false;
-        }
+    }*/
 
-        $this->expires = isset($args['exp']) ? $args['exp'] :
-                Dates::calcExpiration($this->expires);
-        if (isset($args['mem_plan_id']) && $args['mem_plan_id'] != $this->plan_id) {
-            // if this is a different plan ID, re-read the Plan object
-            $this->plan_id = $args['mem_plan_id'];
-            $this->Plan = Plan::getInstance($this->plan_id);
+        $new_planid = $Txn->getPlanId();
+        if (empty($new_planid)) {
+            $Txn->withPlanId($this->plan_id);
+        } elseif ($new_planid != $this->plan_id) {
+            // If a different plan ID is supplied, validate it.
+            $Plan = Plan::getInstance($new_planid);
+            if (!$Plan->isNew()) {
+                $this->plan_id = $new_planid;
+            } else {
+                // Invalid plan ID supplied, reset to the original.
+                $Txn->withPlanId($this->plan_id);
+            }
         }
+        $this->setTrial(false);     // Renewals can't be trial
+        $this->expires = Dates::calcExpiration($this->expires);
         $this->notified = (int)Config::get('notifycount');
-        $Txn->withPlanId($this->plan_id)
-            ->withExpiration($this->expires)
+        $Txn->withExpiration($this->expires)
             ->save();
+        // Remove the renewal popup message
+        Popup::deleteOne($this->uid, self::MSG_EXPIRING_CODE);
         return $this->Save();
     }
 
@@ -1209,53 +1245,6 @@ class Membership
         }
         Cache::clear('members');     // Make sure members and links are cleared
         $this->_disableAccount();
-    }
-
-
-    /**
-     * Add a transaction record to the membership_trans table.
-     *
-     * @param   string  $gateway    Gateway name or payment type
-     * @param   float   $amt        Amount paid
-     * @param   string  $txn_id     Optional transaction ID or comment
-     * @param   string  $dt         Optional date, now() used if empty
-     * @param   integer $by         Optional user ID, -1 for system gateway
-     */
-    public function XaddTrans($gateway, $amt, string $txn_id='', ?string $dt=NULL, ?int $by=NULL) : void
-    {
-        global $_TABLES, $_USER, $_CONF;
-
-        $amt = (float)$amt;
-        if (empty($dt)) {
-            $now = $_CONF['_now']->toMySQL(true);
-        }
-        if ($by === NULL) {
-            $by = $_USER['uid'];
-        }
-        $db = Database::getInstance();
-        $qb = $db->conn->createQueryBuilder();
-        try {
-            $qb->insert($_TABLES['membership_trans'])
-               ->setValue('tx_date', ':tx_date')
-               ->setValue('tx_uid', ':tx_by')
-               ->setValue('tx_uid', ':tx_uid')
-               ->setValue('tx_planid', ':tx_planid')
-               ->setValue('tx_gw', ':tx_gw')
-               ->setValue('tx_amt', ':tx_amt')
-               ->setValue('tx_exp', ':tx_exp')
-               ->setValue('tx_txn_id', ':tx_txn_id')
-               ->setParameter('tx_date', $now, Database::STRING)
-               ->setParameter('tx_by', $by, Database::INTEGER)
-               ->setParameter('tx_uid', $this->uid, Database::INTEGER)
-               ->setParameter('tx_planid', $$this->Plan->getPlanID(), Database::STRING)
-               ->setParameter('tx_gw', $gateway, Database::STRING)
-               ->setParameter('tx_amt', $amt, Database::INTEGER)
-               ->setParameter('tx_exp', $this->expires, Database::STRING)
-               ->setParameter('tx_txn_id', $txn_id, Database::STRING)
-               ->execute();
-        } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
-        }
     }
 
 
@@ -1372,11 +1361,7 @@ class Membership
      */
     public function isNew()
     {
-        if ($this->istrial || $this->isNew) {
-            return true;
-        } else {
-            return false;
-        }
+        return $this->isNew;
     }
 
 
@@ -1495,15 +1480,14 @@ class Membership
      * @param   integer $uid2   Account being linked into the family
      * @return  boolean     True on success, False on error
      */
-    public static function addLink($uid1, $uid2)
+    public function addLink(int $uid2) : bool
     {
         global $_TABLES;
 
-        $Mem1 = self::getInstance($uid1);
-        if ($Mem1->isNew()) {
+        if ($this->isNew()) {
             Log::write('system', Log::ERROR, __METHOD__ . "(): Cannot link user $uid2 to nonexistant membership for $uid1");
             return false;
-        } elseif (!$Mem1->getPlan()->isFamily()) {
+        } elseif (!$this->getPlan()->isFamily()) {
             Log::write('system', Log::ERROR, __METHOD__ . "(): Cannot link $uid2 to a non-family plan");
             return false;
         }
@@ -1528,29 +1512,31 @@ class Membership
                 :uid2, mem_plan_id, mem_joined, mem_expires, mem_status, mem_guid,
                 :mem_number, mem_notified, mem_istrial
                 FROM {$_TABLES['membership_members']}
-                WHERE mem_uid = $uid1
+                WHERE mem_uid = :uid1
                 ON DUPLICATE KEY UPDATE
                 mem_plan_id = :plan_id,
                 mem_expires = :expires,
                 mem_status = :status,
-                mem_guid = '{$Mem1->getGuid()}',
-                mem_notified = '{$Mem1->expToSend()}',
-                mem_istrial = '{$Mem1->isTrial()}'";
+                mem_guid = :guid,
+                mem_notified = :notified,
+                mem_number = :mem_number,
+                mem_istrial = :istrial";
             $stmt = $db->conn->prepare($sql);
-            $stmt->bindValue('uid1', $uid1, Database::INTEGER)
-                 ->bindValue('uid2', $uid2, Database::INTEGER)
-                 ->bindValue('plan_id', $Mem1->getPlanID(), Database::STRING)
-                 ->bindValue('expires', $Mem1->getExpires()(), Database::STRING)
-                 ->bindValue('status', $Mem1->getStatus()(), Database::INTEGER)
-                 ->bindValue('guid', $Mem1->getGuid()(), Database::STRING)
-                 ->bindValue('notified', $Mem1->expToSend()(), Database::INTEGER)
-                 ->bindValue('istrial', $Mem1->isTrial()(), Database::INTEGER);
-            $stmt->executeUpdate();
+            $stmt->bindValue('uid1', $this->uid, Database::INTEGER);
+            $stmt->bindValue('uid2', $uid2, Database::INTEGER);
+            $stmt->bindValue('plan_id', $this->getPlanID(), Database::STRING);
+            $stmt->bindValue('expires', $this->getExpires(), Database::STRING);
+            $stmt->bindValue('status', $this->getStatus(), Database::INTEGER);
+            $stmt->bindValue('guid', $this->getGuid(), Database::STRING);
+            $stmt->bindValue('notified', $this->expToSend(), Database::INTEGER);
+            $stmt->bindValue('istrial', $this->isTrial(), Database::INTEGER);
+            $stmt->bindValue('mem_number', $mem_number, Database::INTEGER);
+            $stmt->executeStatement();
         } catch (\Exception $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             return false;
         }
-        Log::write(Config::PI_NAME, Log::INFO , "Member $uid linked to member $uid1");
+        Log::write(Config::PI_NAME, Log::INFO , "Member $uid2 linked to member {$this->uid}");
         Cache::clear('members');
         return true;
     }
@@ -1564,7 +1550,7 @@ class Membership
      * @param   integer $uid    Account ID being unlinked
      * @return  boolean     True on success, False on error
      */
-    public static function remLink($uid)
+    public static function remLink($uid) : bool
     {
         global $_TABLES;
 
@@ -1575,12 +1561,12 @@ class Membership
         try {
             $db->conn->executeUpdate(
                 "UPDATE {$_TABLES['membership_members']}
-                SET mem_guid = :guid
-                WHERE mem_uid = :uid",
+                SET mem_guid = ?
+                WHERE mem_uid = ?",
                 array(self::_makeGuid($uid), $uid),
                 array(Database::STRING, Database::INTEGER)
             );
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             return false;
         }

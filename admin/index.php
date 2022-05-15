@@ -3,9 +3,9 @@
  * Entry point to administration functions for the Membership plugin.
  *
  * @author     Lee Garner <lee@leegarner.com>
- * @copyright  Copyright (c) 2012-2020 Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package    membership
- * @version    v0.2.0
+ * @version    v1.0.0
  * @license    http://opensource.org/licenses/gpl-2.0.php
  *             GNU Public License v2 or later
  * @filesource
@@ -49,7 +49,7 @@ $db = Database::getInstance();
 $action = Config::get('adm_def_view');
 $expected = array(
     // Actions to perform
-    'saveplan', 'deleteplan', 'savemember',
+    'saveplan', 'deleteplan', 'savemember', 'createmember',
     'renewbutton_x', 'deletebutton_x', 'renewform', 'saveposition',
     'savepg', 'delpg', 'notify', 'quickrenew',
     'renewbutton', 'deletebutton', 'regenbutton',
@@ -118,14 +118,12 @@ case 'quickrenew':
         $M = new Membership($uid);
         if (!$M->isNew()) {
             $Txn = new Transaction;
-            $pmt_amt = isset($A['mem_pmtamt']) ? (float)$A['mem_pmtamt'] : 0;
-            $pmt_dscp = isset($A['mem_pmtdesc']) ? $A['mem_pmtdesc'] : '';
-            $pmt_type = isset($A['mem_pmttype']) ? $A['mem_pmttype'] : '';
-            $Txn = new Transaction;
-            $Txn->withGateway($pmt_type)
+            $Txn->withGateway(MEMB_getVar($_POST, 'mem_pmttype'))
                 ->withUid($uid)
-                ->withAmount($pmt_amt)
-                ->withTxnId($pmt_dscp);
+                ->withDoneBy($_USER['uid'])
+                ->withPlanId(MEMB_getVar($_POST, 'mem_planid', 'string', $M->getPlanID()))
+                ->withAmount(MEMB_getVar($_POST, 'mem_pmtamt', 'float', 0))
+                ->withTxnId(MEMB_getVar($_POST, 'mem_pmtdesc'));
             $status = $M->Renew($Txn);
         }
     }
@@ -136,7 +134,30 @@ case 'savemember':
     // Call plugin API function to save the membership info, if changed.
     plugin_user_changed_membership($_POST['mem_uid']);
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
-    exit;
+    break;
+
+case 'createmember':
+    $M = new Membership($_POST['mem_uid']);
+    if ($M->isNew()) {
+        $M->setVars($_POST);
+        //$M->setPlan($_POST['mem_plan_id']);
+        if (Config::get('use_mem_number') == MemberNumber::AUTOGEN) {
+            // New member, apply membership number if configured
+            $M->setMemNumber(MemberNumber::create($_POST['mem_uid']));
+        }
+        $Txn = new Transaction;
+        $pmt_amt = isset($A['mem_pmtamt']) ? (float)$A['mem_pmtamt'] : 0;
+        $pmt_dscp = isset($A['mem_pmtdesc']) ? $A['mem_pmtdesc'] : '';
+        $pmt_type = isset($A['mem_pmttype']) ? $A['mem_pmttype'] : '';
+        $Txn = new Transaction;
+        $Txn->withGateway($pmt_type)
+            ->withUid($_POST['mem_uid'])
+            ->withAmount($pmt_amt)
+            ->withPlanId($_POST['mem_plan_id'])
+            ->withTxnId($pmt_dscp);
+        $status = $M->Add($Txn);
+    }
+    echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
 
 case 'deletebutton_x':
@@ -280,7 +301,7 @@ case 'importform':
 case 'editmember':
     $M = new Membership($actionval);
     $showexp = isset($_GET['showexp']) ? '?showexp' : '';
-    $content .= Menu::Admin('listmembers');
+    $content .= Menu::Admin();
     $content .= $M->Editform(Config::get('admin_url') . '/index.php' . $showexp);
     break;
 
@@ -305,6 +326,17 @@ case 'editpg':
 
 case 'listmembers':
     $content .= Menu::Admin($view);
+    $content .= COM_createLink(
+        glFusion\FieldList::button(array(
+            'style' => 'success',
+            'text' => $LANG_MEMBERSHIP['new_member'],
+        ) ),
+        Config::get('admin_url') . '/index.php?editmember=0'
+    );
+    //$T = new \Template(Config::get('path') . '/templates');
+    //$T->set_file('list', 'listmembers.thtml');
+    //$T->parse('output', 'list');
+    //$content .= $T->finish('
     $content .= Membership::adminList();
     break;
 

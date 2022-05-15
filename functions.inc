@@ -378,11 +378,30 @@ function plugin_profileedit_membership($uid, $panel, $fieldset)
  */
 function plugin_user_changed_membership($uid=0)
 {
+    global $_USER;
+
     // Only managers can update membership data.
     if (!MEMBERSHIP_isManager()) return;
 
+    // First save the updated membership info.
     $M = Membership\Membership::getInstance($uid);
     $M->Save($_POST);
+
+    // Then see if there's a transaction to record.
+    $pmt_amt = MEMB_getVar($_POST, 'mem_pmtamt', 'float', 0);
+    $pmt_dscp = MEMB_getVar($_POST, 'mem_pmtdesc');
+    $pmt_type = MEMB_getVar($_POST, 'mem_pmttype');
+    if (!empty($pmt_amt) || !empty($pmt_dscp) || !empty($pmt_type)) {
+        $Txn = new Membership\Models\Transaction;
+        $Txn->withGateway($pmt_type)
+            ->withUid($uid)
+            ->withPlanId($_POST['mem_plan_id'])
+            ->withAmount($pmt_amt)
+            ->withDoneBy($_USER['uid'])
+            ->withExpiration($_POST['mem_expires'])
+            ->withTxnId($pmt_dscp);
+        $Txn->save();
+    }
 }
 
 
@@ -395,7 +414,7 @@ function plugin_user_changed_membership($uid=0)
  * @param   string  $username   User login name. Not used.
  * @return  mixed       Empty value on success, numeric message ID on failure
  */
-function plugin_itemPreSave_membership($mode, $username)
+function Xplugin_itemPreSave_membership($mode, $username)
 {
     global $LANG_MEMBERSHIP;
 

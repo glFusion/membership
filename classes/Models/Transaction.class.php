@@ -67,7 +67,7 @@ class Transaction
      */
     public function __construct(?int $tx_id=NULL)
     {
-        $this->withBy();
+        $this->withDoneBy();
         $this->withDate();
         if (is_int($tx_id)) {
             $this->Read($tx_id);
@@ -129,7 +129,7 @@ class Transaction
      * @param   integer $uid    User ID, null to use current user
      * @return  object  $this
      */
-    public function withBy(?int $uid=NULL) : self
+    public function withDoneBy(?int $uid=NULL) : self
     {
         global $_USER;
 
@@ -197,6 +197,18 @@ class Transaction
     {
         $this->tx_planid = $plan_id;
         return $this;
+    }
+
+
+    /**
+     * Get the plan ID in the transaction.
+     * Used to verify if the plan has changed during renewal.
+     *
+     * @return  string      New plan ID
+     */
+    public function getPlanId() : string
+    {
+        return $this->tx_planid;
     }
 
 
@@ -365,6 +377,11 @@ class Transaction
                 'sort' => true,
             ),
             array(
+                'text' => $LANG_MEMBERSHIP['amount'],
+                'field' => 'tx_amt',
+                'align' => 'right',
+            ),
+            array(
                 'text' => $LANG_MEMBERSHIP['txn_id'],
                 'field' => 'tx_txn_id',
                 'sort' => true,
@@ -428,6 +445,10 @@ class Transaction
                     $retval = COM_createLink($fieldvalue, $output);
                 }
             }
+            break;
+
+        case 'tx_amt':
+            $retval = number_format((float)$fieldvalue, 2, '.', '');
             break;
 
         default:

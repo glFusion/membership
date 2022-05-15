@@ -2,80 +2,68 @@
 <script src="{site_url}/javascript/addons/datetime/jquery.datetimepicker.full.min.js" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="{site_url}/javascript/addons/datetime/jquery.datetimepicker.min.css"/ >
 <script src="{site_url}/javascript/addons/datetime/datetimepicker.js" type="text/javascript"></script>
-<script type="text/javascript">
+<script>
 var MEMaddElement = function(selid) {
-  var uid = selid.options[selid.selectedIndex].value;
-  if (uid == 0) return;
-  var uname = selid.options[selid.selectedIndex].text;
-  var lst = document.getElementById('linklist');
-  var new_elem = document.createElement('li');
-  var str = "<a href=\"{site_url}/users.php?mode=profile&uid=" + uid +
-        "\">" + uname + " (" + uid + ")</a>";
-  str = str + "&nbsp;&nbsp;<a href=\"#!\" onclick='MEMremoveElement(" +
-        uid + ",\"" + uname + "\")'>" +
-        "<img src=\"{layout_url}/images/admin/delete.png\" " +
-        "title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"tooltip\" /></a>";
-  str = str + "<input type=\"hidden\" name=\"mem_links[]\" value=\"" + uid + "\" />";
-  new_elem.innerHTML = str;
-  new_elem.id = "link"+uid;
-  lst.appendChild(new_elem);
-
-/*  var dataS = {
-    "action" : "addlinkuser",
-    "uid1": {my_uid},
-    "uid2": uid,
-  };
-
-  data = $.param(dataS);
-  $.ajax({
-    type: "POST",
-    dataType: "json",
-    url: site_admin_url + "/plugins/membership/ajax.php",
-    data: data,
-    success: function(result) {
-    }
-  });*/
-  return false;
+	var uid = selid.options[selid.selectedIndex].value;
+	if (uid == 0) return;
+	var uname = selid.options[selid.selectedIndex].text;
+	var lst = document.getElementById('linklist');
+	var new_elem = document.createElement('li');
+	var str = "<a href=\"{site_url}/users.php?mode=profile&uid=" + uid +
+		"\">" + uname + " (" + uid + ")</a>";
+	str = str + "&nbsp;&nbsp;<a href=\"#!\" onclick='MEMremoveElement(" +
+		uid + ",\"" + uname + "\")'>" +
+		"<img src=\"{layout_url}/images/admin/delete.png\" " +
+		"title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"tooltip\" /></a>";
+	str = str + "<input type=\"hidden\" name=\"mem_links[]\" value=\"" + uid + "\" />";
+	new_elem.innerHTML = str;
+	new_elem.id = "link"+uid;
+	lst.appendChild(new_elem);
+	return false;
 };
 
 var MEMremoveElement = function(uid, uname) {
-/*  var dataS = {
-    "action" : "remlinkuser",
-    "uid1": {my_uid},
-    "uid2": uid,
-  };
-  data = $.param(dataS);
-  $.ajax({
-    type: "POST",
-    dataType: "json",
-    url: site_admin_url + "/plugins/membership/ajax.php",
-    data: data,
-    success: function(result) {
-      el = document.getElementById("link"+uid);
-      el.parentNode.removeChild(el);
-      sel = document.getElementById("linkselect");
-      optnew = document.createElement('option');
-      optnew.text = uname;
-      optnew.value = uid;
-      try {
-        sel.add(optnew, null);
-      } catch (ex) {
-        sel.add(optnew);
-      }
-    }
-  });*/
-      el = document.getElementById("link"+uid);
-      el.parentNode.removeChild(el);
-      sel = document.getElementById("linkselect");
-      optnew = document.createElement('option');
-      optnew.text = uname;
-      optnew.value = uid;
-      try {
-        sel.add(optnew, null);
-      } catch (ex) {
-        sel.add(optnew);
-      }
-  return false;
+	el = document.getElementById("link"+uid);
+	el.parentNode.removeChild(el);
+	sel = document.getElementById("linkselect");
+	optnew = document.createElement('option');
+	optnew.text = uname;
+	optnew.value = uid;
+	try {
+		sel.add(optnew, null);
+	} catch (ex) {
+		sel.add(optnew);
+	}
+	return false;
 };
+
+function memUpdateLinkText(selid)
+{
+	var family_ids = new Array({family_plans});
+	var plan_id = selid.options[selid.selectedIndex].value;
+	// default if no family plans
+	var text = "{$LANG_MEMBERSHIP['no_upd_links']}";
+	var show_family = false;
+
+	if (plan_id == '') {
+		text = '';
+	} else {
+		for (var i=0; i<family_ids.length; i++) {
+			if (family_ids[i] == plan_id) {
+				text = "{$LANG_MEMBERSHIP['does_upd_links']}";
+				show_family = true;
+			}
+		}
+	}
+	$("#upd_link_txt").html(text);
+	//document.getElementById("upd_link_txt").innerHTML = text;
+	if (show_family) {
+		$("#family_fields").show();
+		//document.getElementById("family_fields").style.display = 'block';
+	} else {
+		$("#family_fields").hide();
+		//document.getElementById("family_fields").style.display = 'none';
+	}
+}
 </script>
 {# end {templatelocation} #}

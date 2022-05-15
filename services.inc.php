@@ -181,7 +181,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
             ->withAmount((float)$ipn_data['pmt_gross'])
             ->withTxnId($ipn_data['txn_id'])
             ->withUid($uid)
-            ->withBy(0);
+            ->withDoneBy(0);
         $status = $M->Add($Txn);
     } else {
         $status = false;

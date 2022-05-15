@@ -25,18 +25,6 @@ $result = array(
     'statusMessage' => 'Undefined',
 );
 switch ($_POST['action']) {
-case 'remlinkuser':
-    \Membership\Membership::remLink($_POST['uid2']);
-    break;
-
-case 'addlinkuser':
-    \Membership\Membership::addLink($_POST['uid1'], $_POST['uid2']);
-    break;
-
-case 'emancipate':
-    \Membership\Membership::remLink($_POST['uid1']);
-    break;
-
 case 'toggle':
     switch ($_POST['component']) {
     case 'enabled':
