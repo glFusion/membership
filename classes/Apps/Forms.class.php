@@ -3,9 +3,9 @@
  * Class to handle membership applications provided by the Forms plugin.
  *
  * @author     Lee Garner <lee@leegarner.com>
- * @copyright  Copyright (c) 2018 Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2018-2022 Lee Garner <lee@leegarner.com>
  * @package    membership
- * @version    0.2.0
+ * @version    v1.0.0
  * @license    http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -221,4 +221,3 @@ class Forms extends \Membership\App
 
 }
 
-?>

@@ -3,9 +3,9 @@
  * Class to handle membership applications provided by the Profile plugin.
  *
  * @author     Lee Garner <lee@leegarner.com>
- * @copyright  Copyright (c) 2018-2021 Lee Garner <lee@leegarner.com>
+ * @copyright  Copyright (c) 2018-2022 Lee Garner <lee@leegarner.com>
  * @package    membership
- * @version    0.3.0
+ * @version    v1.0.0
  * @license    http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -35,9 +35,9 @@ class Profile extends \Membership\App
                 1 => array(
                     'uid' => $this->uid,
                 ),
+                2 => &$output,
+                3 => &$svc_msg,
             ),
-            $output,
-            $svc_msg,
         );
         if ($status == PLG_RET_OK && !empty($output)) {
             foreach ($output as $key=>$data) {
@@ -138,4 +138,3 @@ class Profile extends \Membership\App
 
 }
 
-?>
