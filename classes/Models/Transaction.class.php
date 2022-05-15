@@ -260,6 +260,7 @@ class Transaction
                ->setValue('tx_amt', ':tx_amt')
                ->setValue('tx_exp', ':tx_exp')
                ->setValue('tx_txn_id', ':tx_txn_id')
+               ->setValue('tx_by', ':tx_by')
                ->setParameter('tx_date', $this->tx_dt, Database::STRING)
                ->setParameter('tx_by', $this->tx_by, Database::INTEGER)
                ->setParameter('tx_uid', $this->tx_uid, Database::INTEGER)
@@ -268,6 +269,7 @@ class Transaction
                ->setParameter('tx_amt', $this->tx_amt, Database::INTEGER)
                ->setParameter('tx_exp', $this->tx_exp, Database::STRING)
                ->setParameter('tx_txn_id', $this->tx_txn_id, Database::STRING)
+               ->setParameter('tx_by', $this->tx_by, Database::INTEGER)
                ->execute();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
