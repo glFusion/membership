@@ -227,7 +227,7 @@ class Popup
         if (empty($title)) $title = $LANG_MEMBERSHIP['system_message'];
         $leveltxt = isset($levels[$level]) ? $levels[$level] : 'info';
         if ($persist) {
-            $T = new \Template(Config::get('path') . 'templates');
+            $T = new \Template(Config::get('pi_path') . 'templates');
             $T->set_file('msg', 'sysmessage.thtml');
             $T->set_var(array(
                 'leveltxt' => $leveltxt,

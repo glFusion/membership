@@ -582,17 +582,15 @@ class Membership
     {
         global $_TABLES;
 
+        // Save the old membership object to check later if there are changes.
+        $OldMembership = clone $this;
+
         $db = Database::getInstance();
         $old_status = $this->status;  // track original status
         if (!is_array($A)) {
             $A = array();
         }
         if (!empty($A)) {
-            if (isset($A['mem_plan_id']) && $A['mem_plan_id'] == '') {
-                // remove membership, leave record
-                $this->Cancel();
-                return true;        // cancellation is a valid operation
-            }
             $this->setVars($A);
         }
 
@@ -607,9 +605,11 @@ class Membership
             return false;
         }
 
+        $this->status = Status::fromExpiration($this->expires);
+
         // Set a flag to see if the membership status, group, etc. needs
         // to be updated based on form input. Quick renewal forces an update.
-        $need_membership_update = !$this->Matches(self::getInstance($this->uid));
+        $need_membership_update = !$this->Matches($OldMembership);
 
         // The first thing is to check to see if we're removing this account
         // from the family so we don't update other members incorrectlya
@@ -638,8 +638,6 @@ class Membership
             $this->Cancel();
             return true;
         }
-
-        $this->status = Status::fromExpiration($this->expires);
 
         // If this plan updates linked accounts, get all the accounts.
         // Already updated any link changes above.
@@ -730,7 +728,7 @@ class Membership
             // date then the status and group changes will be handled by
             // runScheduledTask
             if ($need_membership_update) {
-                if ($this->status == Status::ACTIVE && $need_membership_update) {
+                if ($this->status == Status::ACTIVE) {
                     Log::write('system', Log::DEBUG, "membership:: Adding user $key to group " . Config::get('member_group'));
                     USER_addGroup(Config::get('member_group'), $key);
                 }
@@ -857,7 +855,7 @@ class Membership
      * @param   boolean $notify True to send normal notification
      * @return  object  $this
      */
-    public function Expire($cancel_relatives=true, $notify=true)
+    public function Expire(bool $cancel_relatives=true, bool $notify=true) : self
     {
         // Remove this member from any club positions held
         foreach (Position::getByMember($this->uid) as $P) {
@@ -891,7 +889,7 @@ class Membership
      *
      * @param   boolean $cancel_relatives   True to cancel linked accounts
      */
-    public function Arrears($cancel_relatives=true)
+    public function Arrears(bool $cancel_relatives=true) : self
     {
         // Send a final notification, if notifications are used
         $N = new Notifiers\Expiration;
@@ -919,19 +917,8 @@ class Membership
      * @param   integer $joined     Date joined
      * @return  mixed       Expiration date, or false in case of error
      */
-    //public function Add($uid = '', $plan_id = '', $exp = '', $joined = '')
     public function Add(Transaction $Txn) : bool
     {
-        /*if ($uid != '') {
-            $this->Read($uid);
-        }*/
-
-        //$plan_id = $Txn->getPlanId();
-        //var_dumP($plan_id);die;
-        /*if (!empty($this->plan_id)) {
-            $this->plan_id = $plan_id;
-            $this->Plan = Plan::getInstance($plan_id);
-    }*/
         if ($this->getPlan()->getPlanID() == '') {
             return false;       // invalid plan requested
         }
@@ -965,7 +952,7 @@ class Membership
      *
      * @return  float   Price to buy or renew membership
      */
-    public function Price()
+    public function Price() : float
     {
         return $this->Plan->Price($this->isNew());
     }
@@ -983,7 +970,7 @@ class Membership
      * @param   integer $uid    User ID being displayed, default = current user
      * @return  string      HTML for membership data display
      */
-    public function showInfo($panel = false, $uid = 0)
+    public function showInfo(bool $panel = false, int $uid = 0) : string
     {
         global $LANG_MEMBERSHIP, $_USER, $_TABLES, $_SYSTEM;
 
@@ -1081,7 +1068,7 @@ class Membership
      * @param   string  $new_plan   New Plan ID
      * @return  boolean     True on success, False on error or invalid new_plan
      */
-    public static function Transfer($old_plan, $new_plan)
+    public static function Transfer(string $old_plan, string $new_plan) : bool
     {
         global $_TABLES;
 
@@ -1098,7 +1085,7 @@ class Membership
         }
 
         try {
-            $db->conn->executeUpdate(
+            $db->conn->executeStatement(
                 "UPDATE {$_TABLES['membership_members']}
                 SET mem_plan_id = ?
                 WHERE mem_plan_id = ?",
@@ -1121,7 +1108,7 @@ class Membership
      * @param   string  $exp    Expiration date (YYYY-MM-DD)
      * @return  integer     Days expired, negative if already expired.
      */
-    public static function DaysToExpire($exp)
+    public static function DaysToExpire(string $exp) : int
     {
         $days = COM_dateDiff('d', $exp, Dates::Today());
         if ($exp < Dates::Today()) $days *= -1;
@@ -1136,7 +1123,7 @@ class Membership
      * @param   string  $exp    Expiration date (YYYY-MM-DD)
      * @return  integer     Days expired, negative if not expired yet.
      */
-    public static function DaysExpired($exp)
+    public static function DaysExpired(string $exp) : int
     {
         $days = COM_dateDiff('d', $exp, Dates::Today());
         // Undo absolute value conversion done in COM_dateDiff()
@@ -1151,7 +1138,7 @@ class Membership
      *
      * @return  boolean     True if purchase is OK, False if not.
      */
-    public function canPurchase()
+    public function canPurchase() : bool
     {
         if (COM_isAnonUser()) {
             $canPurchase = self::NOPURCHASE;
@@ -1219,7 +1206,7 @@ class Membership
      * Only the specified user is deleted; linked accounts are not affected.
      * The specified user is also removed from the linked accounts.
      */
-    public function Delete()
+    public function Delete() : void
     {
         global $_TABLES;
         USES_lib_user();
@@ -1254,7 +1241,7 @@ class Membership
      * @param   integer $old_status     Original member status
      * @param   integer $new_status     New member status
      */
-    public static function updatePlugins(array $uids, $old_status, $new_status)
+    public static function updatePlugins(array $uids, int $old_status, int $new_status) : void
     {
         global $_TABLES, $_PLUGINS;
 
@@ -1356,9 +1343,9 @@ class Membership
      * Determine if this is a new membership or a renewal.
      * For pricing purposes trial memberships are considered "new".
      *
-     * @return  string  String indicating 'new' or 'renewal' for pricing
+     * @return  boolean     True for a new membership, False for existing
      */
-    public function isNew()
+    public function isNew() : bool
     {
         return $this->isNew;
     }
@@ -1369,7 +1356,7 @@ class Membership
      *
      * @return  string  Description
      */
-    public function planDescription()
+    public function planDescription() : string
     {
         global $LANG_MEMBERSHIP;
 
@@ -1384,7 +1371,7 @@ class Membership
     /**
      * Disable a specific user's site account.
      */
-    private function _disableAccount()
+    private function _disableAccount() : void
     {
         global $_TABLES;
 
@@ -1411,7 +1398,7 @@ class Membership
      * @param   array   $options    Additional options
      * @return  array       Array of fieldname=>value
      */
-    public function getItemInfo($what, $options = array())
+    public function getItemInfo(array $what, array $options = array()) : array
     {
         $retval = array();
         $U = User::getInstance($this->uid);
@@ -1462,7 +1449,7 @@ class Membership
      * @param   string  $seed   Some seed value
      * @return  string      Unique identifier
      */
-    private static function _makeGuid($seed)
+    private static function _makeGuid(string $seed) : string
     {
         return md5((string)$seed . rand());
     }
@@ -1549,7 +1536,7 @@ class Membership
      * @param   integer $uid    Account ID being unlinked
      * @return  boolean     True on success, False on error
      */
-    public static function remLink($uid) : bool
+    public static function remLink(int $uid) : bool
     {
         global $_TABLES;
 
@@ -1581,7 +1568,7 @@ class Membership
      * @param   mixed   $uid    User ID
      * @return  array       Array of relatives (uid => username)
      */
-    public function getLinks()
+    public function getLinks() : array
     {
         global $_TABLES;
 
@@ -1625,7 +1612,7 @@ class Membership
      *
      * @return  string  HTML output for the page
      */
-    public static function summaryStats()
+    public static function summaryStats() : string
     {
         global $_TABLES;
 
@@ -1694,7 +1681,8 @@ class Membership
             $this->plan_id != $B->getPlanID() ||
             $this->joined != $B->getJoined() ||
             $this->expires != $B->getExpires() ||
-            $this->istrial != $B->isTrial()
+            $this->istrial != $B->isTrial() ||
+            $this->status != $B->getStatus()
         ) {
             return false;
         }
@@ -1707,7 +1695,7 @@ class Membership
      *
      * @return  string  HTML for the list
      */
-    public static function adminList()
+    public static function adminList() : string
     {
         global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP;
 
@@ -1803,7 +1791,7 @@ class Membership
             'form_url'  => Config::get('admin_url') . '/index.php?listmembers',
         );
 
-        $T = new \Template(Config::get('path') . 'templates/admin/');
+        $T = new \Template(Config::get('pi_path') . 'templates/admin/');
         $T->set_file('filter', 'memb_filter.thtml');
         $T->set_var(array(
             'exp_chk' => $frmchk,
@@ -1956,7 +1944,7 @@ class Membership
      * @param   string  $fullname   Optional Full override
      * @return  string      HTML for the styled user name.
      */
-    public static function createNameLink($uid, $fullname='')
+    public static function createNameLink(int $uid, string $fullname='') : string
     {
         global $_CONF;
 
@@ -1991,8 +1979,10 @@ class Membership
 
     /**
      * Expire memberships that have not been renewed within the grace period.
+     *
+     * @return  integer     Number of memberships affected
      */
-    public static function batchExpire()
+    public static function batchExpire() : int
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
@@ -2027,6 +2017,9 @@ class Membership
                     )
                 );
             }
+            return count($data);
+        } else {
+            return 0;
         }
     }
 
@@ -2035,8 +2028,10 @@ class Membership
      * Set overdue memberships to "in arrears".
      * Runs nearly the same query as expirePostGrace() above since expired
      * members now have their statuses changed to "expired"
+     *
+     * @return  integer     Number of memberships affected
      */
-    public static function batchArrears()
+    public static function batchArrears() : int
     {
         global $_TABLES;
 
@@ -2047,9 +2042,9 @@ class Membership
                ->from($_TABLES['membership_members'])
                ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid')
                ->where('m.mem_status in (:status)')
-               ->andWhere('m.mem_expires < :endgrace')
+               ->andWhere('m.mem_expires < :now')
                ->setParameter('status', array(Status::ACTIVE), Database::PARAM_INT_ARRAY)
-               ->setParameter('endgrace', Dates::expGraceEnded(), Database::STRING)
+               ->setParameter('now', Dates::Today(), Database::STRING)
                ->execute()
                ->fetchAll(Database::ASSOCIATIVE);
         } catch (\Throwable $e) {
@@ -2069,41 +2064,46 @@ class Membership
                     )
                 );
             }
+            return count($data);
+        } else {
+            return 0;
         }
     }
 
 
     /**
      * Purge old membership records that have been expired for some time.
+     *
+     * @return  integer     Number of memberships affected
      */
-    public static function batchPurge()
+    public static function batchPurge() : int
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
         $days = (int)Config::get('drop_days');
         if ($days < 0) {
-            return;
+            return 0;
         }
 
         $db = Database::getInstance();
         try {
-            $stmt = $db->conn->executeUpdate(
+            $rows = $db->conn->executeStatement(
                 "UPDATE {$_TABLES['membership_members']}
                 SET mem_status = ?
                  WHERE ? > (mem_expires + interval ? DAY)",
                 array(Status::DROPPED, Dates::Today(), $days),
                 array(Database::INTEGER, Database::STRING, Database::INTEGER)
             );
-            $num = $stmt->rowCount();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
-            $num = 0;
+            $rows = 0;
         }
         Log::write(
             Config::PI_NAME,
             Log::INFO,
-            sprintf($LANG_MEMBERSHIP['log_purged'], $num, $days)
+            sprintf($LANG_MEMBERSHIP['log_purged'], $rows, $days)
         );
+        return $rows;
     }
 
 }

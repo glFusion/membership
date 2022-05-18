@@ -26,7 +26,7 @@ class FieldList extends \glFusion\FieldList
     {
         static $t = NULL;
         if (self::$t === NULL) {
-            $t = new \Template(Config::get('path') . 'templates/');
+            $t = new \Template(Config::get('pi_path') . 'templates/');
             $t->set_file('field','fieldlist.thtml');
         }
         return $t;

@@ -43,12 +43,9 @@ spl_autoload_register(function ($class)
     }
 });
 use Membership\Config;
+use Membership\Cache;
 use glFusion\Log\Log;
 use glFusion\Database\Database;
-
-Config::set('pi_path', __DIR__ . '/');
-Config::set('url', $_CONF['site_url'] . '/' . Config::PI_NAME);
-Config::set('admin_url', $_CONF['site_admin_url'] . '/plugins/' . Config::PI_NAME);
 
 Log::config(
     Config::PI_NAME,
@@ -662,15 +659,43 @@ function MEMBERSHIP_groupSelection()
  */
 function plugin_runScheduledTask_membership()
 {
+    global $_VARS;
+
+    // Run once per day. Maybe later there will be tasks to run more often.
+    $db = Database::getInstance();
+    $today = $_CONF['_now']->format('Ymd', true);
+    $lastrun = isset($_VARS['membership_lastrun']) ? $_VARS['membership_lastrun'] : '';
+    if ($lastrun == $today) {
+        return;
+    }
+    try {
+        $db->conn->executeUpdate(
+            "INSERT INTO {$_TABLES['vars']} VALUES('membership_lastrun', ?)
+            ON DUPLICATE KEY UPDATE value = ?",
+            array($today, $today),
+            array(Database::STRING, Database::STRING)
+        );
+    } catch (\Exception $e) {
+        Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
+    }
+
+    // Track number of affected memberships to see if cache clearing is needed.
+    $affected = 0;
+
     // Expire memberships not renewed within the grace period.
-    Membership\Membership::batchExpire();
+    $affected += Membership\Membership::batchExpire();
     // Set members to "in arrears" if expired but within the grace period.
-    Membership\Membership::batchArrears();
+    $affected += Membership\Membership::batchArrears();
     // Set members to "dropped" if they've been expired for a long time.
-    Membership\Membership::batchPurge();
+    $affected += Membership\Membership::batchPurge();
+
     // For the current members that are left, notify of impending expiration.
     $Notifier = new Membership\Notifiers\Expiration;
     $Notifier->Notify();
+
+    if ($affected) {
+        Cache::clear('members');
+    }
 }
 
 

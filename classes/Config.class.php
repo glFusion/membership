@@ -56,9 +56,11 @@ final class Config
             $this->properties = \config::get_instance()
                  ->get_config(self::PI_NAME);
 
-            $this->properties['path'] = $_CONF['path'] . '/plugins/membership/';
+            $this->properties['pi_path'] = $_CONF['path'] . '/plugins/membership/';
             $this->properties['pi_display_name'] = 'Membership';
             $this->properties['pi_url'] =  'http://www.glfusion.org';
+            $this->properties['url'] = $_CONF['site_url'] . '/' . self::PI_NAME;
+            $this->properties['admin_url'] = $_CONF['site_admin_url'] . '/plugins/' . self::PI_NAME;
         }
     }
 
