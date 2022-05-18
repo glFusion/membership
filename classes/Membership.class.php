@@ -777,7 +777,6 @@ class Membership
         foreach ($groups as $group) {
             USER_delGroup($group, $uid);
         }
-        self::updatePlugins(array($uid), $old_status, $new_status);
 
         // Now do the same thing for all the relatives.
         if ($inc_relatives) {
