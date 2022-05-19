@@ -41,7 +41,7 @@ class GroupList
      * @var array */
     private $groups = array();
 
-    /** Primary posigion group, in case there is more than one selected.
+    /** Primary position group, in case there is more than one selected.
      * Used to create the page title.
      * @var object */
     private $PosGroup = NULL;
@@ -191,10 +191,7 @@ class GroupList
                 $page_title = '';
             }
             // Get the name parts, may be used with a custom template
-            $name_parts = PLG_callFunctionForOnePlugin(
-                'plugin_parseName_lglib',
-                array(1 => $A['fullname'], 2 => 'Parse')
-            );
+            $name_parts = User::parseName($A['fullname']);
 
             $T->set_var(array(
                 'title' => $page_title,
@@ -216,4 +213,3 @@ class GroupList
 
 }
 
-?>

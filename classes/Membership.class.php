@@ -41,6 +41,7 @@ class Membership
     const NOTIFY_BOTH = 3;
 
     const MSG_EXPIRING_CODE = 'memb_msg_expiring';
+    const MSG_EXPIRED_CODE = 'memb_msg_expired';
 
     /** Plan ID.
      * @var string */
@@ -1954,14 +1955,8 @@ class Membership
             if ($fullname == '') {
                 $fullname = COM_getDisplayName($uid);
             }
-            $parsed = PLG_callFunctionForOnePlugin(
-                'plugin_parseName_lglib',
-                array(
-                    1 => $fullname,
-                    2 => 'LCF',
-                )
-            );
-            if ($parsed === false ) {
+            $parsed = User::parseName($fullname, 'LCF');
+            if (empty($parsed)) {
                 $parsed = $fullname;
             }
             $retval[$uid] = '<span class="member_normal" rel="rel_' . $uid .

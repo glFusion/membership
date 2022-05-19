@@ -16,6 +16,7 @@ use Membership\Membership;
 use Membership\Config;
 use Membership\Status;
 use Membership\Cache;
+use Membership\User;
 use Membership\Notifiers\Popup;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
@@ -133,22 +134,9 @@ class Expiration extends \Membership\BaseNotifier
                     $button = '';
                 }
 
-                $nameparts = PLG_callFunctionForOnePlugin(
-                    'plugin_parseName_lglib',
-                    array(
-                        1 => $row['fullname'],
-                    )
-                );
-                if ($nameparts !== false) {
-                    $fname = $nameparts['fname'];
-                    $lname = $nameparts['lname'];
-                } else {
-                    $fname = '';
-                    $lname = '';
-                }
-
+                $fname = User::parseName($row['fullname'], 'F');
+                $lname = User::parseName($row['fullname'], 'L');
                 $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
-
                 $price = $this->Plan->Price($this->isNew());
                 $price_txt = COM_numberFormat($price, 2);
 
@@ -166,8 +154,8 @@ class Expiration extends \Membership\BaseNotifier
                     'buy_button'    => $button,
                     'exp_my'        => $dt->format('F, Y', true),
                     'exp_date'      => $dt->format($_CONF['shortdate'], true),
-                    'firstname'     => $fname,
-                    'lastname'      => $lname,
+                    'firstname'     => $nameparts['fname'],
+                    'lastname'      => $nameparts['lname'],
                     'fullname'      => $row['fullname'],
                     'is_expired'    => $is_expired,
                     'expire_eom'    => Config::get('expires_eom'),
