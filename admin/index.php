@@ -333,10 +333,6 @@ case 'listmembers':
         ) ),
         Config::get('admin_url') . '/index.php?editmember=0'
     );
-    //$T = new \Template(Config::get('path') . '/templates');
-    //$T->set_file('list', 'listmembers.thtml');
-    //$T->parse('output', 'list');
-    //$content .= $T->finish('
     $content .= Membership::adminList();
     break;
 

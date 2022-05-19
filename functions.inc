@@ -193,58 +193,6 @@ function plugin_getheadercss_membership()
 
 
 /**
- * Disable this plugin's blocks when the plugin is disabled.
- *
- * @param   boolean $enabled    Plugin's "enabled" state
- */
-function plugin_enablestatechange_membership($enabled)
-{
-    global $_TABLES, $_PLUGINS;
-
-    $enabled = $enabled == true ? 1 : 0;
-
-    // If trying to enable the plugin but lgLib is not available,
-    // take no action and return
-    if ($enabled && !in_array('lglib', $_PLUGINS)) {
-        // Re-disable the plugin
-        $db = Database::getInstance();
-        try {
-            $db->conn->executeUpdate(
-                "UPDATE {$_TABLES['plugins']} SET pi_enabled = 0 WHERE pi_name = 'membership"
-            );
-        } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, __FUNCTION__ . '(): ' . $e->getMessage());
-        }
-    }
-    return $enabled;
-}
-
-
-/**
- * Receives notification of anothe plugin's item deletion.
- *
- * @param   mixed   $id     Item ID
- * @param   string  $type   Plugin Name
- */
-function plugin_itemdeleted_membership($id, $type) : void
-{
-    global $_TABLES;
-
-    // If the lgLib plugin is disabled or removed, disable thie plugin
-    if ($type == 'lglib' && $id == '*') {
-        plugin_enablestatechange_membership(false);
-        try {
-            $db->conn->executeUpdate(
-                "UPDATE {$_TABLES['plugins']} SET pi_enabled = 0 WHERE pi_name = 'membership"
-            );
-        } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, __FUNCTION__ . '(): ' . $e->getMessage());
-        }
-    }
-}
-
-
-/**
  * Update the Membership plugin.
  *
  * @param   boolean $dvlp   True if this is a development update
@@ -842,7 +790,7 @@ function plugin_user_create_membership($uid)
     $Msg->withUid($uid)
         ->withMessage($LANG_MEMBERSHIP['new_acct_msg'])
         ->withPersists(true)
-        ->store();
+        ->send();
 }
 
 
@@ -963,9 +911,6 @@ function plugin_wsEnabled_membership()
 
 /**
  * Set template variables.
- * Puts any messages to be displayed into the lglib_messags
- * template variable, if used, or appends them to the info_block
- * variable that should be part of every header.thtml template.
  *
  * @param   string  $templatename   Name of template, e.g. 'header'
  * @param   ref     $template       Reference to actual template
