@@ -14,6 +14,7 @@
  * @filesource
  */
 namespace Membership\Notifiers;
+use Membership\Config;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 
@@ -53,7 +54,7 @@ class Popup
 
     /** Expiration date.
      * @var string */
-    private $expires = NULL;
+    private $expires = 2145945599;  // 2037-12-31 23:59:59 UTC
 
     /** Session ID, set for anonymous users.
      * @var string */
@@ -112,7 +113,7 @@ class Popup
      * @param   integer $uid        ID of the user to view the message
      * @param   boolean $use_sess_id    True to use session ID to retrieve
      */
-    public function store() : bool
+    public function send() : bool
     {
         global $_USER, $_TABLES;
 
@@ -128,47 +129,54 @@ class Popup
                 'msg_id',
                 array(
                     'uid' => $this->uid,
-                    'pi_code' => $this->pi_code,
+                    'pi_code' => $this->pi_code
                 )
             );
-            if ($msg_id > 0) {
-                if ($this->unique) {
-                    // Do nothing since this message is already set
-                    return true;
-                } else {
-                    // Update the existing message
+            if (!($this->unique & self::OVERWRITE)) {
+                return true;
+            } else {
+                // Update the existing message
+                try {
                     $qb->update($_TABLES['membership_messages'])
                        ->where('msg_id = :msg_id')
-                       ->setParameter('msg_d', $msg_id, Database::INTEGER)
+                       ->setParameter('msg_id', $msg_id, Database::INTEGER)
                        ->set('sess_id', ':sess_id')
                        ->set('title', ':title')
                        ->set('message', ':message')
                        ->set('persist', ':persist')
                        ->set('expires', ':expires')
                        ->set('level', ':level');
+                } catch (\Exception $e) {
+                    Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+                    return false;
                 }
             }
         } else {
             // Just insert a new, possibly duplicate, message
-            $qb->insert($_TABLES['membership_messages'])
-               ->setValue('uid', ':uid')
-               ->setValue('pi_code', ':pi_code')
-               ->setValue('sess_id', ':sess_id')
-               ->setValue('title', ':title')
-               ->setValue('message', ':message')
-               ->setValue('persist', ':persist')
-               ->setValue('expires', ':expires')
-               ->setValue('level', ':level');
+            try {
+                $qb->insert($_TABLES['membership_messages'])
+                   ->setValue('uid', ':uid')
+                   ->setValue('pi_code', ':pi_code')
+                   ->setValue('sess_id', ':sess_id')
+                   ->setValue('title', ':title')
+                   ->setValue('message', ':message')
+                   ->setValue('persist', ':persist')
+                   ->setValue('expires', ':expires')
+                   ->setValue('level', ':level');
+                } catch (\Exception $e) {
+                    Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+                    return false;
+                }
         }
-        $qb->setParameter('uid', $this->uid, Database::INTEGER)
-           ->setParameter('pi_code', $this->pi_code, Database::STRING)
-           ->setParameter('sess_id', $this->sess_id, Database::STRING)
-           ->setParameter('title', $this->title, Database::STRING)
-           ->setParameter('message', $this->message, Database::STRING)
-           ->setParameter('persist', $this->persist, Database::STRING)
-           ->setParameter('expires', $this->expires, Database::STRING)
-           ->setParameter('level', $this->level, Database::STRING);
         try {
+            $qb->setParameter('uid', $this->uid, Database::INTEGER)
+               ->setParameter('pi_code', $this->pi_code, Database::STRING)
+               ->setParameter('sess_id', $this->sess_id, Database::STRING)
+               ->setParameter('title', $this->title, Database::STRING)
+               ->setParameter('message', $this->message, Database::STRING)
+               ->setParameter('persist', $this->persist, Database::STRING)
+               ->setParameter('expires', $this->expires, Database::INTEGER)
+               ->setParameter('level', $this->level, Database::STRING);
             $stmt = $qb->execute();
             return true;
         } catch (\Exception $e) {
@@ -210,9 +218,7 @@ class Popup
             $title = '';
             $level = 1;     // Start at the "best" level
             foreach ($msgs as $msg) {
-                $message .= '<li class="lglmessage">' .
-                    $msg['message'] .
-                    '</li>';
+                $message .= '<li>' . $msg['message'] . '</li>';
                 // If any message requests "persist", then all persist
                 if ($msg['persist']) $persist = true;
                 // Set to the highest (worst) error level
@@ -308,9 +314,9 @@ class Popup
 
         $db = Database::getInstance();
         try {
-            $db->conn->executeUpdate(
+            $db->conn->executeStatement(
                 "DELETE FROM {$_TABLES['membership_messages']}
-                WHERE expires < NOW()"
+                WHERE expires < UNIX_TIMESTAMP()"
             );
         } catch (\Exception $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
@@ -377,7 +383,7 @@ class Popup
         $db = Database::getInstance();
         $query = '(' . implode(' OR ', $params) . ')';
         try {
-            $db->conn->executeUpdate(
+            $db->conn->executeStatement(
                 "DELETE FROM {$_TABLES['membership_messages']} WHERE $query",
                 $values,
                 $types
@@ -497,12 +503,25 @@ class Popup
 
 
     /**
+     * Set the duration, in seconds, for the message.
+     *
+     * @param   integer $seconds    Number of seconds to keep the message
+     * @return  object  $this
+     */
+    public function setDuration(int $seconds) : self
+    {
+        $this->expires = time() + $seconds;
+        return $this;
+    }
+
+
+    /**
      * Set the expiration date.
      *
      * @param   string  $exp    Expiration Date, YYYY-MM-DD
      * @return  object  $this
      */
-    public function withExpires($exp)
+    public function withExpires(int $exp) : self
     {
         $this->expires = $exp;
         return $this;
@@ -521,7 +540,7 @@ class Popup
         return $this;
     }
 
-    public function withUnique(bool $flag) : self
+    public function withUnique(bool $flag = true) : self
     {
         if ($flag) {
             $this->unique |= self::UNIQUE;
@@ -531,7 +550,7 @@ class Popup
         return $this;
     }
 
-    public function withOverwrite(bool $flag) : self
+    public function withOverwrite(bool $flag = true) : self
     {
         if ($flag) {
             $this->unique |= self::OVERWRITE;
@@ -539,29 +558,6 @@ class Popup
             $this->unique -= self::OVERWRITE;
         }
         return $this;
-    }
-
-
-    /**
-     * Get the expiration date to be saved in the database.
-     * The default is 4 hours from now for anonymous users.
-     *
-     * @return  string      Date string to save in the database
-     */
-    public function getExpiresDB()
-    {
-        if (empty($this->expires)) {
-            if ($this->uid < 2) {
-                // Anonymous messages expire in 4 hours
-                $expires = 'DATE_ADD(NOW(), INTERVAL 4 HOUR)';
-            } else {
-                // Member messages exist until viewed
-                $expires = "'2037-12-31'";
-            }
-        } else {
-            $expires = "'" . $this->expires . "'";
-        }
-        return $expires;
     }
 
 }

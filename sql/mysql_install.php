@@ -115,7 +115,7 @@ $_SQL['membership_messages'] = "CREATE TABLE `{$_TABLES['membership_messages']}`
   `pi_code` varchar(40) DEFAULT NULL,
   `persist` tinyint(1) unsigned DEFAULT 0,
   `dt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `expires` datetime DEFAULT NULL,
+  `expires` int(11) unsigned NOT NULL DEFAULT 2145945599,
   `level` tinyint(1) unsigned NOT NULL DEFAULT 1,
   PRIMARY KEY (`msg_id`),
   KEY `uid` (`uid`),
