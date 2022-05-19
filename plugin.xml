@@ -7,6 +7,4 @@
     <phpversion>7.4.0</phpversion>
     <url>http://www.glfusion.org</url>
     <maintainer>Lee Garner</maintainer>
-    <requires>lglib,1.0.9</requires>
-    <requires>profile</requires>
 </plugin>

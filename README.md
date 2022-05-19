@@ -51,7 +51,6 @@ can provide the application (Profile is recommended).
   group such as "Club Members".
 
 ## REQUIREMENTS:
-- lgLib plugin 1.0.9 or later for core functions
 - Either the Profile plugin or the Forms plugin to handle applications
 - The Shop plugin can be integrated to handle membership payments.
 - The Mailer plugin can be integrated to segment lists by member status.
