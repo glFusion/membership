@@ -607,17 +607,17 @@ function MEMBERSHIP_groupSelection()
  */
 function plugin_runScheduledTask_membership()
 {
-    global $_VARS;
+    global $_CONF, $_TABLES, $_VARS;
 
     // Run once per day. Maybe later there will be tasks to run more often.
-    $db = Database::getInstance();
     $today = $_CONF['_now']->format('Ymd', true);
     $lastrun = isset($_VARS['membership_lastrun']) ? $_VARS['membership_lastrun'] : '';
     if ($lastrun == $today) {
         return;
     }
+    $db = Database::getInstance();
     try {
-        $db->conn->executeUpdate(
+        $db->conn->executeStatement(
             "INSERT INTO {$_TABLES['vars']} VALUES('membership_lastrun', ?)
             ON DUPLICATE KEY UPDATE value = ?",
             array($today, $today),

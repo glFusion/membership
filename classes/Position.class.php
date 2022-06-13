@@ -339,11 +339,10 @@ class Position
 
         $db = Database::getInstance();
         try {
-            $db->conn->executeUpdate(
-                "UPDATE {$_TABLES['membership_positions']}
-                SET $field = ?
-                WHERE id = ?",
-                array($newvalue, $id),
+            $db->conn->update(
+                $_TABLES['membership_positions'],
+                array($field = $newvalue),
+                array('id' => $id),
                 array(Database::INTEGER, Database::INTEGER)
             );
             return $newvalue;
@@ -450,11 +449,10 @@ class Position
             foreach ($data as $A) {
                 if ($A['orderby'] != $order) {  // only update incorrect ones
                     try {
-                        $db->conn->executeUpdate(
-                            "UPDATE {$_TABLES['membership_positions']}
-                            SET orderby = '$order'
-                            WHERE id = '{$A['id']}'",
-                            array($order, $A['id']),
+                        $db->conn->update(
+                            $_TABLES['membership_positions'],
+                            array('orderby' => $order),
+                            array('id' => $A['id']),
                             array(Database::INTEGER, Database::INTEGER)
                         );
                     } catch (\Throwable $e) {

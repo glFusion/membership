@@ -70,11 +70,10 @@ class MemberNumber
             $new_mem_num = self::create((int)$A['mem_uid']);
             if ($new_mem_num != $A['mem_number']) {
                 try {
-                    $db->conn->executeUpdate(
-                        "UPDATE {$_TABLES['membership_members']}
-                        SET mem_number = ?
-                        WHERE mem_uid = ?",
-                        array($new_mem_num, $A['mem_uid']),
+                    $db->conn->update(
+                        $_TABLES['membership_members'],
+                        array('mem_number' => $new_mem_num),
+                        array('mem_uid' => $A['mem_uid']),
                         array(Database::STRING, Database::INTEGER)
                     );
                 } catch (\Throwable $e) {

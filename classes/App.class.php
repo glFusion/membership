@@ -267,21 +267,16 @@ class App
             $data = 'Initial by ' . MEMB_getVar($_POST, 'terms_initial');
             $db = Database::getInstance();
             try {
-                $db->conn->executeUpdate(
-                    "INSERT INTO {$_TABLES['membership_users']} SET
-                    uid = ?,
-                    initials = ?,
-                    terms_accept = ?",
-                    array($this->uid, $initials, now()),
+                $db->conn->insert(
+                    $_TABLES['membership_users'],
+                    array('uid' => $this->uid, 'initials' => $initials, 'terms_accept' => time()),
                     array(Database::INTEGER, Database::STRING, Database::INTEGER)
                 );
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
-                $db->conn->executeUpdate(
-                    "UPDATE {$_TABLES['membership_users']} SET
-                    initials = ?,
-                    terms_accept = ?
-                    WHERE uid = ?",
-                    array($initials, now(), $this->uid),
+                $db->conn->update(
+                    $_TABLES['membership_users'],
+                    array('initials' => $initials, 'terms_accept' => time()),
+                    array('uid' => $this->uid),
                     array(Database::STRING, Database::INTEGER, Database::INTEGER)
                 );
             } catch (\Throwable $e) {
@@ -289,10 +284,9 @@ class App
             }
 
             try {
-                $db->conn->executeUpdate(
-                    "INSERT INTO {$_TABLES['membership_log']} (uid, dt, type, data)
-                    VALUES (?, ?, ?, ?)",
-                    array($this->uid, $dt, $type, $data),
+                $db->conn->insert(
+                    $_TABLES['membership_log'],
+                    array('uid' => $this->uid, 'dt' => $dt, 'type' => $type, 'data' => $data),
                     array(Database::INTEGER, Database::STRING, Database::STRING, Database::STRING)
                 );
             } catch (\Throwable $e) {

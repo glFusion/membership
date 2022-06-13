@@ -233,7 +233,7 @@ class Expiration extends \Membership\BaseNotifier
         // or triggered by Membership::Expires() or Membership::Arrears().
         if (!$this->is_manual && !empty($notified_ids)) {
             try {
-                $db->conn->executeUpdate(
+                $db->conn->executeStatement(
                     "UPDATE {$_TABLES['membership_members']}
                     SET mem_notified = mem_notified - 1
                     WHERE mem_uid IN ($notified_ids)",
