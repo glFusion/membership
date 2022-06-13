@@ -12,6 +12,7 @@
  */
 namespace Membership;
 use glFusion\Database\Database;
+use glFusion\Log\Log;
 
 
 /**
@@ -73,7 +74,9 @@ class GroupList
         }
         $this->groups = $groups;
         if (!empty($this->groups)) {
-            $this->PosGroup = PosGroup::getByTag($this->groups[0]);
+            if (empty($this->PosGroup)) {
+                $this->PosGroup = PosGroup::getByTag($this->groups[0]);
+            }
             if ($this->PosGroup->getID() > 0) {
                 $this->setTitle($this->PosGroup->getPageTitle());
             }
@@ -153,13 +156,14 @@ class GroupList
             $data = $qb->select('p.*', 'u.username', 'u.fullname', 'u.email', 'u.photo')
                ->from($_TABLES['membership_positions'], 'p')
                ->leftJoin('p', $_TABLES['membership_posgroups'], 'pg', 'pg.pg_id=p.pg_id')
-               ->leftJoin('p', $_TABLES['users'], 'u', 'u.uid=p.pid')
+               ->leftJoin('p', $_TABLES['users'], 'u', 'u.uid=p.uid')
                ->where('pg.pg_tag IN (:groups)')
                ->andWhere('p.enabled = 1')
                ->orderBy('pg.pg_orderby', 'ASC')
                ->addOrderBy('p.orderby', 'ASC')
+               ->setParameter('groups', $this->groups, Database::PARAM_STR_ARRAY)
                ->execute()
-               ->fetchAll(Database::ASSOCIATIVE());
+               ->fetchAllAssociative();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = array();
