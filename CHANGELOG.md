@@ -7,6 +7,7 @@ Release TBD
 - Show notification interval on member editing page.
 - Deprecate import from Subscription plugin.
 - Include the final expiration count in notifycount.
+- Log transactions created via quick renewal.
 
 ## 0.3.1
 Release 2022-01-05
