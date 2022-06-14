@@ -256,6 +256,19 @@ class Membership
 
 
     /**
+     * Set the expiration date manually.
+     *
+     * @param   string  $exp    Expiration date YYYY-MM-DD
+     * @return  object  $this
+     */
+    public function setExpires(string $exp) : self
+    {
+        $this->expires = $exp;
+        return $this;
+    }
+
+
+    /**
      * Get the expiration date for the membership.
      *
      * @return  string      Expiration date YYYY-MM-DD
