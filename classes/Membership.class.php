@@ -2000,7 +2000,7 @@ class Membership
         $qb = $db->conn->createQueryBuilder();
         try {
             $data = $qb->select('m.mem_uid', 'm.mem_expires', 'u.fullname')
-               ->from($_TABLES['membership_members'])
+               ->from($_TABLES['membership_members'], 'm')
                ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid')
                ->where('m.mem_status in (:status)')
                ->andWhere('m.mem_expires < :endgrace')
@@ -2047,7 +2047,7 @@ class Membership
         $qb = $db->conn->createQueryBuilder();
         try {
             $data = $qb->select('m.mem_uid', 'm.mem_expires', 'u.fullname')
-               ->from($_TABLES['membership_members'])
+               ->from($_TABLES['membership_members'], 'm')
                ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid')
                ->where('m.mem_status in (:status)')
                ->andWhere('m.mem_expires < :now')
@@ -2098,7 +2098,7 @@ class Membership
             $rows = $db->conn->executeStatement(
                 "UPDATE {$_TABLES['membership_members']}
                 SET mem_status = ?
-                 WHERE ? > (mem_expires + interval ? DAY)",
+                WHERE ? > (mem_expires + interval ? DAY)",
                 array(Status::DROPPED, Dates::Today(), $days),
                 array(Database::INTEGER, Database::STRING, Database::INTEGER)
             );
