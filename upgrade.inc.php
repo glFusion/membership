@@ -15,6 +15,7 @@
 global $_CONF, $_TABLES, $_UPGRADE_SQL;
 
 use Membership\Config;
+use glFusion\Database\Database;
 use glFusion\Log\Log;
 
 /** Include database definitions */
@@ -29,6 +30,8 @@ require_once __DIR__ . '/sql/mysql_install.php';
 function MEMBERSHIP_do_upgrade($dvlp=false)
 {
     global $_PLUGIN_INFO, $_UPGRADE_SQL, $_TABLES;
+
+    $db = Database::getInstance();
 
     if (isset($_PLUGIN_INFO[Config::PI_NAME])) {
         if (is_array($_PLUGIN_INFO[Config::PI_NAME])) {
@@ -86,10 +89,10 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         $current_ver = '0.1.1';
         // Get the membership admin group ID if available
         // to set the access code for admin-only plans
-        $gid = (int)DB_getItem(
+        $gid = (int)$db->conn->getItem(
             $_TABLES['groups'],
             'grp_id',
-            "grp_name='" . Config::PI_NAME. " Admin'"
+            array('grp_name' => Config::PI_NAME. ' Admin')
         );
         if ($gid < 1) {
             $gid = 1;        // default to Root if group not found
@@ -120,14 +123,19 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
         if (_MEMBtableHasColumn('membership_positions', 'type')) {
             // If the old text "type" column is still in the positions table,
             // get all the types and create position group records from them.
-            $res = DB_query("SELECT id, type FROM {$_TABLES['membership_positions']}");
             $idx = 0;
-            while ($A = DB_fetchArray($res, false)) {
-                $idx++;
-                $orderby = $idx * 10;
-                $_UPGRADE_SQL[$current_ver][] = "INSERT INTO {$_TABLES['membership_posgroups']}
-                    (pg_id, pg_tag, pg_title, pg_orderby) VALUES
-                    ($idx, '{$A['type']}', '{$A['type']}', $orderby)";
+            try {
+                $stmt = $db->conn->executeQuery(
+                    "SELECT id, type FROM {$_TABLES['membership_positions']}"
+                );
+                while ($A = $stmt->fetchAssociative()) {
+                    $idx++;
+                    $orderby = $idx * 10;
+                    $_UPGRADE_SQL[$current_ver][] = "INSERT INTO {$_TABLES['membership_posgroups']}
+                        (pg_id, pg_tag, pg_title, pg_orderby) VALUES
+                        ($idx, '{$A['type']}', '{$A['type']}', $orderby)";
+            } catch (\Exception $e) {
+                Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
             }
         } else {
             Log::write('system', Log::ERROR, "Membership 0.2.2, type column already converted");
@@ -203,17 +211,20 @@ function MEMBERSHIP_do_upgrade_sql($version, $dvlp=false)
         Log::write('system', Log::DEBUG, "No SQL update for $version");
         return true;
     }
-    $sql_err_msg = 'SQL Error during Membership plugin update';
+    $db = Database::getInstance();
     if ($dvlp) {
-        $sql_err_msg .= ' - Ignored';
+        $ignored = ' - Ignored';
+    } else {
+        $ignored = '';
     }
     // Execute SQL now to perform the upgrade
     Log::write('system', Log::ERROR, "--Updating Membership to version $version");
     foreach ($_UPGRADE_SQL[$version] as $q) {
         Log::write('system', Log::ERROR, "Membership Plugin $version update: Executing SQL => $q");
-        DB_query($q, '1');
-        if (DB_error()) {
-            Log::write('system', Log::ERROR, $sql_err_msg);
+        try {
+            $db->conn->executeStatement($q);
+        } catch (\Exception $e) {
+            Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage() . $ignored);
             if (!$dvlp) return false;
         }
     }
@@ -233,20 +244,30 @@ function MEMBERSHIP_do_set_version($ver)
 {
     global $_TABLES;
 
-    // now update the current version number.
-    $sql = "UPDATE {$_TABLES['plugins']} SET
-            pi_version = '" . Config::get('pi_version') . "',
-            pi_gl_version = '" . Config::get('gl_version') . "',
-            pi_homepage = '" . Config::get('pi_url') . "'
-        WHERE pi_name = '" . Config::PI_NAME . "'";
+    $db = Database::getInstance();
 
-    $res = DB_query($sql, 1);
-    if (DB_error()) {
-        Log::write('system', Log::ERROR, "Error updating the " . Config::get('pi_display_name') . " Plugin version");
+    // now update the current version number.
+    try {
+        $db->conn->update(
+            $_TABLES['plugins'],
+            array(
+                'pi_version' => Config::get('pi_version'),
+                'pi_gl_version' => Config::get('gl_version'),
+                'pi_homepage' => Config::get('pi_url'),
+            ),
+            array('pi_name' => Config::PI_NAME),
+            array(
+                Database::STRING,
+                Database::STRING,
+                Database::STRING,
+                Database::STRING,
+            )
+        );
+    } catch (\Exception $e) {
+        Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
         return false;
-    } else {
-        return true;
     }
+    return true;
 }
 
 
@@ -261,9 +282,18 @@ function _MEMBtableHasColumn($table, $col_name)
 {
     global $_TABLES;
 
-    $col_name = DB_escapeString($col_name);
-    $res = DB_query("SHOW COLUMNS FROM {$_TABLES[$table]} LIKE '$col_name'");
-    return DB_numRows($res) == 0 ? false : true;
+    $db = Database::getInstance();
+    try {
+        $data = $db->conn->executeQuery(
+            "SHOW COLUMNS FROM {$_TABLES[$table]} LIKE '?'",
+            array($col_name),
+            array(Database::STRING)
+        );
+    } catch (\Exception $e) {
+        Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
+        $data = false;
+    }
+    return !empty($data);
 }
 
 

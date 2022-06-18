@@ -15,6 +15,7 @@ if (!defined ('GVERSION')) {
     die ('This file can not be used on its own.');
 }
 use glFusion\Log\Log;
+use glFusion\Database\Database;
 
 /** @global string $_DB_dbms */
 global $_DB_dbms;
@@ -286,11 +287,13 @@ function plugin_postinstall_membership()
     }
 
     if (is_array($_MEMBERSHIP_SAMPLEDATA)) {
+        $db = Database::getInstance();
         Log::write('system', Log::ERROR, "Installing sample data.");
         foreach ($_MEMBERSHIP_SAMPLEDATA as $sql) {
-            DB_query($sql, 1);
-            if (DB_error()) {
-                Log::write('system', Log::ERROR, "Sample Data SQL Error: $sql");
+            try {
+                $db->conn->executeStatement($sql);
+            } catch (\Exception $e) {
+                Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
             }
         }
     }
