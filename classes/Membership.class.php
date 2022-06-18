@@ -931,7 +931,7 @@ class Membership
      * @param   integer $joined     Date joined
      * @return  mixed       Expiration date, or false in case of error
      */
-    public function Add(Transaction $Txn) : bool
+    public function Add(Transaction $Txn, bool $calc_exp=true) : bool
     {
         if ($this->getPlan()->getPlanID() == '') {
             return false;       // invalid plan requested
@@ -942,7 +942,7 @@ class Membership
         if ($this->expires == '')  {
             $this->expires = Dates::Today();
         }
-        if (!$this->istrial) {
+        if (!$this->istrial && $calc_exp) {
             $this->expires = Dates::calcExpiration($this->expires);
         }
 

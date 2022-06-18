@@ -102,7 +102,7 @@ case 'regenbutton':
 
 case 'importusers':
     if (isset($_POST['frm_group'])) {
-        $msg = Membership\Util\Import(
+        $msg = Membership\Util\Importers\glFusion::do_import(
             (int)$_POST['frm_group'], $_POST['plan_id'], $_POST['exp']
         );
     } else {
@@ -146,16 +146,15 @@ case 'createmember':
             $M->setMemNumber(MemberNumber::create($_POST['mem_uid']));
         }
         $Txn = new Transaction;
-        $pmt_amt = isset($A['mem_pmtamt']) ? (float)$A['mem_pmtamt'] : 0;
-        $pmt_dscp = isset($A['mem_pmtdesc']) ? $A['mem_pmtdesc'] : '';
-        $pmt_type = isset($A['mem_pmttype']) ? $A['mem_pmttype'] : '';
-        $Txn = new Transaction;
+        $pmt_amt = isset($_POST['mem_pmtamt']) ? (float)$_POST['mem_pmtamt'] : 0;
+        $pmt_dscp = isset($_POST['mem_pmtdesc']) ? $_POST['mem_pmtdesc'] : '';
+        $pmt_type = isset($_POST['mem_pmttype']) ? $_POST['mem_pmttype'] : '';
         $Txn->withGateway($pmt_type)
             ->withUid($_POST['mem_uid'])
             ->withAmount($pmt_amt)
             ->withPlanId($_POST['mem_plan_id'])
             ->withTxnId($pmt_dscp);
-        $status = $M->Add($Txn);
+        $status = $M->Add($Txn, false);
     }
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
