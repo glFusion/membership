@@ -1,0 +1,26 @@
+{!!if {type}=='info' !!}
+<script>
+	jQuery(document).ready(function($) {
+		$.UIkit.notify('{message}',{status:'success', pos:'{position}', timeout: {timeout} });
+	});
+</script>
+{!!elseif {type}=='modal' !!}
+<script>
+UIkit.modal.alert("{message}");
+</script>
+{!else}
+
+{!if 0}{!!if {type}=='error' !!}
+  {!!set class 'uk-alert-danger' !!}
+{!else}
+  {!!set class 'uk-alert-success' !!}
+{!endif}
+{!endif}
+
+<div class="uk-alert uk-alert-{leveltxt}" data-uk-alert>
+{!if !persist}
+    <a href="" class="uk-alert-close uk-close"></a>
+{!endif}
+    <p>{message}</p>
+</div>
+{!endif}

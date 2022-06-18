@@ -1,0 +1,94 @@
+{# begin {templatelocation} #}
+<script src="{site_url}/javascript/addons/datetime/jquery.datetimepicker.full.min.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{site_url}/javascript/addons/datetime/jquery.datetimepicker.min.css"/ >
+<script src="{site_url}/javascript/addons/datetime/datetimepicker.js" type="text/javascript"></script>
+<script>
+function upd_imp_type(rad)
+{
+	if (rad.value == "subscription") {
+		$("#sel_glfusion").hide();
+		$("#sel_subscription").show();
+        $('#f_expiration').attr('required', false);
+        $('#from_glfusion').attr('required', false);
+        $('#from_subscription').attr('required', true);
+        $('#exp_required').hide();
+	} else {
+		$("#sel_glfusion").show();
+		$("#sel_subscription").hide();
+        $('#f_expiration').attr('required', true);
+        $('#from_glfusion').attr('required', true);
+        $('#from_subscription').attr('required', false);
+        $('#exp_required').show();
+	}
+}
+</script>
+
+<h1>{$LANG_MEMBERSHIP['import_members']}</h1>
+<form class="uk-form uk-form-horizontal" action="{site_admin_url}/plugins/membership/import.php" method="post">
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label tooltipsterd">{$LANG_MEMBERSHIP['import_from']}
+			<span id="hlp_import_from" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls" id="sel_imp_type">
+			<input type="radio" class="uk-radio imp_type_sel" name="import_type" value="glfusion" checked="checked" onclick="upd_imp_type(this);" />&nbsp;glFusion groups&nbsp;&nbsp;&nbsp;	
+			<input type="radio" class="uk-radio imp_type_sel" name="import_type" value="subscription" onclick="upd_imp_type(this);" />&nbsp;Subscription Plugin
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin" id="sel_glfusion">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['import_grp']}
+			<span id="hlp_import_grp" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<select class="uk-select" required id="from_glfusion" name="from_glfusion">
+				<option value="">-- Select --</option>
+				{glfusion_opts}
+			</select>
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin" id="sel_subscription" style="display:none">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['import_sub']}
+			<span id="hlp_import_sub" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<select class="uk-select" id="from_subscription" name="from_subscription">
+				<option value="">-- Select --</option>
+				{subscription_opts}
+			</select>
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['mem_plan']}
+			<span id="hlp_mem_plan" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<select class="uk-select" required id="plan" name="plan">
+				<option value="">-- Select --</option>
+				{plan_sel}
+			</select>
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['expires']}
+			<span id="hlp_expires" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<input class="uk-input uk-form-width-medium datepicker" type="text" id="f_expiration" name="expiration" required/><span id="exp_required">&nbsp;<i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip" title="{$LANG_MEMBERSHIP['required']}"></i></span>
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<div class="uk-form-controls">
+			<button type="submit" name="do_import" class="uk-button uk-button-success" value="{$LANG_MEMBERSHIP['submit']}">{$LANG_MEMBERSHIP['submit']}</button>
+			<a class="uk-button" href="{site_admin_url}/plugins/membership/index.php">{$LANG_MEMBERSHIP['cancel']}</a>
+		</div>
+	</div>
+</form>
+{!if output_text}
+<div>{output_text}</div>
+{!endif}
+{tooltipster_js}
+{# end {templatelocation} #}
