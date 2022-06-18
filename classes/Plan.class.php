@@ -928,7 +928,6 @@ class Plan
             if (!in_array(13, $groups)) {
                 $groups[] = 13;
             }
-            $groups = implode(',', $groups);
             $qb->andWhere('grp_access IN (:groups)')
                ->setParameter('groups', $groups, Database::PARAM_INT_ARRAY);
         }
