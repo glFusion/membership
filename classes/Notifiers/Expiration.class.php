@@ -65,10 +65,10 @@ class Expiration extends \Membership\BaseNotifier
             } else {
                 // Get the members based on notification counter and expiration
                 $qb->where('m.mem_notified > 0')
-                   ->andWhere('m.mem_expires < DATE_ADD(now(), INTERVAL ((m.mem_notified -1) * :interval) DAY')
+                   ->andWhere('m.mem_expires < DATE_ADD(now(), INTERVAL ((m.mem_notified -1) * :interval) DAY)')
                    ->andWhere('m.mem_status IN (:stat)')
                    ->setParameter('interval', $interval, Database::INTEGER)
-                   ->setParameter('stat', $stats);
+                   ->setParameter('stat', $stats, Database::PARAM_INT_ARRAY);
             }
             $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
         } catch (\Exception $e) {

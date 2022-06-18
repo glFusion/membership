@@ -16,7 +16,7 @@ $LANG_MEMBERSHIP = array(
 'menu_title'    => 'Membership',
 'block_title'   => 'Membership Information',
 'plans'         => 'Membership Plans',
-'plan'          => 'Membership Plan',
+'mem_plan'      => 'Membership Plan',
 'app_header'    => 'Member Profile',
 'new_plan'      => 'New Plan',
 'new_position'  => 'New Position',
@@ -175,6 +175,7 @@ $LANG_MEMBERSHIP = array(
 'msg_plan_deleted' => 'Membership plan was deleted',
 'msg_missing_id' => 'The ID is missing, no action taken',
 'msg_unable_xfer_members' => 'An error occurred while transferring members to the new plan. Unable to delete the current plan',
+'adm_import' => 'Import members from glFusion groups or current subscribers from the Subscription plugin.',
 'adm_listplans' => 'Create and Update membership plans.',
 'adm_listmembers' => 'Edit memberships. To create a new membeship, visit the <a href="' .
     $_CONF['site_admin_url'] . '/user.php">user profile area</a>.',
@@ -194,7 +195,6 @@ $LANG_MEMBERSHIP = array(
 'err_terms_accept' => 'You must accept the terms and conditions.',
 'field_required' => 'This item cannot be left blank',
 'import_current' => 'Import Current Members',
-'import_from_grp' => 'Import members from group',
 'mem_number' => 'Membership Number',
 'regen_mem_numbers' => 'Regen Mem Numbers',
 'istrial' => 'Trial Membership',
@@ -229,6 +229,10 @@ $LANG_MEMBERSHIP = array(
 'payment_info' => 'Payment Information',
 'create_member' => 'Create a New Member',
 'amount' => 'Amount',
+'import_grp' => 'Import Group Members',
+'import_sub' => 'Import from Subscription',
+'import_from' => 'Import From',
+'txn_dscp_imported' => 'Imported From',
 );
 $LANG_MEMBERSHIP_PMTTYPES = array(
     'check' => 'Check',

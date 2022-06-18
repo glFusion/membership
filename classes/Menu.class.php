@@ -3,14 +3,16 @@
  * Class to provide headers and menus for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2019 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2019-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.2.0
+ * @version     v1.0.0
+ * @since       v0.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
  */
 namespace Membership;
+
 
 /**
  * Class to provide page headers and menus.
@@ -31,55 +33,37 @@ class Menu
         USES_lib_admin();
 
         $hlp_txt = MEMB_getVar($LANG_MEMBERSHIP, 'adm_' . $mode);
-        $plan_active = false;
-        $members_active = false;
-        $trans_active = false;
-        $pos_active = false;
-        $stats_active = false;
-        switch($mode) {
-        case 'listplans':
-            $plan_active = true;
-            break;
-        case 'positions':
-            $pos_active = true;
-            break;
-        case 'listmembers':
-            $members_active = true;
-            break;
-        case 'listtrans':
-            $trans_active = true;
-            break;
-        case 'stats':
-            $stats_active = true;
-            break;
-        }
-
         $admin_url = Config::get('admin_url');
         $menu_arr = array(
             array(
                 'url' => $admin_url . '/index.php?listplans=x',
                 'text' => $LANG_MEMBERSHIP['list_plans'],
-                'active' => $plan_active,
+                'active' => $mode == 'listplans',
             ),
             array(
                 'url' => $admin_url . '/index.php?listmembers',
                 'text' => $LANG_MEMBERSHIP['list_members'],
-                'active' => $members_active,
+                'active' => $mode == 'listmembers',
             ),
             array(
                 'url' => $admin_url . '/index.php?listtrans',
                 'text' => $LANG_MEMBERSHIP['transactions'],
-                'active' => $trans_active,
+                'active' => $mode == 'listtrans',
             ),
             array(
                 'url' => $admin_url . '/index.php?stats',
                 'text' => $LANG_MEMBERSHIP['member_stats'],
-                'active' => $stats_active,
+                'active' => $mode == 'stats',
             ),
             array(
                 'url' => $admin_url . '/index.php?positions',
                 'text' => $LANG_MEMBERSHIP['positions'],
-                'active' => $pos_active,
+                'active' => $mode == 'positions',
+            ),
+            array(
+                'url' => $admin_url . '/import.php',
+                'text' => $LANG_MEMBERSHIP['import'],
+                'active' => $mode == 'import',
             ),
             array(
                 'url' => $_CONF['site_admin_url'],
@@ -201,7 +185,4 @@ class Menu
     }
 
 }
-
-?>
-
 
