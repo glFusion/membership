@@ -137,6 +137,9 @@ case 'savemember':
     break;
 
 case 'createmember':
+    // Create a new member from the membership form.
+    // Creates separate member and transaction records and does not
+    // calculate the expiration date, using the supplied date instead.
     $M = new Membership($_POST['mem_uid']);
     if ($M->isNew()) {
         $M->setVars($_POST);
@@ -145,16 +148,19 @@ case 'createmember':
             // New member, apply membership number if configured
             $M->setMemNumber(MemberNumber::create($_POST['mem_uid']));
         }
+        $M->Save();
+
         $Txn = new Transaction;
-        $pmt_amt = isset($_POST['mem_pmtamt']) ? (float)$_POST['mem_pmtamt'] : 0;
-        $pmt_dscp = isset($_POST['mem_pmtdesc']) ? $_POST['mem_pmtdesc'] : '';
-        $pmt_type = isset($_POST['mem_pmttype']) ? $_POST['mem_pmttype'] : '';
+        $pmt_amt = !empty($_POST['mem_pmtamt']) ? (float)$_POST['mem_pmtamt'] : 0;
+        $pmt_dscp = !empty($_POST['mem_pmtdesc']) ? $_POST['mem_pmtdesc'] : $LANG_MEMBERSHIP['manual_entry'];
+        $pmt_type = !empty($_POST['mem_pmttype']) ? $_POST['mem_pmttype'] : $LANG_MEMBERSHIP['manual_entry'];
         $Txn->withGateway($pmt_type)
             ->withUid($_POST['mem_uid'])
             ->withAmount($pmt_amt)
             ->withPlanId($_POST['mem_plan_id'])
-            ->withTxnId($pmt_dscp);
-        $status = $M->Add($Txn, false);
+            ->withExpiration($_POST['mem_expires'])
+            ->withTxnId($pmt_dscp)
+            ->Save();
     }
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;

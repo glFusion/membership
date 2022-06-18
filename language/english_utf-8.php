@@ -233,6 +233,7 @@ $LANG_MEMBERSHIP = array(
 'import_sub' => 'Import from Subscription',
 'import_from' => 'Import From',
 'txn_dscp_imported' => 'Imported From',
+'manual_entry' => 'Manual Entry',
 );
 $LANG_MEMBERSHIP_PMTTYPES = array(
     'check' => 'Check',
