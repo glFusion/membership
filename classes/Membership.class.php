@@ -1757,11 +1757,13 @@ class Membership
             'text' => $LANG_MEMBERSHIP['joined'],
             'field' => 'mem_joined',
             'sort' => true,
+            'nowrap' => true,
         );
         $header_arr[] = array(
             'text' => $LANG_MEMBERSHIP['expires'],
             'field' => 'mem_expires',
             'sort' => true,
+            'nowrap' => true,
         );
 
         $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'asc');

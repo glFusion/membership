@@ -370,6 +370,7 @@ class Transaction
                 'text' => $LANG_MEMBERSHIP['expires'],
                 'field' => 'tx_exp',
                 'sort' => true,
+                'nowrap' => true,
             ),
             array(
                 'text' => $LANG_MEMBERSHIP['pmt_method'],
