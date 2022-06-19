@@ -358,8 +358,10 @@ function _MEMB_remove_old_files()
 
     foreach ($paths as $path=>$files) {
         foreach ($files as $file) {
-            Log::write('system', Log::ERROR, "removing $path/$file");
-            _MEMB_rmdir("$path/$file");
+            if (file_exists("$path/$file")) {
+                Log::write('system', Log::ERROR, "removing $path/$file");
+                _MEMB_rmdir("$path/$file");
+            }
         }
     }
 }
