@@ -120,11 +120,10 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         return PLG_RET_ERROR;
     }
     // User ID is returned in the 'custom' field, so make sure it's numeric.
-    if (is_numeric($ipn_data['custom']['uid'])) {
+    if (isset($ipn_data['custom']['uid'])) {
         $uid = (int)$ipn_data['custom']['uid'];
     } else {
         $db = Database::getInstance();
-
         $uid = $db->getItem($_TABLES['users'], 'uid', array('email' => $ipn_data['payer_email']));
     }
     if ($uid < 2) {
@@ -152,7 +151,13 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         $M->setMemNumber(MemberNumber::create($uid));
     }
 
-    $amount = (float)$ipn_data['pmt_gross'];
+    if (isset($ipn_data['pmt_gross'])) {
+        $amount = (float)$ipn_data['pmt_gross'];
+    } elseif (isset($ipn_data['mc_gross'])) {   // legacy
+        $amount = (float)$ipn_data['mc_gross'];
+    } else {
+        $amount = 0;
+    }
     if ($amount < $M->Price()) {    // insufficient funds
         Log::write(Config::PI_NAME, Log::WARNING, 'Insufficient funds for membership - ' . $ipn_data['txn_id']);
         return PLG_RET_ERROR;
