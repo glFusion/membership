@@ -594,7 +594,7 @@ class Membership
      */
     public function Save(?array $A = NULL) : bool
     {
-        global $_TABLES;
+        global $_TABLES, $_USER;
 
         // Save the old membership object to check later if there are changes.
         $OldMembership = clone $this;
@@ -705,7 +705,9 @@ class Membership
                     ->setParameter('mem_notified', $this->notified, Database::INTEGER)
                     ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
                     ->execute();
-                    Log::write(Config::PI_NAME, Log::INFO, "Member {$this->uid} " . COM_getDisplayName($this->uid) . " created.");
+                Log::write(Config::PI_NAME, Log::INFO,
+                    "Member {$this->uid} " . COM_getDisplayName($this->uid) . " created by {$_USER['username']}."
+                );
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
                 try {
                     $qb = $db->conn->createQueryBuilder();
@@ -729,7 +731,9 @@ class Membership
                        ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
                        ->where('mem_uid = :mem_uid')
                        ->execute();
-                    Log::write(Config::PI_NAME, Log::INFO, "Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated.");
+                    Log::write(Config::PI_NAME, Log::INFO,
+                        "Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated by {$_USER['username']}."
+                    );
                 } catch (\Throwable $e) {
                     Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
                 } 
@@ -1150,9 +1154,9 @@ class Membership
      * Determine if the current user can purchase a membership.
      * Checks if the user is anonymous, or if not within the early_renewal
      *
-     * @return  boolean     True if purchase is OK, False if not.
+     * @return  integer     Flag indicating purchase eligibility
      */
-    public function canPurchase() : bool
+    public function canPurchase() : int
     {
         if (COM_isAnonUser()) {
             $canPurchase = self::NOPURCHASE;
@@ -1225,6 +1229,10 @@ class Membership
         global $_TABLES;
         USES_lib_user();
 
+        if ($this->isNew() || $this->uid < 2) {
+            return;
+        }
+
         // Remove this user from the family
         self::remLink($this->uid);
 
@@ -1236,11 +1244,10 @@ class Membership
         try {
             $db->conn->delete(
                 $_TABLES['membership_members'],
-                array('mem_uid'),
-                array($this->uid),
+                array('mem_uid' => $this->uid),
                 array(Database::INTEGER)
             );
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
         }
         Cache::clear('members');     // Make sure members and links are cleared

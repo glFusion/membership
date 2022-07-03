@@ -369,8 +369,7 @@ class Position
         $db = Database::getInstance();
         $db->conn->delete(
             $_TABLES['membership_positions'],
-            array('id'),
-            array($this->id),
+            array('id' => $this->id),
             array(Database::INTEGER)
         );
     }

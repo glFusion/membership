@@ -413,9 +413,9 @@ class PosGroup
 
         // Delete all the position records
         try {
-            $db->conn->executeUpdate(
-                "DELETE FROM {$_TABLES['membership_positions']} WHERE pg_id IN (?)",
-                array($pg_id),
+            $db->conn->delete(
+                $_TABLES['membership_positions'],
+                array('pg_id' => $pg_id),
                 array(Database::INTEGER)
             );
         } catch (\Exception $e) {
