@@ -13,6 +13,7 @@
  */
 namespace Membership\Notifiers;
 use Membership\Membership;
+use Membership\Plan;
 use Membership\Config;
 use Membership\Status;
 use Membership\Cache;
@@ -56,12 +57,12 @@ class Expiration extends \Membership\BaseNotifier
                 'p.name', 'p.description'
             )
                ->from($_TABLES['membership_members'], 'm')
-            ->leftJoin('m', $_TABLES['membership_plans'], 'p', 'p.plan_id=m.mem_plan_id')
-            ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid');
+               ->leftJoin('m', $_TABLES['membership_plans'], 'p', 'p.plan_id=m.mem_plan_id')
+               ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid');
             if (!empty($this->uids)) {
                 // Force the notification and disregard the notification counter
                 $qb->where('m.mem_uid IN (:uids)')
-                   ->setParameter('uids', $this->uids, Database::PARM_INT_ARRAY);
+                   ->setParameter('uids', $this->uids, Database::PARAM_INT_ARRAY);
             } else {
                 // Get the members based on notification counter and expiration
                 $qb->where('m.mem_notified > 0')
@@ -70,7 +71,7 @@ class Expiration extends \Membership\BaseNotifier
                    ->setParameter('interval', $interval, Database::INTEGER)
                    ->setParameter('stat', $stats, Database::PARAM_INT_ARRAY);
             }
-            $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
+            $data = $qb->execute()->fetchAllAssociative();
         } catch (\Exception $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $data = false;
@@ -83,7 +84,7 @@ class Expiration extends \Membership\BaseNotifier
         $notified_ids = array();    // holds memberhsip IDs that get notified
         $T = new \Template(array(
             $_CONF['path_layout'] . 'email/',
-            __DIR__ . '/../templates/notify/',
+            Config::get('pi_path') . '/templates/notify/',
         ) );
         $T->set_file(array(
             'html_msg' => 'mailtemplate_html.thtml',
@@ -96,10 +97,10 @@ class Expiration extends \Membership\BaseNotifier
         // members.
         $get_pmt_btn = true;
 
-        foreach ($data as $A) {
+        foreach ($data as $row) {
             if (Config::get('notifymethod') & Membership::NOTIFY_EMAIL) {
                 // Create a notification email message.
-                $username = COM_getDisplayName($row['mem_uid']);
+                $username = COM_getDisplayName($row['mem_uid'], $row['fullname']);
 
                 $P = Plan::getInstance($row['mem_plan_id']);
                 if ($P->isNew() || !$P->notificationsEnabled()) {
@@ -137,7 +138,7 @@ class Expiration extends \Membership\BaseNotifier
                 $fname = User::parseName($row['fullname'], 'F');
                 $lname = User::parseName($row['fullname'], 'L');
                 $dt = new \Date($row['mem_expires'], $_CONF['timezone']);
-                $price = $this->Plan->Price($this->isNew());
+                $price = $P->Price($P->isNew());
                 $price_txt = COM_numberFormat($price, 2);
 
                 $T->set_var(array(
@@ -154,8 +155,8 @@ class Expiration extends \Membership\BaseNotifier
                     'buy_button'    => $button,
                     'exp_my'        => $dt->format('F, Y', true),
                     'exp_date'      => $dt->format($_CONF['shortdate'], true),
-                    'firstname'     => $nameparts['fname'],
-                    'lastname'      => $nameparts['lname'],
+                    'firstname'     => $fname,
+                    'lastname'      => $lname,
                     'fullname'      => $row['fullname'],
                     'is_expired'    => $is_expired,
                     'expire_eom'    => Config::get('expires_eom'),
@@ -165,6 +166,7 @@ class Expiration extends \Membership\BaseNotifier
                 $T->parse('exp_msg', 'message');
 
                 $html_content = $T->finish($T->get_var('exp_msg'));
+
                 $T->set_block('html_msg', 'content', 'contentblock');
                 $T->set_var('content_text', $html_content);
                 $T->parse('contentblock', 'content');
@@ -184,7 +186,7 @@ class Expiration extends \Membership\BaseNotifier
                 $T->parse('textoutput', 'text_msg');
                 $text_msg = $T->finish($T->get_var('textoutput'));
 
-                Log::write(Config::PI_NAME, Log::INFO, "Notifying $username at {$row['email']}");
+                Log::write(Config::PI_NAME, Log::INFO, "Notifying {$row['fullname']} at {$row['email']}");
                 $msgData = array(
                     'htmlmessage' => $html_msg,
                     'textmessage' => $text_msg,
@@ -194,14 +196,14 @@ class Expiration extends \Membership\BaseNotifier
                         'email' => $_CONF['noreply_mail'],
                     ),
                     'to' => array(
-                        'name' => $username,
+                        'name' => $row['fullname'],
                         'email' => $row['email'],
                     ),
                 );
                 COM_emailNotification($msgData);
             }
 
-            if (Config::get('notifymethod') & Membership::NOTIFY_POPUP) {
+            /*if (Config::get('notifymethod') & Membership::NOTIFY_POPUP) {
                 // Save a message for the next time they log in.
                 $msg = sprintf(
                     $LANG_MEMBERSHIP['you_expire'],
@@ -223,7 +225,7 @@ class Expiration extends \Membership\BaseNotifier
                     ->withPiCode(Membership::MSG_EXPIRING_CODE)
                     ->withUnique(true)
                     ->store();
-            }
+            }*/
 
             // Record that we've notified this member
             $notified_ids[] = (int)$row['mem_uid'];
@@ -236,8 +238,8 @@ class Expiration extends \Membership\BaseNotifier
                 $db->conn->executeStatement(
                     "UPDATE {$_TABLES['membership_members']}
                     SET mem_notified = mem_notified - 1
-                    WHERE mem_uid IN ($notified_ids)",
-                    array($notifed_ids),
+                    WHERE mem_uid IN (?)",
+                    array($notified_ids),
                     array(Database::PARAM_INT_ARRAY)
                 );
             } catch (\Exception $e) {
