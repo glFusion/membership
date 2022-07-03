@@ -353,6 +353,11 @@ function _MEMB_remove_old_files()
         ),
         // public_html/membership
         $_CONF['path_html'] . 'membership' => array(
+            // 1.0.0
+            'images/check_icon.jpg',
+            'images/regen_mem_number.jpg',
+            'images/renew.png',
+            'images/required.png',
         ),
         // admin/plugins/membership
         $_CONF['path_html'] . 'admin/plugins/membership' => array(
