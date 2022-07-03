@@ -134,6 +134,7 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
                     $_UPGRADE_SQL[$current_ver][] = "INSERT INTO {$_TABLES['membership_posgroups']}
                         (pg_id, pg_tag, pg_title, pg_orderby) VALUES
                         ($idx, '{$A['type']}', '{$A['type']}', $orderby)";
+                }
             } catch (\Exception $e) {
                 Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
             }
@@ -168,14 +169,18 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
     if (!COM_checkVersion($current_ver, '1.0.0')) {
         $current_ver = '1.0.0';
         // Increase the notification count to include the final notification.
-        $not_count = (int)Config::get('notifycount');
-        if ($not_count > 0) {
-            Config::write('notifycount', $not_count + 1);
+        if (!DB_checkTableExists('membership_messages')) {  // do only once
+            $not_count = (int)Config::get('notifycount');
+            if ($not_count > 0) {
+                Config::write('notifycount', $not_count + 1);
+            }
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']}
+                SET mem_notified = mem_notified + 1
+                WHERE mem_notified > 0";
         }
         if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
-
 
     // Final version update to catch updates that don't go through
     // any of the update functions, e.g. code-only updates
@@ -285,10 +290,10 @@ function _MEMBtableHasColumn($table, $col_name)
     $db = Database::getInstance();
     try {
         $data = $db->conn->executeQuery(
-            "SHOW COLUMNS FROM {$_TABLES[$table]} LIKE '?'",
+            "SHOW COLUMNS FROM {$_TABLES[$table]} LIKE ?",
             array($col_name),
             array(Database::STRING)
-        );
+        )->fetchAssociative();
     } catch (\Exception $e) {
         Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
         $data = false;

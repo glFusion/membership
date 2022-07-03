@@ -208,8 +208,6 @@ $_UPGRADE_SQL = array(
         ) ENGINE=MyISAM",
     ),
     '1.0.0' => array(
-        "UPDATE {$_TABLES['membership_members']} SET mem_notified = mem_notified + 1
-            WHERE mem_notified > 0",
         "CREATE TABLE `{$_TABLES['membership_messages']}` (
           `msg_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
           `uid` int(11) NOT NULL DEFAULT 1,
