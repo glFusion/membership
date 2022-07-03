@@ -1082,7 +1082,6 @@ class Plan
                 }
                 break;
             case Membership::NEED_APP:
-                echo "NEED_APP required";die;
                 $buttons = sprintf(
                     $LANG_MEMBERSHIP['app_required'],
                     Config::get('url') . '/app.php'
