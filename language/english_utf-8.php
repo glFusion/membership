@@ -351,6 +351,6 @@ $LANG_configselects['membership'] = array(
         '3 - Both' => 3,
     ),
     19 => array('Not Used' => 0, 'Free-Form' => 1, 'Auto-Gen' => 2),
-    20 => array('Disabled' => 0, 'Cart Only' => 1, 'Buy Now + Cart' => 2),
+    20 => array('Disabled' => 0, 'Buy Now' => 1, 'Cart Only' => 2, 'Buy Now + Cart' => 3),
 );
 
