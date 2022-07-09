@@ -63,6 +63,7 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     $output = new ProductInfo(array(
         'product_id' => 'membership:' . implode(':', $A['item_id']),
     ));
+    $output = $output->toArray();
     $retval = PLG_RET_OK;       // assume response will be OK
 
     $P = new Plan($plan_id);
