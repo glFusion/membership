@@ -1325,38 +1325,16 @@ class Membership
                                     array('uid' => $uid, 'size' => $size),
                                     array(Database::INTEGER, Database::INTEGER)
                                 );
-                            } catch (\Throwable $e) {
+                            } catch (\Exception $e) {
                                 Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
                             }
+                        } catch (\Exception $e) {
+                            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
                         }
                     }
                 }
             }
         }
-    }
-
-
-    /**
-     * Create a membership number.
-     * Calls CUSTOM_createMemberNumber() if defined, otherwise
-     * uses sprintf() and the member's uid to create the ID.
-     *
-     * @deprecated
-     * @param   integer $uid    User ID or other numeric key
-     * @return  string          Membership number
-     */
-    public static function XcreateMemberNumber($uid)
-    {
-        if (function_exists('CUSTOM_createMemberNumber')) {
-            $retval = CUSTOM_createMemberNumber($uid);
-        } else {
-            $fmt = Config::get('mem_num_fmt');
-            if (empty($fmt)) {
-                $fmt = '%04d';
-            }
-            $retval = sprintf($fmt, (int)$uid);
-        }
-        return $retval;
     }
 
 
