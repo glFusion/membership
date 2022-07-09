@@ -139,7 +139,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
 
     if ($oldPlanID != $newPlanID) {
         // Changed membership plans
-        $M->setPlan($newPlanId);
+        $M->setPlan($newPlanID);
     }
 
     if (!SEC_inGroup($M->getPlan()->getGrpAccess(), $uid)) {
@@ -147,7 +147,7 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
         return PLG_RET_NOACCESS;
     }
 
-    if ($oldPlanId === NULL && Config::get('use_mem_number') == MemberNumber::AUTOGEN) {
+    if ($oldPlanID === NULL && Config::get('use_mem_number') == MemberNumber::AUTOGEN) {
         // New member, apply membership number if configured
         $M->setMemNumber(MemberNumber::create($uid));
     }
