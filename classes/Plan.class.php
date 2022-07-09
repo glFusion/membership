@@ -13,6 +13,7 @@
 namespace Membership;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
+use Membership\Integrations\Shop;
 
 
 /**
@@ -812,7 +813,7 @@ class Plan
         $retval = array();
         $is_renewal = $isnew ? 'new' : 'renewal';
 
-        if (self::ShopEnabled()) {
+        if (Shop::isEnabled()) {
             $vars = array(
                 'item_number'   => 'membership:' . $this->plan_id .
                             ':' . $is_renewal,
@@ -836,10 +837,11 @@ class Plan
                 )
             );
             if ($status == PLG_RET_OK && is_array($output)) {
-                if (self::ShopEnabled()) {
-                    // A little trickery to only allow add-to-cart button
-                    // if not using buy-now + cart
-                    $output = array('add_cart' => $output['add_cart']);
+                if (!Shop::isEnabled() & Shop::BUY_NOW) {
+                    unset($output['buy_now']);
+                }
+                if (!Shop::isEnabled() &  Shop::CART) {
+                    unset($output['add_cart']);
                 }
                 $retval = $output;
             }
@@ -894,17 +896,7 @@ class Plan
      */
     public static function getCurrency()
     {
-        static $currency = NULL;
-        if ($currency === NULL) {
-            if (self::ShopEnabled()) {
-                $currency = PLG_callFunctionForOnePlugin('plugin_getCurrency_shop');
-            }
-            if ($currency === false) {
-                $currency = Config::get('currency');
-            }
-            if (empty($currency)) $currency = 'USD';
-        }
-        return $currency;
+        return Shop::getCurrency();
     }
 
 
@@ -1058,7 +1050,7 @@ class Plan
                 $T->clear_var('cur_plan_msg');
             }
             $price = $P->Price($M->isNew(), 'actual');
-            if (self::ShopEnabled()) {
+            if (Shop::isEnabled()) {
                 $fee = $P->Fee();
                 $price_total = $price + $fee;
             } else {
@@ -1143,30 +1135,6 @@ class Plan
             }
         }
         return $retval;
-    }
-
-
-    /**
-     * Determine if the Shop plugin is installed and integration is enabled.
-     *
-     * @return  boolean     True if the integration is enabled, False if not.
-     */
-    public static function ShopEnabled() : bool
-    {
-        global $_PLUGINS;
-
-        static $enabled = NULL;
-
-        if ($enabled !== NULL) {
-            return $enabled;
-        }
-        $enabled = Config::get('enable_shop');
-        if ($enabled) {
-            if (!is_array($_PLUGINS) || !in_array('shop', $_PLUGINS)) {
-                $enabled = false;
-            }
-        }
-        return $enabled;
     }
 
 
