@@ -100,4 +100,15 @@ class ProductInfo implements \ArrayAccess
         return isset($this->properties[$key]) ? $this->properties[$key] : NULL;
     }
 
+
+    /**
+     * Get the properties as an array for inter-plugin portability.
+     *
+     * @return  array   Properties array
+     */
+    public function toArray() : array
+    {
+        return $this->properties;
+    }
+
 }
