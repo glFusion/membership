@@ -1773,9 +1773,18 @@ class Membership
             $sel_plan = '';
         }
 
+        $fullname = "IF (u.fullname = '' OR u.fullname IS NULL,
+            u.fullname,
+            CONCAT(
+                SUBSTRING_INDEX(u.fullname,' ',-1), ', ',
+                SUBSTRING_INDEX(u.fullname,' ',1)
+                )
+            ) AS fullname,
+            SUBSTRING_INDEX(u.fullname,'',-1) AS lname,
+            SUBSTRING_INDEX(u.fullname,'',1) AS fname";
         $query_arr = array(
             'table' => 'membership_members',
-            'sql' => "SELECT m.*, u.username, u.fullname, p.name as plan
+            'sql' => "SELECT m.*, u.username, $fullname, p.name as plan
                 FROM {$_TABLES['membership_members']} m
                 LEFT JOIN {$_TABLES['users']} u
                     ON u.uid = m.mem_uid
