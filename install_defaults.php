@@ -193,15 +193,14 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
-    // Which glFusion blocks to show in our pages
-    // 0 = none, 1 = left, 2 = right, 3 = both
+    // Loging level
     array(
-        'name' => 'debug',
+        'name' => 'log_level',
         'default_value' => 0,
         'type' => 'select',
         'subgroup' => 0,
         'fieldset' => 0,
-        'selection_array' => 3,
+        'selection_array' => 11,
         'sort' => 130,
         'set' => true,
         'group' => 'membership',

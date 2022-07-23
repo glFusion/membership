@@ -47,13 +47,17 @@ use Membership\Cache;
 use glFusion\Log\Log;
 use glFusion\Database\Database;
 
+$level = Config::get('log_level', -1);
+if ($level < 0) {
+    $level = $_CONF['log_level'];
+}
 Log::config(
     Config::PI_NAME,
     array(
         'type'  => 'file',
         'path'  => $_CONF['path_log'],
         'file'  => Config::PI_NAME . '.log',
-        'level' => Config::get('log_level'),
+        'level' => $level,
     )
 );
 
@@ -346,31 +350,6 @@ function plugin_user_changed_membership($uid=0)
             ->withExpiration($_POST['mem_expires'])
             ->withTxnId($pmt_dscp);
         $Txn->save();
-    }
-}
-
-
-/**
- * Check that the required information has been entered when saving a user.
- * If the quickrenew checkbox is checked, a plan must also be checked or there
- * will be an error calculating the expiration.
- *
- * @param   string  $mode   Type of save. Only 'useredit' is checked.
- * @param   string  $username   User login name. Not used.
- * @return  mixed       Empty value on success, numeric message ID on failure
- */
-function Xplugin_itemPreSave_membership($mode, $username)
-{
-    global $LANG_MEMBERSHIP;
-
-    if (
-        $mode == 'useredit' &&
-        isset($_POST['mem_quickrenew']) &&
-        empty($_POST['mem_plan_id'])
-    ) {
-        return $LANG_MEMBERSHIP['err_plan_id'];
-    } else {
-        return '';
     }
 }
 
