@@ -618,6 +618,12 @@ class Membership
         if ($this->Plan->getPlanID() == '') {
             return false;
         }
+        // Now see if we're changing from a Family plan to Non-Family.
+        // For this we need to reset the guid to effectively emancipate
+        // this member while leaving all other family members alone.
+        if ($OldMembership->getPlan()->isFamily() && !$this->Plan->isFamily()) {
+            $this->guid = '';
+        }
 
         $this->status = Status::fromExpiration($this->expires);
 
@@ -630,17 +636,23 @@ class Membership
         if ($this->Plan->isFamily()) {
             if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
                 self::remLink($this->uid);
+                $need_membership_update = true;
             } else {
                 $orig_links = MEMB_getVar($A, 'mem_orig_links', 'array');
                 $new_links = MEMB_getVar($A, 'mem_links', 'array');
                 $arr = array_diff($orig_links, $new_links);
-                foreach ($arr as $uid2) {
-                    self::remLink($uid2);
+                if (!empty($arr)) {
+                    $need_membership_update = true;
+                    foreach ($arr as $uid2) {
+                        self::remLink($uid2);
+                    }
                 }
                 $arr = array_diff($new_links, $orig_links);
-                foreach ($arr as $uid2) {
-                    //self::addLink($this->uid, $link_id);
-                    $this->addLink($uid2);
+                if (!empty($arr)) {
+                    $need_membership_update = true;
+                    foreach ($arr as $uid2) {
+                        $this->addLink($uid2);
+                    }
                 }
             }
         }
@@ -668,7 +680,14 @@ class Membership
         // Only for memberships that don't already have one, e.g. new.
         if ($this->guid == '') {
             $this->guid = self::_makeGuid($this->uid);
+            $need_membership_update = true;
         }
+
+        if (!$need_membership_update) {
+            // No database updated needed.
+            return true;
+        }
+
         USES_lib_user();
         foreach ($accounts as $key => $name) {
 
@@ -683,56 +702,39 @@ class Membership
                 $this->mem_number = MemberNumber::create($key);
             }
 
+            $values = array(
+                'mem_plan_id' => $this->plan_id,
+                'mem_joined' => $this->joined,
+                'mem_expires' => $this->expires,
+                'mem_status' => $this->status,
+                'mem_guid' => $this->guid,
+                'mem_number' => $this->mem_number,
+                'mem_notified' => $this->notified,
+                'mem_istrial' => $this->istrial,
+            );
+            $types = array(
+                Database::STRING,
+                Database::STRING,
+                Database::STRING,
+                Database::STRING,
+                Database::STRING,
+                Database::STRING,
+                Database::INTEGER,
+                Database::INTEGER,
+                Database::INTEGER,  // extra for mem_uid in values or where
+            );
             try {
-                $qb = $db->conn->createQueryBuilder();
-                $qb->insert($_TABLES['membership_members'])
-                    ->setValue('mem_uid', ':mem_uid')
-                    ->setValue('mem_plan_id', ':mem_plan_id')
-                    ->setValue('mem_joined', ':mem_joined')
-                    ->setValue('mem_expires', ':mem_expires')
-                    ->setValue('mem_status', ':mem_status')
-                    ->setValue('mem_guid', ':mem_guid')
-                    ->setValue('mem_number', ':mem_number')
-                    ->setValue('mem_notified', ':mem_notified')
-                    ->setValue('mem_istrial', ':mem_istrial')
-                    ->setParameter('mem_uid', $key, Database::INTEGER)
-                    ->setParameter('mem_plan_id', $this->plan_id, Database::STRING)
-                    ->setParameter('mem_joined', $this->joined, Database::STRING)
-                    ->setParameter('mem_expires', $this->expires, Database::STRING)
-                    ->setParameter('mem_status', $this->status, Database::STRING)
-                    ->setParameter('mem_guid', $this->guid, Database::STRING)
-                    ->setParameter('mem_number', $this->mem_number, Database::STRING)
-                    ->setParameter('mem_notified', $this->notified, Database::INTEGER)
-                    ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
-                    ->execute();
+                $values['mem_uid'] = $this->mem_uid;
+                $db->conn->insert($_TABLES['membership_members'], $values, $types);
                 Log::write(Config::PI_NAME, Log::INFO,
-                    "Member {$this->uid} " . COM_getDisplayName($this->uid) . " created by {$_USER['username']}."
+                    "Member {$key} " . COM_getDisplayName($key) . " created by {$_USER['username']}."
                 );
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
                 try {
-                    $qb = $db->conn->createQueryBuilder();
-                    $qb->update($_TABLES['membership_members'])
-                       ->set('mem_plan_id', ':mem_plan_id')
-                       ->set('mem_joined', ':mem_joined')
-                       ->set('mem_expires', ':mem_expires')
-                       ->set('mem_status', ':mem_status')
-                       ->set('mem_guid', ':mem_guid')
-                       ->set('mem_number', ':mem_number')
-                       ->set('mem_notified', ':mem_notified')
-                       ->set('mem_istrial', ':mem_istrial')
-                       ->setParameter('mem_uid', $key, Database::INTEGER)
-                       ->setParameter('mem_plan_id', $this->plan_id, Database::STRING)
-                       ->setParameter('mem_joined', $this->joined, Database::STRING)
-                       ->setParameter('mem_expires', $this->expires, Database::STRING)
-                       ->setParameter('mem_status', $this->status, Database::STRING)
-                       ->setParameter('mem_guid', $this->guid, Database::STRING)
-                       ->setParameter('mem_number', $this->mem_number, Database::STRING)
-                       ->setParameter('mem_notified', $this->notified, Database::INTEGER)
-                       ->setParameter('mem_istrial', $this->istrial, Database::INTEGER)
-                       ->where('mem_uid = :mem_uid')
-                       ->execute();
+                    $where = array('mem_uid' => $this->mem_uid);
+                    $db->conn->update($_TABLES['membership_members'], $values, $where, $types);
                     Log::write(Config::PI_NAME, Log::INFO,
-                        "Member {$this->uid} " . COM_getDisplayName($this->uid) . " updated by {$_USER['username']}."
+                        "Member {$key} " . COM_getDisplayName($key) . " updated by {$_USER['username']}."
                     );
                 } catch (\Throwable $e) {
                     Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
@@ -841,21 +843,23 @@ class Membership
         }
 
         $db = Database::getInstance();
-        $qb = $db->conn->createQueryBuilder();
         try {
-            $qb->update($_TABLES['membership_members'])
-               ->set('mem_expires', ':expires')
-               ->set('mem_notified', ':notified')
-               ->setParameter('expires', $_CONF['_now']->format('Y-m-d'))
-               ->setParameter('notified', 0, Database::INTEGER);
+            $values = array(
+                'mem_expires' => $_CONF['_now']->format('Y-m-d'),
+                'mem_notified' => 0,
+            );
+            $types = array(
+                Database::STRING,
+                Database::INTEGER,
+            );
             if ($cancel_relatives) {
-                $qb->where('mem_guid = :guid')
-                    ->setParameter('guid', $this->getGuid(), Database::STRING);
+                $where = array('mem_guid' => $tis->getGuid());
+                $types[] = Database::STRING;
             } else {
-                $qb->where('mem_uid = :uid')
-                   ->setParameter('uid', $this->getUid(), Database::INTEGER);
+                $where = array('mem_uid' => $this->getUid());
+                $types[] = Database::INTEGER;
             }
-            $qb->execute();
+            $db->conn->update($_TABLES['membership_members'], $values, $where, $types);
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
         }
@@ -1681,7 +1685,8 @@ class Membership
             $this->joined != $B->getJoined() ||
             $this->expires != $B->getExpires() ||
             $this->istrial != $B->isTrial() ||
-            $this->status != $B->getStatus()
+            $this->status != $B->getStatus() ||
+            $this->notified != $B->expToSend()
         ) {
             return false;
         }
