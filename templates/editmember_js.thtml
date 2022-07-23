@@ -13,8 +13,8 @@ var MEMaddElement = function(selid) {
 		"\">" + uname + " (" + uid + ")</a>";
 	str = str + "&nbsp;&nbsp;<a href=\"#!\" onclick='MEMremoveElement(" +
 		uid + ",\"" + uname + "\")'>" +
-		"<img src=\"{layout_url}/images/admin/delete.png\" " +
-		"title=\"{$LANG_MEMBERSHIP['rem_this_item']}\" class=\"tooltip\" /></a>";
+		"<i class=\"uk-icon uk-icon-minus-square uk-text-danger tooltip\" " +
+		"title=\"{$LANG_MEMBERSHIP['rem_this_item']}\"></i></a>";
 	str = str + "<input type=\"hidden\" name=\"mem_links[]\" value=\"" + uid + "\" />";
 	new_elem.innerHTML = str;
 	new_elem.id = "link"+uid;

@@ -118,7 +118,7 @@
 						<input type="hidden" name="mem_links[]" value="{uid}" />
 						<a href="{site_url}/users.php?mode=profile&amp;uid={uid}">{uname}</a>&nbsp;&nbsp;
 						<a href="#!" onclick='MEMremoveElement({uid},"{uname}")'>
-							<i class="uk-icon uk-icon-trash uk-text-danger"
+							<i class="uk-icon uk-icon-minus-square uk-text-danger"
 								title="{$LANG_MEMBERSHIP['rem_this_item']}" data-uk-tooltip></i>
 						</a>
 					</li>
