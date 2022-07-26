@@ -445,8 +445,8 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
  * @param   array   $extras     Possible extra pass-through values
  * @return  string      HTML for field display
  */
-function membership_profilefield_expires($fieldname, $fieldvalue, $A, $icon_arr,
-    $extras)
+function membership_profilefield_expires(
+    $fieldname, $fieldvalue, $A, $icon_arr=array(), $extras=array())
 {
     if ($fieldvalue >= Dates::Today()) {
         $cls = 'member_current';
