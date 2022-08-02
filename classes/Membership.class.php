@@ -2042,7 +2042,7 @@ class Membership
      */
     public static function batchArrears() : int
     {
-        global $_TABLES;
+        global $_TABLES, $LANG_MEMBERSHIP;
 
         $db = Database::getInstance();
         $qb = $db->conn->createQueryBuilder();
