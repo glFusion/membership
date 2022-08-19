@@ -13,12 +13,11 @@
  */
 namespace Membership;
 
-
 /**
  * Class to get plugin configuration data.
  * @package membership
  */
-final class Config
+class Config
 {
     /** Plugin Name.
      */
@@ -35,7 +34,7 @@ final class Config
      *
      * @return  object      Configuration object
      */
-    public static function getInstance()
+    public static function getInstance() : self
     {
         static $cfg = NULL;
         if ($cfg === NULL) {
@@ -52,15 +51,20 @@ final class Config
     {
         global $_CONF;
 
-        if ($this->properties === NULL) {
-            $this->properties = \config::get_instance()
-                 ->get_config(self::PI_NAME);
+        $this->properties = \config::get_instance()
+             ->get_config(self::PI_NAME);
 
-            $this->properties['pi_path'] = $_CONF['path'] . '/plugins/membership/';
-            $this->properties['pi_display_name'] = 'Membership';
-            $this->properties['pi_url'] =  'http://www.glfusion.org';
-            $this->properties['url'] = $_CONF['site_url'] . '/' . self::PI_NAME;
-            $this->properties['admin_url'] = $_CONF['site_admin_url'] . '/plugins/' . self::PI_NAME;
+        $this->properties['pi_path'] = $_CONF['path'] . 'plugins/membership/';
+        $this->properties['url'] = $_CONF['site_url'] . '/' . self::PI_NAME;
+        $this->properties['admin_url'] = $_CONF['site_admin_url'] . '/plugins/' . self::PI_NAME;
+
+        if (is_file($this->properties['pi_path'] . '/plugin.json')) {
+            // Get values from the installed plugin.json
+            $pi_json = json_decode(file_get_contents($this->properties['pi_path'] . '/plugin.json'));
+            $this->properties['pi_display_name'] = $pi_json->name;
+            $this->properties['pi_url'] =  $pi_json->url;
+            $this->properties['gl_version'] = $pi_json->glfusionversion;
+            $this->properties['pi_version'] = $pi_json->version;
         }
     }
 

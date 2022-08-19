@@ -1,0 +1,10 @@
+{
+  "id": "membership",
+  "name": "Membership",
+  "description": "Provides an interface to manage club members.",
+  "version": "0.3.2.3",
+  "glfusionversion": "2.0.0",
+  "phpversion": "7.4.0",
+  "url": "http://www.glfusion.org",
+  "maintainer": "Lee Garner"
+}

@@ -34,6 +34,3 @@ $_TABLES['membership_posgroups'] = $prefix . 'pos_groups';
 $_TABLES['membership_users']    = $prefix . 'users';
 $_TABLES['membership_messages'] = $prefix . 'messages';
 
-use Membership\Config;
-Config::set('pi_version', '0.3.2.2');
-Config::set('gl_version', '2.0.0');
