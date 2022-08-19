@@ -2062,7 +2062,7 @@ class Membership
         }
         if (is_array($data)) {
             foreach ($data as $A) {
-                self::getInstance($row['mem_uid'])->Arrears(true);
+                self::getInstance($A['mem_uid'])->Arrears(true);
                 Log::write(
                     Config::PI_NAME,
                     Log::INFO,
