@@ -219,7 +219,7 @@ $LANG_MEMBERSHIP = array(
 'sincerely' => 'Sincerely',
 'greeting' => 'Hello',
 'click_to_update_app' => 'Click <a href="%s">here</a> to update your profile. Some fields can be updated only by an administrator.',
-'at_x_interval' => 'at %d-day intervals',
+'at_x_interval' => 'at %d-day intervals. Includes final expiration notice.',
 'no_import_grp' => 'No import group was provided.',
 'all' => 'All',
 'system_message' => 'System Message',
