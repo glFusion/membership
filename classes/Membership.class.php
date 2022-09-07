@@ -688,6 +688,7 @@ class Membership
             return true;
         }
 
+        Cache::clear('members');
         USES_lib_user();
         foreach ($accounts as $key => $name) {
 
@@ -756,7 +757,6 @@ class Membership
             }
         }
 
-        Cache::clear('members');
         return true;
     }
 
@@ -770,7 +770,7 @@ class Membership
      * @param   integer $new_status     New status value to set
      * @return  boolean     True on success, False on error
      */
-    private function _UpdateStatus($uid, $inc_relatives, $old_status, $new_status)
+    private function _UpdateStatus(int $uid, bool $inc_relatives, int $old_status, int $new_status) : bool
     {
         global $_TABLES;
 
