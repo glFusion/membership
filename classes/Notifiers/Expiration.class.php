@@ -18,6 +18,7 @@ use Membership\Config;
 use Membership\Status;
 use Membership\Cache;
 use Membership\User;
+use Membership\Dates;
 use Membership\Notifiers\Popup;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
@@ -32,7 +33,7 @@ class Expiration extends \Membership\BaseNotifier
     /**
      * Notify users that have memberships soon to expire.
      */
-    public function Notify()
+    public function Notify() : void
     {
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP;
 
@@ -66,9 +67,10 @@ class Expiration extends \Membership\BaseNotifier
             } else {
                 // Get the members based on notification counter and expiration
                 $qb->where('m.mem_notified > 0')
-                   ->andWhere('m.mem_expires < DATE_ADD(now(), INTERVAL ((m.mem_notified -1) * :interval) DAY)')
+                   ->andWhere('m.mem_expires < DATE_ADD(:now, INTERVAL ((m.mem_notified -1) * :interval DAY)')
                    ->andWhere('m.mem_status IN (:stat)')
                    ->setParameter('interval', $interval, Database::INTEGER)
+                   ->setParameter('now', Dates::Today(), Database::INTEGER)
                    ->setParameter('stat', $stats, Database::PARAM_INT_ARRAY);
             }
             $data = $qb->execute()->fetchAllAssociative();
@@ -80,7 +82,7 @@ class Expiration extends \Membership\BaseNotifier
             return;
         }
 
-        $today = $_CONF['_now']->format('Y-m-d', true);
+        $today = Dates::Today();
         $notified_ids = array();    // holds memberhsip IDs that get notified
         $T = new \Template(array(
             $_CONF['path_layout'] . 'email/',
