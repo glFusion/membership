@@ -119,12 +119,13 @@ class Membership
      * @param   integer $uid    User ID to retrieve, default=current user
      * @return  object      Membership object
      */
-    public static function getInstance($uid = 0)
+    public static function getInstance(?int $uid = NULL) : self
     {
         global $_USER;
 
-        if ($uid == 0) $uid = $_USER['uid'];
-        $uid = (int)$uid;
+        if (!empty($uid)) {
+            $uid = $_USER['uid'];
+        }
         if ($uid > 1) {
             $cache_key = 'member_' . $uid;
             $retval = Cache::get($cache_key);
@@ -147,21 +148,22 @@ class Membership
      * the current object instance.
      *
      * @param   integer $uid    User ID
+     * @return  boolean     True on success, False on error
      */
-    public function Read($uid = 0)
+    public function Read(?int $uid = NULL) : bool
     {
         global $_TABLES;
 
-        if ($uid > 0) $this->uid = $uid;
+        if (!empty($uid)) {
+            $this->uid = $uid;
+        }
 
-        $db = Database::getInstance();
         try {
-        $data = $db->conn->executeQuery(
-            "SELECT * FROM {$_TABLES['membership_members']}
-            WHERE mem_uid = ?",
-            array($this->uid),
-            array(Database::INTEGER)
-        )->fetch(Database::ASSOCIATIVE);
+            $data = Database::getInstance()->conn->executeQuery(
+                "SELECT * FROM {$_TABLES['membership_members']} WHERE mem_uid = ?",
+                array($this->uid),
+                array(Database::INTEGER)
+            )->fetchAssociative();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $data = false;
@@ -182,12 +184,8 @@ class Membership
      * @param   array   $A      Array of values
      * @return  object  $this
      */
-    public function setVars($A)
+    public function setVars(array $A) : self
     {
-        if (!is_array($A)) {
-            return $this;
-        }
-
         if (isset($A['mem_uid'])) {
             // Will be set via DB read, probably not via form
             $this->uid = (int)$A['mem_uid'];
@@ -210,7 +208,7 @@ class Membership
      *
      * @return  integer     User ID
      */
-    public function getUid()
+    public function getUid() : int
     {
         return (int)$this->uid;
     }
@@ -221,7 +219,7 @@ class Membership
      *
      * @return  string      Plan ID
      */
-    public function getPlanID()
+    public function getPlanID() : string
     {
         return $this->plan_id;
     }
@@ -232,7 +230,7 @@ class Membership
      *
      * @return  object      Plan object.
      */
-    public function getPlan()
+    public function getPlan() : Plan
     {
         if ($this->Plan === NULL) {
             $this->Plan = Plan::getInstance($this->plan_id);
@@ -247,7 +245,7 @@ class Membership
      * @param   string  $id     Plan ID
      * @return  object  $this
      */
-    public function setPlan($id)
+    public function setPlan(string $id) : self
     {
         $this->plan_id = $id;
         $this->Plan = new Plan($this->plan_id);
@@ -273,7 +271,7 @@ class Membership
      *
      * @return  string      Expiration date YYYY-MM-DD
      */
-    public function getExpires()
+    public function getExpires() : string
     {
         return $this->expires;
     }
@@ -284,7 +282,7 @@ class Membership
      *
      * @return  string      Date joined as YYYY-MM-DD
      */
-    public function getJoined()
+    public function getJoined() : string
     {
         return $this->joined;
     }
@@ -308,7 +306,7 @@ class Membership
      *
      * @return  string      Membership number
      */
-    public function getMemNumber()
+    public function getMemNumber() : string
     {
         return $this->mem_number;
     }
@@ -326,7 +324,7 @@ class Membership
      *
      * @return  string      Globally unique ID
      */
-    public function getGuid()
+    public function getGuid() : string
     {
         return $this->guid;
     }
@@ -337,7 +335,7 @@ class Membership
      *
      * @return  integer     1 if trial, 0 if regular
      */
-    public function isTrial()
+    public function isTrial() : int
     {
         return $this->istrial ? 1 : 0;
     }
@@ -348,7 +346,7 @@ class Membership
      *
      * @return  integer     1 if notified, 0 if not
      */
-    public function expToSend()
+    public function expToSend() : int
     {
         return (int)$this->notified;
     }
@@ -359,7 +357,7 @@ class Membership
      *
      * @return  integer     Value to indicate status
      */
-    public function getStatus()
+    public function getStatus() : int
     {
         return (int)$this->status;
     }
@@ -371,7 +369,7 @@ class Membership
      *
      * @return  boolean     True if expired, False if current or in arrears.
      */
-    public function isExpired()
+    public function isExpired() : bool
     {
         return Status::fromExpiration($this->expires) == Status::EXPIRED;
     }
@@ -384,13 +382,9 @@ class Membership
      *
      * @return  boolean     True if in arrears, False if current or expired.
      */
-    public function isArrears()
+    public function isArrears() : bool
     {
         return Status::fromExpiration($this->expires) == Status::ARREARS;
-        /*return (
-            $this->expires > Dates::Today() &&
-            Dates::Today() < Dates::expGraceEnded()
-        );*/
     }
 
 
@@ -400,7 +394,7 @@ class Membership
      *
      * @return  boolean     True if current, False if in arrears or expired
      */
-    public function isCurrent()
+    public function isCurrent() : bool
     {
         return ($this->getExpires() > Dates::Today());
     }
@@ -413,7 +407,7 @@ class Membership
      * @param   string  $action_url Form action url, empty if within profile editing
      * @return  string          HTML for edit member
      */
-    public function EditForm($action_url = '')
+    public function EditForm(string $action_url = '') : string
     {
         global $_CONF, $_TABLES, $LANG_MEMBERSHIP, $LANG_MEMBERSHIP_PMTTYPES;
 
@@ -563,7 +557,7 @@ class Membership
                 $qb->andWhere('uid NOT IN (:link_ids)')
                    ->setParameter('link_ids', $link_ids, Database::PARAM_INT_ARRAY);
             }
-            $data = $qb->execute()->fetchAll(Database::ASSOCIATIVE);
+            $data = $qb->execute()->fetchAllAssociative();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $data = false;
@@ -845,7 +839,7 @@ class Membership
         $db = Database::getInstance();
         try {
             $values = array(
-                'mem_expires' => $_CONF['_now']->format('Y-m-d'),
+                'mem_expires' => Dates::Today(),
                 'mem_notified' => 0,
             );
             $types = array(
@@ -910,13 +904,17 @@ class Membership
      * Assume the current status is "Active" to force status-change operations.
      *
      * @param   boolean $cancel_relatives   True to cancel linked accounts
+     * @param   boolean $notify True to send normal notification
+     * @return  object  $this
      */
-    public function Arrears(bool $cancel_relatives=true) : self
+    public function Arrears(bool $cancel_relatives=true, bool $notify=true) : self
     {
         // Send a final notification, if notifications are used
-        $N = new Notifiers\Expiration;
-        $N->withUids(array($this->uid))
-          ->Notify();
+        if ($notify) {
+            $N = new Notifiers\Expiration;
+            $N->withUids(array($this->uid))
+              ->Notify();
+        }
 
         $this->_UpdateStatus(
             $this->uid,
@@ -1028,7 +1026,7 @@ class Membership
                     WHERE uid = ?",
                     array($uid),
                         array(Database::INTEGER)
-                )->fetchAll(Database::ASSOCIATIVE);
+                )->fetchAllAssociative();
             } catch (\Throwable $e) {
                 Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
                 $data = false;
@@ -1195,10 +1193,6 @@ class Membership
      */
     public function Renew(Transaction $Txn) : bool
     {
-        /*if ($this->istrial || $this->Plan !== NULL || !$this->isNew) {
-            return false;
-    }*/
-
         $new_planid = $Txn->getPlanId();
         if (empty($new_planid)) {
             $Txn->withPlanId($this->plan_id);
@@ -1312,21 +1306,17 @@ class Membership
                         // Update the MG uerpref table with the new quota.
                         // Ignore errors, nothing to be done about them here.
                         try {
-                            $db->conn->executeUpdate(
-                                "INSERT INTO {$_TABLES['mg_userprefs']}
-                                (`uid`, `quota`)
-                                VALUES
-                                (:uid, :size)",
-                                array('uid' => $uid, 'size' => $size),
+                            $db->conn->insert(
+                                $_TABLES['mg_userprefs'],
+                                array(`uid` => $uid, 'quota' => $size),
                                 array(Database::INTEGER, Database::INTEGER)
                             );
                         } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
                             try {
-                                $db->conn->executeUpdate(
-                                    "UPDATE {$_TABLES['mg_userprefs']}
-                                    SET quota = :size
-                                    WHERE uid = :uid",
-                                    array('uid' => $uid, 'size' => $size),
+                                $db->conn->update(
+                                    $_TABLES['mg_userprefs'],
+                                    array('quota' => $size),
+                                    array('uid' => $uid),
                                     array(Database::INTEGER, Database::INTEGER)
                                 );
                             } catch (\Exception $e) {
@@ -1382,9 +1372,9 @@ class Membership
             // Disable the user account at expiration, if so configured
             $db = Database::getInstance();
             try {
-                $db->conn->executeUpdate(
-                    "UPDATE {$_TABLES['users']} SET status = ? WHERE uid = ?",
-                    array(USER_ACCOUNT_DISABLED, $this->uid),
+                $db->conn->update(
+                    $_TABLES['users'],
+                    array('status' => USER_ACCOUNT_DISABLED, 'uid' => $uid),
                     array(Database::INTEGER, Database::INTEGER)
                 );
             } catch (\Throwable $e) {
@@ -1548,11 +1538,10 @@ class Membership
 
         $db = Database::getInstance();
         try {
-            $db->conn->executeUpdate(
-                "UPDATE {$_TABLES['membership_members']}
-                SET mem_guid = ?
-                WHERE mem_uid = ?",
-                array(self::_makeGuid($uid), $uid),
+            $db->conn->update(
+                $_TABLES['membership_members'],
+                array('mem_guid' => self::_makeGuid($uid)),
+                array('mem_uid' => $uid),
                 array(Database::STRING, Database::INTEGER)
             );
         } catch (\Exception $e) {
@@ -1593,7 +1582,7 @@ class Membership
                     AND m.mem_uid <> ?",
                     array($this->guid, $this->uid),
                     array(Database::STRING, Database::INTEGER)
-                )->fetchAll(Database::ASSOCIATIVE);
+                )->fetchAllAssociative();
             } catch (\Throwable $e) {
                 Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
                 $data = false;
@@ -1632,7 +1621,7 @@ class Membership
                 $sql,
                 array(Status::ACTIVE, Status::ARREARS, Dates::expGraceEnded()),
                 array(Database::INTEGER, Database::INTEGER, Database::STRING)
-            )->fetchAll(Database::ASSOCIATIVE);
+            )->fetchAllAssociative();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $rAll = false;
@@ -2008,14 +1997,14 @@ class Membership
                ->setParameter('status', array(Status::ACTIVE, Status::ARREARS), Database::PARAM_INT_ARRAY)
                ->setParameter('endgrace', Dates::expGraceEnded(), Database::STRING)
                ->execute()
-               ->fetchAll(Database::ASSOCIATIVE);
+               ->fetchAllAssociative();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $data = false;
         }
         if (is_array($data)) {
             foreach ($data as $A) {
-                self::getInstance($A['mem_uid'])->Expire(true);
+                self::getInstance($A['mem_uid'])->Expire(true, false);
                 Log::write(
                     Config::PI_NAME,
                     Log::INFO,
@@ -2055,14 +2044,14 @@ class Membership
                ->setParameter('status', array(Status::ACTIVE), Database::PARAM_INT_ARRAY)
                ->setParameter('now', Dates::Today(), Database::STRING)
                ->execute()
-               ->fetchAll(Database::ASSOCIATIVE);
+               ->fetchAllAssociative();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $data = false;
         }
         if (is_array($data)) {
             foreach ($data as $A) {
-                self::getInstance($A['mem_uid'])->Arrears(true);
+                self::getInstance($A['mem_uid'])->Arrears(true, false);
                 Log::write(
                     Config::PI_NAME,
                     Log::INFO,
