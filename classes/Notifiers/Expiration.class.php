@@ -59,15 +59,15 @@ class Expiration extends \Membership\BaseNotifier
             )
                ->from($_TABLES['membership_members'], 'm')
                ->leftJoin('m', $_TABLES['membership_plans'], 'p', 'p.plan_id=m.mem_plan_id')
-               ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid');
+               ->leftJoin('m', $_TABLES['users'], 'u', 'u.uid=m.mem_uid')
+               ->where('m.mem_notified > 0');
             if (!empty($this->uids)) {
                 // Force the notification and disregard the notification counter
-                $qb->where('m.mem_uid IN (:uids)')
+                $qb->andWhere('m.mem_uid IN (:uids)')
                    ->setParameter('uids', $this->uids, Database::PARAM_INT_ARRAY);
             } else {
                 // Get the members based on notification counter and expiration
-                $qb->where('m.mem_notified > 0')
-                   ->andWhere('m.mem_expires < DATE_ADD(:now, INTERVAL ((m.mem_notified -1) * :interval DAY)')
+                $qb->andWhere('m.mem_expires < DATE_ADD(:now, INTERVAL (m.mem_notified -1) * :interval DAY)')
                    ->andWhere('m.mem_status IN (:stat)')
                    ->setParameter('interval', $interval, Database::INTEGER)
                    ->setParameter('now', Dates::Today(), Database::INTEGER)
@@ -130,7 +130,7 @@ class Expiration extends \Membership\BaseNotifier
                     );
                     $button = ($status == PLG_RET_OK) ? $output[0] : '';
                     if (empty($button)) {
-                        // Don't keep trying
+                        // Don't keep trying if buttons can't be obtained.
                         $get_pmt_btn = false;
                     }
                 } else {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Class to handle storang and displaying messages.
+ * Class to handle storing and displaying popup messages.
  * Saves messages in the database to display to the specified user
  * at a later time.
  *
