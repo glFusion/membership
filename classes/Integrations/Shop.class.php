@@ -68,4 +68,15 @@ class Shop
         return $currency;
     }
 
+
+    /**
+     * See if the "Buy Now" button is permitted.
+     *
+     * @return  boolean     True if a buy-now button can be used
+     */
+    public static function canBuyNow() : bool
+    {
+        return Config::get('enable_shop') & self::BUY_NOW == self::BUY_NOW;
+    }
+
 }

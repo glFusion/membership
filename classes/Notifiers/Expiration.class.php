@@ -12,6 +12,8 @@
  * @filesource
  */
 namespace Membership\Notifiers;
+use glFusion\Database\Database;
+use glFusion\Log\Log;
 use Membership\Membership;
 use Membership\Plan;
 use Membership\Config;
@@ -19,9 +21,7 @@ use Membership\Status;
 use Membership\Cache;
 use Membership\User;
 use Membership\Dates;
-use Membership\Notifiers\Popup;
-use glFusion\Database\Database;
-use glFusion\Log\Log;
+use Membership\Integrations\Shop;
 
 
 /**
@@ -97,7 +97,7 @@ class Expiration extends \Membership\BaseNotifier
         // Flag to get a payment button. If the first button is false,
         // the flag will be reset to avoid wasting cycles for subsequent
         // members.
-        $get_pmt_btn = true;
+        $get_pmt_btn = Shop::canBuyNow();
 
         foreach ($data as $row) {
             if (Config::get('notifymethod') & Membership::NOTIFY_EMAIL) {
