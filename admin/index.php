@@ -22,6 +22,7 @@ use Membership\Position;
 use Membership\PosGroup;
 use Membership\Models\Transaction;
 use Membership\Models\MemberNumber;
+use Membership\Models\Request;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 
@@ -40,6 +41,7 @@ if (!MEMBERSHIP_isManager()) {
     exit;
 }
 
+$Request = Request::getInstance();
 $content = '';
 $footer = '';
 $db = Database::getInstance();
@@ -62,21 +64,17 @@ $expected = array(
     'importform',
 );
 foreach($expected as $provided) {
-    if (isset($_POST[$provided])) {
+    if (isset($Request[$provided])) {
         $action = $provided;
-        $actionval = $_POST[$provided];
-        break;
-    } elseif (isset($_GET[$provided])) {
-        $action = $provided;
-        $actionval = $_GET[$provided];
+        $actionval = $Request[$provided];
         break;
     }
 }
 
 switch ($action) {
 case 'notify':      // Force-send expiration reminders
-    if (isset($_POST['delitem']) && !empty($_POST['delitem'])) {
-        Membership::notifyExpiration($_POST['delitem'], true);
+    if (!empty($Request->getArray('delitem'))) {
+        Membership::notifyExpiration($Request->getArray('delitem'), true);
     }
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
@@ -88,22 +86,21 @@ case 'regenbutton':
     $view = 'listmembers';
     if (
         Config::get('use_mem_number') != MemberNumber::AUTOGEN ||
-        !array_key_exists('delitem', $_POST) ||
-        !is_array($_POST['delitem']) ||
-        empty($_POST['delitem'])
+        empty($Request->getArray('delitem'))
     ) {
         break;
     }
 
-    $members = $_POST['delitem'];
-    MemberNumber::regen($members);
+    MemberNumber::regen($Request->getArray('delitem'));
     echo COM_refresh(Config::get('admin_url') . '/index.php?' . $view);
     break;
 
 case 'importusers':
-    if (isset($_POST['frm_group'])) {
+    if (isset($Request['frm_group'])) {
         $msg = Membership\Util\Importers\glFusion::do_import(
-            (int)$_POST['frm_group'], $_POST['plan_id'], $_POST['exp']
+            $Request->getInt('frm_group'),
+            $Request->getString('plan_id'),
+            $Request->getString('exp')
         );
     } else {
         $msg = $LANG_MEMBERSHIP['no_import_grp'];
@@ -113,17 +110,17 @@ case 'importusers':
     break;
 
 case 'quickrenew':
-    $uid = isset($_POST['mem_uid']) ? (int)$_POST['mem_uid'] : 0;
+    $uid = $Request->getInt('mem_uid');
     if ($uid > 1) {
         $M = new Membership($uid);
         if (!$M->isNew()) {
             $Txn = new Transaction;
-            $Txn->withGateway(MEMB_getVar($_POST, 'mem_pmttype'))
+            $Txn->withGateway($Request->getString('mem_pmttype'))
                 ->withUid($uid)
-                ->withDoneBy($_USER['uid'])
-                ->withPlanId(MEMB_getVar($_POST, 'mem_planid', 'string', $M->getPlanID()))
-                ->withAmount(MEMB_getVar($_POST, 'mem_pmtamt', 'float', 0))
-                ->withTxnId(MEMB_getVar($_POST, 'mem_pmtdesc'));
+                ->withDoneBy((int)$_USER['uid'])
+                ->withPlanId($Request->getString('mem_planid', $M->getPlanID()))
+                ->withAmount($Request->getFloat('mem_pmtamt', 0))
+                ->withTxnId($Request->getString('mem_pmtdesc'));
             $status = $M->Renew($Txn);
         }
     }
@@ -132,7 +129,7 @@ case 'quickrenew':
 
 case 'savemember':
     // Call plugin API function to save the membership info, if changed.
-    plugin_user_changed_membership($_POST['mem_uid']);
+    plugin_user_changed_membership($Request->getInt('mem_uid'));
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
 
@@ -140,26 +137,22 @@ case 'createmember':
     // Create a new member from the membership form.
     // Creates separate member and transaction records and does not
     // calculate the expiration date, using the supplied date instead.
-    $M = new Membership($_POST['mem_uid']);
+    $M = new Membership($Request->getInt('mem_uid'));
     if ($M->isNew()) {
-        $M->setVars($_POST);
-        //$M->setPlan($_POST['mem_plan_id']);
+        $M->setVars($Request);
         if (Config::get('use_mem_number') == MemberNumber::AUTOGEN) {
             // New member, apply membership number if configured
-            $M->setMemNumber(MemberNumber::create($_POST['mem_uid']));
+            $M->setMemNumber(MemberNumber::create($Request->getInt('mem_uid')));
         }
         $M->Save();
 
         $Txn = new Transaction;
-        $pmt_amt = !empty($_POST['mem_pmtamt']) ? (float)$_POST['mem_pmtamt'] : 0;
-        $pmt_dscp = !empty($_POST['mem_pmtdesc']) ? $_POST['mem_pmtdesc'] : $LANG_MEMBERSHIP['manual_entry'];
-        $pmt_type = !empty($_POST['mem_pmttype']) ? $_POST['mem_pmttype'] : $LANG_MEMBERSHIP['manual_entry'];
-        $Txn->withGateway($pmt_type)
-            ->withUid($_POST['mem_uid'])
-            ->withAmount($pmt_amt)
-            ->withPlanId($_POST['mem_plan_id'])
-            ->withExpiration($_POST['mem_expires'])
-            ->withTxnId($pmt_dscp)
+        $Txn->withGateway($Request->getString('mem_pmttype', $LANG_MEMBERSHIP['manual_entry']))
+            ->withUid($Request->getInt('mem_uid'))
+            ->withAmount($Request->getFloat('mem_pmtamt'))
+            ->withPlanId($Request->getString('mem_plan_id'))
+            ->withExpiration($Request->getString('mem_expires'))
+            ->withTxnId($Request->getString('pmt_pmtdesc', $LANG_MEMBERSHIP['manual_entry']))
             ->Save();
     }
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
@@ -167,8 +160,8 @@ case 'createmember':
 
 case 'deletebutton_x':
 case 'deletebutton':
-    if (is_array($_POST['delitem'])) {
-        foreach ($_POST['delitem'] as $mem_uid) {
+    if (is_array($Request->getArray('delitem', NULL))) {
+        foreach ($Reqeuest->getArray('delitem') as $mem_uid) {
             $status = Membership::Delete($mem_uid);
         }
     }
@@ -177,8 +170,8 @@ case 'deletebutton':
 
 case 'renewbutton_x':
 case 'renewbutton':
-    if (is_array($_POST['delitem'])) {
-        foreach ($_POST['delitem'] as $mem_uid) {
+    if (is_array($Request->getArray('delitem', NULL))) {
+        foreach ($Request->getArray('delitem') as $mem_uid) {
             $M = new Membership($mem_uid);
             $M->Renew();
         }
@@ -188,8 +181,8 @@ case 'renewbutton':
     break;
 
 case 'deleteplan':
-    $plan_id = isset($_POST['plan_id']) ? $_POST['plan_id'] : '';
-    $xfer_plan = isset($_POST['xfer_plan']) ? $_POST['xfer_plan'] : '';
+    $plan_id = $Request->getString('plan_id');
+    $xfer_plan = $Request->getString('xfer_plan');
     if (!empty($plan_id)) {
         Plan::Delete($plan_id, $xfer_plan);
     }
@@ -197,9 +190,9 @@ case 'deleteplan':
     break;
 
 case 'saveplan':
-    $plan_id = isset($_POST['old_plan_id']) ? $_POST['old_plan_id'] : '';
+    $plan_id = $Request->getString('old_plan_id');
     $P = new Plan($plan_id);
-    $status = $P->Save($_POST);
+    $status = $P->Save($Request);
     if ($status == true) {
         echo COM_refresh(Config::get('admin_url') . '/index.php?listplans');
     } else {
@@ -211,9 +204,8 @@ case 'saveplan':
     break;
 
 case 'savepg':
-    $pg_id = isset($_POST['ppg_id']) ? $_POST['ppg_id'] : 0;
-    $P = new PosGroup($pg_id);
-    $status = $P->Save($_POST);
+    $P = new PosGroup($Request->getInt('ppg_id'));
+    $status = $P->Save($Request);
     if ($status == true) {
         echo COM_refresh(Config::get('admin_url') . '/index.php?posgroups');
         exit;
@@ -237,9 +229,8 @@ case 'delpg':
     break;
 
 case 'saveposition':
-    $pos_id = isset($_POST['pos_id']) ? $_POST['pos_id'] : 0;
-    $P = new Position($pos_id);
-    $status = $P->Save($_POST);
+    $P = new Position($Request->getInt('pos_id'));
+    $status = $P->Save($Request);
     if ($status == true) {
         echo COM_refresh(Config::get('admin_url') . '/index.php?positions');
         exit;
@@ -252,7 +243,7 @@ case 'saveposition':
     break;
 
 case 'reorderpg':
-    $id = isset($_GET['id']) ? $_GET['id'] : 0;
+    $id = $Request->getInt('id');
     $where = $actionval;
     if ($id > 0 && $where != '') {
         $msg = PosGroup::Move($id, $where);
@@ -261,8 +252,8 @@ case 'reorderpg':
     break;
 
 case 'reorderpos':
-    $type = isset($_GET['type']) ? $_GET['type'] : '';
-    $id = isset($_GET['id']) ? $_GET['id'] : 0;
+    $type = $Request->getString('type');
+    $id = $Request->getInt('id');
     $where = $actionval;
     if ($type != '' && $id > 0 && $where != '') {
         $msg = Position::Move($id, $type, $where);
@@ -305,14 +296,13 @@ case 'importform':
 
 case 'editmember':
     $M = new Membership($actionval);
-    $showexp = isset($_GET['showexp']) ? '?showexp' : '';
+    $showexp = isset($Request['showexp']) ? '?showexp' : '';
     $content .= Menu::Admin();
     $content .= $M->Editform(Config::get('admin_url') . '/index.php' . $showexp);
     break;
 
 case 'editplan':
-    $plan_id = isset($_REQUEST['plan_id']) ? $_REQUEST['plan_id'] : '';
-    $P = new Plan($plan_id);
+    $P = new Plan($Request->getString('plan_id'));
     $content .= Menu::Admin($view);
     $content .= $P->Edit();
     break;
@@ -356,9 +346,9 @@ case 'listtrans':
     break;
 
 case 'posgroups':
-    if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
+    if (isset($Request['delbutton_x']) && is_array($Request->getArray('delitem', NULL))) {
         // Delete some checked attributes
-        foreach ($_POST['delitem'] as $id) {
+        foreach ($Request->getArray('delitem') as $id) {
             PosGroup::Delete($id);
         }
     }
@@ -368,9 +358,9 @@ case 'posgroups':
     break;
 
 case 'positions':
-    if (isset($_POST['delbutton_x']) && is_array($_POST['delitem'])) {
+    if (isset($Request['delbutton_x']) && is_array($Request->getArray('delitem'))) {
         // Delete some checked attributes
-        foreach ($_POST['delitem'] as $id) {
+        foreach ($Request->getArray('delitem') as $id) {
             $P = new Position($id);
             $P->Delete();
         }

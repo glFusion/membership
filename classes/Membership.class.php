@@ -14,6 +14,8 @@ namespace Membership;
 use Membership\Notifiers\Popup;
 use Membership\Models\Transaction;
 use Membership\Models\MemberNumber;
+use Membership\Models\DataArray;
+use Membership\Models\Request;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 
@@ -169,7 +171,7 @@ class Membership
             $data = false;
         }
         if (is_array($data) && !empty($data)) {
-            $this->setVars($data);
+            $this->setVars(new DataArray($data));
             $this->Plan = new Plan($this->plan_id);
             return true;
         } else {
@@ -181,14 +183,14 @@ class Membership
     /**
      * Set all the object variables from an array, either $_POST or DB record.
      *
-     * @param   array   $A      Array of values
+     * @param   DataArray   $A  Array of values
      * @return  object  $this
      */
-    public function setVars(array $A) : self
+    public function setVars(DataArray $A) : self
     {
         if (isset($A['mem_uid'])) {
             // Will be set via DB read, probably not via form
-            $this->uid = (int)$A['mem_uid'];
+            $this->uid = $A->getInt('mem_uid');
         }
         if (isset($A['mem_joined'])) $this->joined = $A['mem_joined'];
         if (isset($A['mem_expires'])) $this->expires = $A['mem_expires'];
@@ -196,7 +198,7 @@ class Membership
         if (isset($A['mem_status'])) $this->status = (int)$A['mem_status'];
         if (isset($A['mem_notified'])) $this->notified = (int)$A['mem_notified'];
         if (isset($A['mem_number'])) $this->mem_number = $A['mem_number'];
-        $this->istrial = MEMB_getVar($A, 'mem_istrial', 'integer', 0);
+        $this->istrial = $A->getInt('mem_istrial');
         // This will never come from a form:
         if (isset($A['mem_guid'])) $this->guid = $A['mem_guid'];
         return $this;
@@ -586,19 +588,20 @@ class Membership
      * @param   array   $A      Optional array of values to set
      * @return  boolean     Status, true for success, false for failure
      */
-    public function Save(?array $A = NULL) : bool
+    public function Save(?DataArray $A=NULL) : bool
     {
         global $_TABLES, $_USER;
+
+        $Request = Request::getInstance();
 
         // Save the old membership object to check later if there are changes.
         $OldMembership = clone $this;
 
         $db = Database::getInstance();
         $old_status = $this->status;  // track original status
-        if (!is_array($A)) {
-            $A = array();
-        }
-        if (!empty($A)) {
+        if (!$A) {
+            $A = new DataArray();
+        } else {
             $this->setVars($A);
         }
 
@@ -628,12 +631,12 @@ class Membership
         // The first thing is to check to see if we're removing this account
         // from the family so we don't update other members incorrectlya
         if ($this->Plan->isFamily()) {
-            if (isset($_POST['emancipate']) && $_POST['emancipate'] == 1) {
+            if ($Request->getInt('emancipate') == 1) {
                 self::remLink($this->uid);
                 $need_membership_update = true;
             } else {
-                $orig_links = MEMB_getVar($A, 'mem_orig_links', 'array');
-                $new_links = MEMB_getVar($A, 'mem_links', 'array');
+                $orig_links = $A->getArray('mem_orig_links');
+                $new_links = $A->getArray('mem_links');
                 $arr = array_diff($orig_links, $new_links);
                 if (!empty($arr)) {
                     $need_membership_update = true;
@@ -719,14 +722,14 @@ class Membership
                 Database::INTEGER,  // extra for mem_uid in values or where
             );
             try {
-                $values['mem_uid'] = $this->mem_uid;
+                $values['mem_uid'] = $this->uid;
                 $db->conn->insert($_TABLES['membership_members'], $values, $types);
                 Log::write(Config::PI_NAME, Log::INFO,
                     "Member {$key} " . COM_getDisplayName($key) . " created by {$_USER['username']}."
                 );
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
                 try {
-                    $where = array('mem_uid' => $this->mem_uid);
+                    $where = array('mem_uid' => $this->uid);
                     $db->conn->update($_TABLES['membership_members'], $values, $where, $types);
                     Log::write(Config::PI_NAME, Log::INFO,
                         "Member {$key} " . COM_getDisplayName($key) . " updated by {$_USER['username']}."
@@ -847,7 +850,7 @@ class Membership
                 Database::INTEGER,
             );
             if ($cancel_relatives) {
-                $where = array('mem_guid' => $tis->getGuid());
+                $where = array('mem_guid' => $this->getGuid());
                 $types[] = Database::STRING;
             } else {
                 $where = array('mem_uid' => $this->getUid());
@@ -1693,6 +1696,7 @@ class Membership
         global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP;
 
         $retval = '';
+        $Request = Request::getInstance();
 
         $header_arr = array(
             array(
@@ -1746,7 +1750,7 @@ class Membership
         );
 
         $defsort_arr = array('field' => 'm.mem_expires', 'direction' => 'asc');
-        if (isset($_REQUEST['showexp'])) {
+        if (isset($Request['showexp'])) {
             $frmchk = 'checked="checked"';
             $showexp_chk = true;
             $exp_query = '';
@@ -1760,8 +1764,8 @@ class Membership
                 Dates::expGraceEnded()
             );
         }
-        if (isset($_REQUEST['plan']) && !empty($_REQUEST['plan'])) {
-            $sel_plan = DB_escapeString($_REQUEST['plan']);
+        if (isset($Request['plan']) && !empty($Request['plan'])) {
+            $sel_plan = DB_escapeString($Request['plan']);
             $exp_query .= " AND plan_id = '$sel_plan'";
         } else {
             $sel_plan = '';
@@ -1847,7 +1851,7 @@ class Membership
             ) );
         }
         $extra = array(
-            'showexp' => isset($_POST['show_exp']),
+            'showexp' => $Request->getInt('show_exp'),
         );
         $form_arr = array();
         $retval .= ADMIN_list(

@@ -1,15 +1,15 @@
 <?php
 /**
-*   Common admistrative AJAX functions.
-*
-*   @author     Lee Garner <lee@leegarner.com>
-*   @copyright  Copyright (c) 2009-2011 Lee Garner <lee@leegarner.com>
-*   @package    membership
-*   @version    0.1.0
-*   @license    http://opensource.org/licenses/gpl-2.0.php
-*               GNU Public License v2 or later
-*   @filesource
-*/
+ * Common admistrative AJAX functions.
+ *
+ * @author      Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2009-2022 Lee Garner <lee@leegarner.com>
+ * @package     membership
+ * @version     v0.3.3
+ * @license     http://opensource.org/licenses/gpl-2.0.php
+ *              GNU Public License v2 or later
+ * @filesource
+ */
 
 /** Include required glFusion common functions */
 require_once '../../../lib-common.php';
@@ -20,22 +20,31 @@ if (!MEMBERSHIP_isManager()) {
     COM_accessLog("User {$_USER['username']} tried to illegally access the classifieds admin ajax function.");
     exit;
 }
+
+use Membership\Plan;
+use Membership\Position;
+
+$Request = \Membership\Models\Request::getInstance();
 $result = array(
     'status' => 0,
     'statusMessage' => 'Undefined',
 );
-switch ($_POST['action']) {
+switch ($Request->getString('action')) {
 case 'toggle':
-    switch ($_POST['component']) {
+    $component = $Request->getString('component');
+    switch ($component) {
     case 'enabled':
-
-        switch ($_POST['type']) {
+        switch ($Request->getString('type')) {
         case 'plan':
-            $newval = \Membership\Plan::toggleEnabled($_POST['oldval'], $_POST['id']);
+            $id = $Request->getString('id');
+            $oldval = $Request->getString('oldval');
+            $newval = Plan::toggleEnabled($oldval, $id);
             break;
 
         case 'position':
-            $newval = \Membership\Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
+            $id = $Request->getInt('id');
+            $oldval = $Request->getInt('oldval');
+            $newval = Position::toggle($oldval, $component, $id);
             break;
 
          default:
@@ -44,7 +53,9 @@ case 'toggle':
         break;
 
     case 'show_vacant':
-        $newval = \Membership\Position::toggle($_POST['oldval'], $_POST['component'], $_POST['id']);
+        $id = $Request->getInt('id');
+        $oldval = $Request->getInt('oldval');
+        $newval = Position::toggle($oldval, $component, $id);
         break;
 
     default:
@@ -53,17 +64,20 @@ case 'toggle':
 
     $result = array(
         'newval'    => $newval,
-        'id'        => $_POST['id'],
-        'type'      => $_POST['type'],
-        'component' => $_POST['component'],
-        'statusMessage' => $newval != $_POST['oldval'] ? $LANG_MEMBERSHIP['item_updated'] :
+        'id'        => $id,
+        'type'      => $type,
+        'component' => $component,
+        'statusMessage' => $newval != $oldval ? $LANG_MEMBERSHIP['item_updated'] :
                 $LANG_MEMBERSHIP['item_nochange'],
     );
     break;
 
 case 'pos_orderby_opts':
     $result = array(
-        'options' => Membership\Position::getOrderbyOptions($_POST['pg_id'], $_POST['orderby']),
+        'options' => Position::getOrderbyOptions(
+            $Request->getInt('pg_id'),
+            $Request->getSring('orderby'),
+        )
     );
     break;
 }
@@ -74,4 +88,3 @@ header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 echo $result;
 
-?>

@@ -43,7 +43,7 @@ var MEMB_toggle = function(cbox, id, type, component) {
     };
     data = $.param(dataS);
     $.ajax({
-        type: "POST",
+        type: "post",
         dataType: "json",
         url: site_admin_url + "/plugins/membership/ajax.php",
         data: data,
@@ -68,7 +68,7 @@ var MEMB_getPosOrderbyOpts = function(pg_id, orderby) {
     };
     data = $.param(dataS);
     $.ajax({
-        type: "POST",
+        type: "post",
         dataType: "json",
         url: site_admin_url + "/plugins/membership/ajax.php",
         data: data,

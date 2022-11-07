@@ -19,6 +19,9 @@ require_once '../lib-common.php';
 if (COM_isAnonUser()) COM_404();
 
 use Membership\Config;
+use Membership\Models\Request;
+
+$Request = Request::getInstance();
 
 $msg = '';
 $content = '';
@@ -28,19 +31,15 @@ $expected = array(
 );
 $action = 'edit';
 foreach($expected as $provided) {
-    if (isset($_POST[$provided])) {
+    if (isset($Request[$provided])) {
         $action = $provided;
-        $actionval = $_POST[$provided];
-        break;
-    } elseif (isset($_GET[$provided])) {
-        $action = $provided;
-        $actionval = $_GET[$provided];
+        $actionval = $Request[$provided];
         break;
     }
 }
 
-if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
-    $uid = (int)$_GET['uid'];
+if (isset($Request['uid']) && MEMBERSHIP_isManager()) {
+    $uid = $Request->getInt('uid');
 } else {
     $uid = (int)$_USER['uid'];
 }
@@ -50,7 +49,9 @@ case 'saveapp':
     // Calls the Profile plugin to save the updated application.
     // If a user is editing their own app, and a purchase url is included,
     // then redirect to that url upon saving.
-    if (!MEMBERSHIP_isManager()) $_POST['mem_uid'] = $_USER['uid'];
+    if (!MEMBERSHIP_isManager()) {
+        $Request['mem_uid'] = $_USER['uid'];
+    }
     break;
 
 default:

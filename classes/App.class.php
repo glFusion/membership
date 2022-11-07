@@ -13,6 +13,8 @@
 namespace Membership;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
+use Membership\Models\DataArray;
+use Membership\Models\Request;
 
 
 /**
@@ -58,11 +60,11 @@ class App
      * @param   integer $uid    User ID to retrieve, default=current user
      * @return  object      Membership object
      */
-    public static function getInstance($uid = 0)
+    public static function getInstance(?int $uid=NULL) : self
     {
         global $_USER;
 
-        if ($uid == 0) {
+        if (empty($uid)) {
             $uid = $_USER['uid'];
         }
         $uid = (int)$uid;
@@ -150,14 +152,10 @@ class App
     {
         global $_CONF, $LANG_MEMBERSHIP;
 
+        $Request = Request::getInstance();
         $M = Membership::getInstance($this->uid);
-        /*if (isset($_POST[$typeselect_var])) {
-            $sel = $_POST[$typeselect_var];
-        } elseif ($M->isNew()) {
-            $sel = '';
-        } else {*/
-            $sel = $M->getPlanID();
-        //}
+        $sel = $M->getPlanID();
+
         $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('app', 'app_form.thtml');
         $T->set_var(array(
@@ -183,7 +181,7 @@ class App
         if (Config::get('terms_accept')) {
             $T->set_var(array(
                 'terms_required'    => true,
-                'terms_cls' => isset($_POST['app_errors']['terms_accept']) ? 'app_error' : '',
+                'terms_cls' => isset($Request['app_errors']['terms_accept']) ? 'app_error' : '',
             ) );
         }
 
@@ -251,20 +249,22 @@ class App
      * This is a wrapper around other functions; at the moment only
      * saving the user profile is supported.
      *
+     * @param   DataArray   $A  Array of form data
      * @return  integer     Status from PLG_invokeService()
      */
-    public function Save()
+    public function Save(DataArray $A=NULL) : int
     {
-        global $_TABLES, $_CONF, $_USER;
+        global $_TABLES, $_CONF, $_USER, $LANG_MEMBERSHIP;
 
-        $uid = (int)$_POST['mem_uid'];
+        $uid = $A->getInt('mem_uid');
 
-        if (MEMB_getVar($_POST, 'terms_accept', 'integer') > 0) {
+        if ($Request->getInt('terms_accept') > 0) {
             // Update the terms-accepted checkbox first since it will
             // be checked in Validate()
             $dt = $_CONF['_now']->toMySQL(false);
             $type = 'Terms Accepted';
-            $data = 'Initial by ' . MEMB_getVar($_POST, 'terms_initial');
+            $initials = $A->getString('terms_initial');
+            $data = $LANG_MEMBERSHIP['initial_by'] . ' ' . $initials;
             $db = Database::getInstance();
             try {
                 $db->conn->insert(
@@ -294,17 +294,14 @@ class App
             }
         }
 
-        if ($this->Validate($_POST)) {
+        if ($this->Validate($A->XX)) {
             $status = $this->_Save();   // call plugin-specific save function
 
             if ($status == PLG_RET_OK) {
                 // Save and log the terms and conditions acceptance.
                 // Subscribe the user to the default mailing list
                 // if selected
-                if (
-                    isset($_POST['maillist_subscribe']) &&
-                    $_POST['maillist_subscribe'] == 1
-                ) {
+                if ($Request->getInt('maillist_subscribe')) {
                     PLG_invokeService('mailer', 'subscribe',
                         array(
                             'uid'=> $uid,
@@ -324,10 +321,10 @@ class App
     /**
      * Validate the application entry in case other validation was bypassed.
      *
-     * @param   array|null  $A      $_POST or NULL to check the current on-file app
+     * @param   DataArray   $A  $_POST values, NULL to verify current app
      * @return  boolean     True if app is valid, False if not
      */
-    public function Validate($A = NULL)
+    public function Validate(?DataArray $A=NULL) : bool
     {
         global $LANG_MEMBERSHIP;
 
@@ -342,16 +339,16 @@ class App
         if (Config::get('terms_accept')) {
             $U = User::getInstance($this->uid);
             $terms_accept = $U->getTermsAccepted();
-            if (is_array($A)) {
-                $terms_chk = MEMB_getVar($A, 'terms_accept', 'integer');
-                $initial = MEMB_getVar($A, 'terms_initial');
+            if ($A) {
+                $terms_chk = $A->getInt('terms_accept');
+                $initial = $A->getInt('terms_initial');
                 if ($terms_chk == 1 && !empty($initial)) {
                     $terms_accept = time();
                 };
             }
             if ($terms_accept < time() - 31536000) {
                 COM_setMsg($LANG_MEMBERSHIP['err_terms_accept'], 'error', 1);
-                $_POST['app_errors']['terms_accept'] = 1;
+                $Request['app_errors']['terms_accept'] = 1;
                 $status = false;
             }
         }
@@ -383,10 +380,10 @@ class App
      * Validate the application entry in case other validation was bypassed.
      * Default return is true.
      *
-     * @param   array   $A      $_POST or NULL to check the current on-file app
+     * @param   DataArray   $A  $_POST Values
      * @return  boolean     True if app is valid, False if not
      */
-    protected function _Validate($A = NULL)
+    protected function _Validate(?DataArray $A = NULL) : bool
     {
         return true;
     }

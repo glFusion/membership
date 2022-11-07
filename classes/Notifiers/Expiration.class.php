@@ -112,6 +112,7 @@ class Expiration extends \Membership\BaseNotifier
                 $is_expired = $row['mem_expires'] <= $today ? true : false;
 
                 if ($get_pmt_btn) {
+                    $button = $P->getRenewalPmtButton($row['mem_uid']);
                     $args = array(
                         'custom'    => array('uid'   => $row['mem_uid']),
                         'amount' => $P->Price(false),

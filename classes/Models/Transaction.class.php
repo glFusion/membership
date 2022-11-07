@@ -300,23 +300,24 @@ class Transaction
     {
         global $_TABLES, $LANG_MEMBERSHIP, $_CONF;
 
-        $tx_from = MEMB_getVar($_POST, 'tx_from');
+        $Request = Request::getInstance();
+        $tx_from = $Request->getString('tx_from');
         if (!empty($tx_from)) {
             $from_sql = "AND tx_date >= '" . DB_escapeString($tx_from . ' 00:00:00') . "'";
         } else {
             $tx_from = '';
             $from_sql = '';
         }
-        $tx_to = MEMB_getVar($_POST, 'tx_to');
+        $tx_to = $Request->getString('tx_to');
         if (!empty($tx_to)) {
             $to_sql = "AND tx_date <= '" . DB_escapeString($tx_to . ' 23:59:59') . "'";
         } else {
             $tx_to = '';
             $to_sql = '';
         }
-        $uid = MEMB_getVar($_GET, 'uid', 'integer');
+        $uid = $Request->getInt('uid');
         if ($uid > 0) {
-            $user_sql = 'AND tx_uid = ' . (int)$_GET['uid'];
+            $user_sql = 'AND tx_uid = ' . $uid;
         } else {
             $user_sql = '';
         }
@@ -339,8 +340,6 @@ class Transaction
             'has_extras' => true,
             'form_url'  => Config::get('admin_url') . '/index.php?listtrans',
         );
-        $tx_from = MEMB_getVar($_POST, 'tx_from');
-        $tx_to = MEMB_getVar($_POST, 'tx_to');
         $filter = $LANG_MEMBERSHIP['from'] .
             ': <input id="f_tx_from" type="text" size="10" name="tx_from" data-uk-datepicker value="' . $tx_from . '" />&nbsp;' .
             $LANG_MEMBERSHIP['to'] .

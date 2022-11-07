@@ -44,6 +44,7 @@ spl_autoload_register(function ($class)
 });
 use Membership\Config;
 use Membership\Cache;
+use Membership\Models\Request;
 use glFusion\Log\Log;
 use glFusion\Database\Database;
 
@@ -332,22 +333,24 @@ function plugin_user_changed_membership($uid=0)
     // Only managers can update membership data.
     if (!MEMBERSHIP_isManager()) return;
 
+    $Request = Request::getInstance();
+
     // First save the updated membership info.
     $M = Membership\Membership::getInstance($uid);
-    $M->Save($_POST);
+    $M->Save($Request);
 
     // Then see if there's a transaction to record.
-    $pmt_amt = MEMB_getVar($_POST, 'mem_pmtamt', 'float', 0);
-    $pmt_dscp = MEMB_getVar($_POST, 'mem_pmtdesc');
-    $pmt_type = MEMB_getVar($_POST, 'mem_pmttype');
+    $pmt_amt = $Request->getFloat('mem_pmtamt');
+    $pmt_dscp = $Request->getString('mem_pmtdesc');
+    $pmt_type = $Request->getString('mem_pmttype');
     if (!empty($pmt_amt) || !empty($pmt_dscp) || !empty($pmt_type)) {
         $Txn = new Membership\Models\Transaction;
         $Txn->withGateway($pmt_type)
             ->withUid($uid)
-            ->withPlanId($_POST['mem_plan_id'])
+            ->withPlanId($Request->getString('mem_plan_id'))
             ->withAmount($pmt_amt)
-            ->withDoneBy($_USER['uid'])
-            ->withExpiration($_POST['mem_expires'])
+            ->withDoneBy((int)$_USER['uid'])
+            ->withExpiration($Request->getString('mem_expires'))
             ->withTxnId($pmt_dscp);
         $Txn->save();
     }
@@ -929,36 +932,4 @@ function MEMBERSHIP_currentMembership()
         $current = Membership\Membership::getInstance();
     }
     return $current;
-}
-
-
-/**
- * Get an array variable, first checking whether it's set.
- *
- * @param   array   $A          Array where var should be
- * @param   string  $varname    Name of array element
- * @param   string  $type       Type of return value
- * @return      Array element or NULL, cast to $type
- */
-function MEMB_getVar($A, $varname, $type = 'string')
-{
-    $val = isset($A[$varname]) ? $A[$varname] : NULL;
-    switch ($type) {
-    case 'int':
-    case 'integer':
-        return (int)$val;
-        break;
-    case 'bool':
-        return (bool)$val;
-        break;
-    case 'float':
-        return (float)$val;
-        break;
-    case 'array':
-        return (array)$val;
-    case 'string':
-    default:
-        return (string)$val;
-        break;
-    }
 }

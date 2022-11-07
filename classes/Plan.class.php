@@ -14,6 +14,7 @@ namespace Membership;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 use Membership\Integrations\Shop;
+use Membership\Models\DataArray;
 
 
 /**
@@ -291,10 +292,8 @@ class Plan
      * @param   array   $row        Array of values, from DB or $_POST
      * @param   boolean $fromDB     True if read from DB, false if from $_POST
      */
-    public function setVars($row, $fromDB=false)
+    public function setVars(DataArray $row, $fromDB=false)
     {
-        if (!is_array($row)) return;
-
         $this->plan_id = $row['plan_id'];
         $this->name = $row['name'];
         $this->dscp = $row['description'];
@@ -360,7 +359,7 @@ class Plan
             }
             Cache::set($cache_key, $row, 'plans');
         }
-        $this->setVars($row, true);
+        $this->setVars(new DataArray($row), true);
         $this->isNew = false;
         return true;
     }
@@ -372,7 +371,7 @@ class Plan
      * @param   string  $plan_id    Plan ID to retrieve
      * @return  object      Plan object
      */
-    public static function getInstance($plan_id = '')
+    public static function getInstance(string $plan_id) : self
     {
         static $plans = array();
 
@@ -387,15 +386,15 @@ class Plan
      * Save the current values to the database.
      * Appends error messages to the $Errors property.
      *
-     * @param   array   $A      Optional array of values from $_POST
+     * @param   DataArray   $A  Optional array of values from $_POST
      * @return  boolean         True if no errors, False otherwise
      */
-    public function Save($A = '')
+    public function Save(?DataArray $A=NULL) : bool
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
         $old_plan_id = $this->plan_id;
-        if (is_array($A)) {
+        if ($A) {
             $this->setVars($A);
         }
 
@@ -961,6 +960,7 @@ class Plan
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP, $_USER;
 
         $have_app = App::getInstance($_USER['uid'])->Validate();
+
         /*if (!$have_app) {
             COM_refresh(Config::get('url') . '/index.php?editapp');
         }*/
@@ -1295,5 +1295,23 @@ class Plan
             $where
         );
     }
+/*                    $args = array(
+                        'custom'    => array('uid'   => $row['mem_uid']),
+                        'amount' => $P->Price(false),
+                        'item_number' => Config::PI_NAME . ':' . $P->getPlanID() .
+                            ':renewal',
+                        'item_name' => $P->getName(),
+                        'btn_type' => 'buy_now',
+                    );
+                    $status = PLG_callFunctionForOnePlugin(
+                        'service_genButton_shop',
+                        array(
+                            1 => $args,
+                            2 => &$output,
+                            3 => &$msg,
+                        )
+                    );
+                    $button = ($status == PLG_RET_OK) ? $output[0] : '';
+ */
 
 }

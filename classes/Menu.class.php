@@ -32,7 +32,11 @@ class Menu
 
         USES_lib_admin();
 
-        $hlp_txt = MEMB_getVar($LANG_MEMBERSHIP, 'adm_' . $mode);
+        if (isset($LANG_MEMBERSHIP['adm_' . $mode])) {
+            $hlp_txt = $LANG_MEMBERSHIP['adm_' . $mode];
+        } else {
+            $hlp_txt = '';
+        }
         $admin_url = Config::get('admin_url');
         $menu_arr = array(
             array(

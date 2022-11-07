@@ -190,6 +190,7 @@ $LANG_MEMBERSHIP = array(
 'blk_member_info' => 'Membership: %s<br />Expires: %s',
 'agree_terms' => 'By checking this box and entering my initials, I confirm that I have read and agree to the terms and conditions',
 'initials' => 'Initials',
+'initial_by' => 'Initial by',
 //'terms_link' => 'Click <a href="%s" target="_new">here</a> to review.',
 'terms_link' => 'Click <a href="#!agree_terms" onclick="popupWindow(\'%s\', \'Help\', 640, 480, 1)" class="toolbar">here</a> to review.',
 'err_terms_accept' => 'You must accept the terms and conditions.',

@@ -20,6 +20,7 @@ require_once '../../auth.inc.php';
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 use Membership\Config;
+use Membership\Models\Request;
 
 // Make sure both plugins are installed and enabled
 if (!in_array('membership', $_PLUGINS) || !in_array('subscription', $_PLUGINS)) {
@@ -34,6 +35,7 @@ if (!MEMBERSHIP_isManager()) {
     exit;
 }
 
+$Request = Request::getInstance();
 $action = '';
 $content = '';
 $txt = '';
@@ -44,31 +46,35 @@ $expected = array(
     'import_form',
 );
 foreach($expected as $provided) {
-    if (isset($_POST[$provided])) {
+    if (isset($Request[$provided])) {
         $action = $provided;
-        $actionval = $_POST[$provided];
-        break;
-    } elseif (isset($_GET[$provided])) {
-        $action = $provided;
-        $actionval = $_GET[$provided];
+        $actionval = $Request->getString($provided);
         break;
     }
 }
 
 switch ($action) {
 case 'do_import':
-    if (empty($_POST['plan'])) {
+    if (empty($Request->getString('plan'))) {
         COM_setMsg("A membership plan is required.");
         echo COM_refresh(Config::get('admin_url') . '/import.php');
     } else {
-        switch ($_POST['import_type']) {
+        switch ($Request->getString('import_type')) {
         case 'subscription':
-            $sub_plan_id = (int)$_POST['from_subscription'];
-            $txt = Membership\Util\Importers\Subscription::do_import($sub_plan_id, $_POST['plan'], $_POST['expiration']);
+            $sub_plan_id = $Request->getString('from_subscription');
+            $txt = Membership\Util\Importers\Subscription::do_import(
+                $sub_plan_id,
+                $Request->getString('plan'),
+                $Request->getString('expiration')
+            );
             break;
         case 'glfusion':
-            $gl_grp_id = $_POST['from_glfusion'];
-            $txt = Membership\Util\Importers\glFusion::do_import($gl_grp_id, $_POST['plan'], $_POST['expiration']);
+            $gl_grp_id = $Request->getInt('from_glfusion');
+            $txt = Membership\Util\Importers\glFusion::do_import(
+                $gl_grp_id,
+                $Request->getString('plan'),
+                $Request->getString('expiration')
+            );
             break;
         }
     }

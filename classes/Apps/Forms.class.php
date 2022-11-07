@@ -11,6 +11,9 @@
  * @filesource
  */
 namespace Membership\Apps;
+use Membership\Models\DataArray;
+use Membership\Models\Request;
+
 
 /**
  * Class for a membership application from the Forms plugin.
@@ -146,10 +149,11 @@ class Forms extends \Membership\App
     {
         global $_USER;
 
-        if (!MEMBERSHIP_isManager()) $_POST['mem_uid'] = $_USER['uid'];
+        $Request = Request::getInstance();
+        if (!MEMBERSHIP_isManager()) $Request['mem_uid'] = $_USER['uid'];
         $args = array(
-            'uid'   => $_POST['mem_uid'],
-            'data'  => $_POST,
+            'uid'   => $Request->getInt('mem_uid'),
+            'data'  => $Request->toArray(),
         );
         $status = PLG_callFunctionForOnePlugin(
             'service_saveData_' . $this->plugin,
@@ -166,10 +170,10 @@ class Forms extends \Membership\App
     /**
      * Validate the application entry in case other validation was bypassed.
      *
-     * @param   array   $A      $_POST or NULL to check the current on-file app
+     * @param   DataArray   $A  $_POST values, NULL to validate current app
      * @return  boolean     True if app is valid, False if not
      */
-    protected function _Validate($A = NULL)
+    protected function _Validate(DataArray $A=NULL) : bool
     {
         $status = true;
         // todo: Add method to check new application from $_POST

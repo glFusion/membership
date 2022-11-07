@@ -3,9 +3,9 @@
  * Public entry point for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2019 Lee Garner
- * @package     subscription
- * @version     v0.2.0
+ * @copyright   Copyright (c) 2012-2022 Lee Garner
+ * @package     membership
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
  * @filesource
@@ -19,6 +19,7 @@ if (!in_array('membership', $_PLUGINS)) {
     COM_404();
 }
 use Membership\Config;
+use Membership\Models\Request;
 
 $content = '';
 $expected = array(
@@ -26,14 +27,11 @@ $expected = array(
     'prt', 'app', 'view', 'editapp', 'list', 'list1', 'pmtform', 'detail',
 );
 $action = '';
+$Request = Request::getInstance();
 foreach($expected as $provided) {
-    if (isset($_POST[$provided])) {
+    if (isset($Request[$provided])) {
         $action = $provided;
-        $actionval = $_POST[$provided];
-        break;
-    } elseif (isset($_GET[$provided])) {
-        $action = $provided;
-        $actionval = $_GET[$provided];
+        $actionval = $Request->getString($provided);
         break;
     }
 }
@@ -42,8 +40,8 @@ if (empty($action)) {
     $action = 'list';
 }
 
-if (isset($_GET['uid']) && MEMBERSHIP_isManager()) {
-    $uid = (int)$_GET['uid'];
+if (isset($Request['uid']) && MEMBERSHIP_isManager()) {
+    $uid = $Request->getInt('uid');
 } else {
     $uid = (int)$_USER['uid'];
 }
@@ -57,19 +55,20 @@ case 'cancelapp':
     COM_refresh($_CONF['site_url']);
     exit;
 case 'saveapp':
-    $status = Membership\App::getInstance()->Save();
+    $status = Membership\App::getInstance()->Save($Request);
     if ($status == PLG_RET_OK) {
+        $purch_url = $Request->getString('purch_url');
         COM_setMsg($LANG_MEMBERSHIP['your_info_updated'], 'success');
-        if ($_POST['mem_uid'] == $_USER['uid'] && !empty($_POST['purch_url'])) {
-            if (!empty($_POST['app_membership_type'])) {
-                $url_extra = '&amp;plan_id=' . urlencode($_POST['app_membership_type']);
+        if ($Request->getInt('mem_uid') == $_USER['uid'] && !empty($purch_url)) {
+            if (!empty($Request->getString('app_membership_type'))) {
+                $url_extra = '&amp;plan_id=' . urlencode($Request->getString('app_membership_type'));
             } else {
                 $url_extra = '';
             }
             // only redirect members to purchase, not admins.
             $M = new Membership\Membership();
             if ($M->canPurchase() == Membership\Membership::CANPURCHASE) {
-                echo COM_refresh($_POST['purch_url'] . $url_extra);
+                echo COM_refresh($purch_url . $url_extra);
                 exit;
             }
             if ($M->getExpires() > Membership\Dates::Today()) {
@@ -93,8 +92,8 @@ default:
 
 switch ($view) {
 case 'detail':
-    if (!empty($_GET['plan_id'])) {
-        $P = new Membership\Plan($_GET['plan_id']);
+    if (!empty($Request->getString('plan_id'))) {
+        $P = new Membership\Plan($Request->getString('plan_id'));
         if ($P->getPlanID() == '') {
             $content .= COM_showMessageText($LANG_MEMBERSHIP['err_plan_id']);
             $content .= Membership\Plan::listPlans();
@@ -149,7 +148,7 @@ case 'prt':
 
 case 'pmtform':
     $M = Membership\Membership::getInstance();
-    $P = Membership\Plan::getInstance($_GET['plan_id']);
+    $P = Membership\Plan::getInstance($Request->getString('plan_id'));
     if (!$P->isNew() && $P->canPurchase()) {
         $T = new Template(Config::get('pi_path') . 'templates');
         $T->set_file('pmt', 'pmt_form.thtml');
@@ -193,7 +192,7 @@ case 'pmtform':
 
 case 'list1':
     // Show the plan list when coming from the app submission
-    $show_plan = isset($_GET['plan_id']) ? $_GET['plan_id'] : '';
+    $show_plan = $Request->getString('plan_id');
     $content .= Membership\Plan::listPlans($show_plan);
     break;
 
@@ -210,4 +209,3 @@ $display .= Membership\Menu::siteFooter();
 echo $display;
 exit;
 
-?>
