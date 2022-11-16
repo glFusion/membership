@@ -3,11 +3,12 @@
 
 {!if standalone}
 {# This is a standalone form called from the member list #}
-	<a class="uk-button uk-button-primary" id="exp_col"
-		data-uk-modal="{target:'#pmt_div'}">{$LANG_MEMBERSHIP['pmt_info']}</a>
+{tooltipster_js}
 <form class="uk-form uk-form-horizontal" action="{action_url}" method="post">
 	<input type="hidden" name="mem_old_links" value='{old_links}' />
 	<input type="hidden" name="mem_uid" value="{my_uid}" />
+	<a class="uk-button uk-button-primary" id="exp_col"
+		data-uk-modal="{target:'#pmt_div'}">{$LANG_MEMBERSHIP['pmt_info']}</a>
 		<div class="uk-form-row uk-margin">
 			<label class="uk-form-label">{$LANG_MEMBERSHIP['updating_member']}:</label>
 			<div class="uk-form-controls">{member_name}
@@ -166,9 +167,7 @@
 	<div class="uk-modal-dialog">
 		<form method="post" class="uk-form uk-form-horizontal" action="{renew_url}">
 			<input type="hidden" name="mem_uid" value="{my_uid}" />
-{!else}
 			<fieldset><legend>Renewal</legend></fieldset>
-{!endif}
 			<div class="uk-form-row uk-margin">
 				<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_amount']}:
 					<span id="amtpaid" class="tooltip_cfg tooltipstered"></span>
@@ -211,7 +210,6 @@
 				</div>
 			</div>
 
-{!if standalone}
 			<div class="uk-form-row uk-margin">
 				<button type="submit" class="uk-button uk-button-success" name="quickrenew" value="1">{$LANG_MEMBERSHIP['renew']}</button>
 				<button type="reset" class="uk-button uk-button-primary" name="reset" value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
@@ -221,5 +219,4 @@
 	</div>
 {!endif}
 </div>
-{tooltipster_js}
 {# end {templatelocation} #}
