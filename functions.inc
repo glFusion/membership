@@ -809,7 +809,7 @@ function plugin_user_move_membership($origUID, $destUID) : void
     try {
         $db->conn->executeQuery(
             "UPDATE {$_TABLES['membership_members']}
-            SET uid = ? WHERE uid = ?",
+            SET mem_uid = ? WHERE mem_uid = ?",
             array($destUID, $origUID),
                 array(Database::INTEGER, Database::INTEGER)
         );
