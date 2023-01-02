@@ -10,7 +10,7 @@
 <hr />
 {!if terms_required}
 <a name="agree_terms"></a>
-<p class="uk-alert uk-alert-danger">{$LANG_MEMBERSHIP['agree_terms']}
+<p class="uk-alert uk-alert-danger">{$LANG_MEMBERSHIP['agree_terms']}<br />
   <input id="terms_accept" type="checkbox" name="terms_accept" value="1" />
   <input id="terms_initial" type="text" name="terms_initial"
         placeholder="{$LANG_MEMBERSHIP['initials']}" size="5" maxlength="5" value="" />
