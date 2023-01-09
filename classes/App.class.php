@@ -230,7 +230,7 @@ class App
         // If selection is populated, this can't be a new membership
         $isNew = $sel == '' ? true : false;
         foreach ($data as $A) {
-            $P->setVars($A, true);
+            $P->setVars(new DataArray($A), true);
             $retval[$P->getPlanID()] = array(
                 'plan_id' => $P->getPlanID(),
                 'sel' => $P->getPlanID() == $sel ? ' checked="checked"' : '',

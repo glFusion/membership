@@ -75,9 +75,9 @@ class Plan
      * Reads in the specified class, if $id is set.  If $id is zero,
      * then a new entry is being created.
      *
-     * @param   integer $id  Optional plan ID
+     * @param   string  $id  Optional plan ID
      */
-    public function __construct($id = '')
+    public function __construct(string $id = '')
     {
         global $LANG_MEMBERSHIP;
 
@@ -86,13 +86,6 @@ class Plan
             if (!$this->Read($this->plan_id)) {
                 $this->plan_id = '';
             }
-        } else {
-            $this->name = '';
-            $this->dscp = '';
-            $this->fees = array();
-            $this->enabled = 1;
-            $this->upd_links = 0;
-            $this->grp_access = 2;  // default to "All Users"
         }
     }
 
@@ -103,7 +96,7 @@ class Plan
      * @param   string  $id     Plan ID
      * @return  object  $this
      */
-    private function setPlanID($id)
+    private function setPlanID(string $id) : self
     {
         $this->plan_id = COM_sanitizeID($value, false);
         return $this;
@@ -115,7 +108,7 @@ class Plan
      *
      * @return  string  Plan ID
      */
-    public function getPlanID()
+    public function getPlanID() : string
     {
         return $this->plan_id;
     }
@@ -124,10 +117,10 @@ class Plan
     /**
      * Set the group allowed to purchase this plan.
      *
-     * @param   integer $grp_id Gropu ID
+     * @param   integer $grp_id Group ID
      * @return  object  $this
      */
-    private function setGrpAccess($grp_id)
+    private function setGrpAccess(int $grp_id) : self
     {
         $this->grp_access = (int)$grp_id;
         return $this;
@@ -139,7 +132,7 @@ class Plan
      *
      * @return  integer     Group ID
      */
-    public function getGrpAccess()
+    public function getGrpAccess() : int
     {
         return (int)$this->grp_access;
     }
@@ -151,9 +144,10 @@ class Plan
      * @param   float   $price  Plan price
      * @return  object  $this
      */
-    private function setPrice($price)
+    private function setPrice(float $price) : self
     {
         $this->price = (float)$price;
+        return $this;
     }
 
 
@@ -162,7 +156,7 @@ class Plan
      *
      * @return  float       Plan price
      */
-    public function getPrice()
+    public function getPrice() : float
     {
         return (float)$this->price;
     }
@@ -174,9 +168,10 @@ class Plan
      * @param   string  $dscp   Short description
      * @return  object  $this
      */
-    private function setName($dscp)
+    private function setName(string $dscp) : self
     {
         $this->name = $dscp;
+        return $this;
     }
 
 
@@ -185,7 +180,7 @@ class Plan
      *
      * @return  string      Sort description (name)
      */
-    public function getName()
+    public function getName() : string
     {
         return $this->name;
     }
@@ -197,7 +192,7 @@ class Plan
      * @param   string  $dscp   Full description
      * @return  object  $this
      */
-    private function setDscp($dscp)
+    private function setDscp(string $dscp) : self
     {
         $this->dscp = $dscp;
         return $this;
@@ -209,7 +204,7 @@ class Plan
      *
      * @return  string      Full text description
      */
-    public function getDscp()
+    public function getDscp() : string
     {
         return $this->dscp;
     }
@@ -221,7 +216,7 @@ class Plan
      * @param   boolean $flag   1 if enabled, 0 if not
      * @return  object  $this
      */
-    private function setEnabled($flag)
+    private function setEnabled(bool $flag) : self
     {
         $this->enabled = $flag ? 1 : 0;
         return $this;
@@ -233,7 +228,7 @@ class Plan
      *
      * @return  integer     1 if enabled, 0 if not
      */
-    public function isEnabled()
+    public function isEnabled() : int
     {
         return $this->enabled ? 1 : 0;
     }
@@ -245,7 +240,7 @@ class Plan
      * @param   boolean $flag   1 if enabled, 0 if not
      * @return  object  $this
      */
-    private function setUpdateLinks($flag)
+    private function setUpdateLinks(bool $flag) : self
     {
         $this->upd_links = $flag ? 1 : 0;
         return $this;
@@ -257,7 +252,7 @@ class Plan
      *
      * @return  integer     1 if new, 0 if existing
      */
-    public function isNew()
+    public function isNew() : int
     {
         return $this->isNew ? 1 : 0;
     }
@@ -269,7 +264,7 @@ class Plan
      *
      * @return  integer     1 if enabled, 0 if not
      */
-    public function isFamily()
+    public function isFamily() : int
     {
         return $this->upd_links ? 1 : 0;
     }
@@ -280,7 +275,7 @@ class Plan
      *
      * @return  integer     1 to send notification, 0 to suppress
      */
-    public function notificationsEnabled()
+    public function notificationsEnabled() : int
     {
         return $this->notify_exp ? 1 : 0;
     }
@@ -292,22 +287,22 @@ class Plan
      * @param   array   $row        Array of values, from DB or $_POST
      * @param   boolean $fromDB     True if read from DB, false if from $_POST
      */
-    public function setVars(DataArray $row, $fromDB=false)
+    public function setVars(DataArray $row, ?bool $fromDB=false) : self
     {
-        $this->plan_id = $row['plan_id'];
-        $this->name = $row['name'];
-        $this->dscp = $row['description'];
-        $this->grp_access = (int)$row['grp_access'];
-        $this->enabled = isset($row['enabled']) ? (int)$row['enabled'] : 0;
-        $this->upd_links = isset($row['upd_links']) ? (int)$row['upd_links'] : 0;
-        $this->notify_exp = isset($row['notify_exp']) ? (int)$row['notify_exp'] : 0;
+        $this->plan_id = $row->getString('plan_id');
+        $this->name = $row->getString('name');
+        $this->dscp = $row->getString('description');
+        $this->grp_access = $row->getInt('grp_access');
+        $this->enabled = $row->getInt('enabled');
+        $this->upd_links = $row->getInt('upd_links');
+        $this->notify_exp = $row->getInt('notify_exp');
 
         if ($fromDB) {
-            $this->fees = @unserialize($row['fees']);
+            $this->fees = @unserialize($row->getString('fees'));
         } elseif (is_array($row['fee'])) {  // should always be an array from the form
             if (Config::get('period_start') > 0) {
                 // Each month has a specified new and renewal fee
-                $this->fees = $row['fee'];
+                $this->fees = $row->getArray('fee');
             } else {
                 // Expand the single new/renewal fee into all 12 months
                 $this->fees['new'] = array();
@@ -317,10 +312,11 @@ class Plan
                     $this->fees['renew'][$i] = (float)$row['fee']['renew'][1];
                 }
             }
-            $this->fees['fixed'] = (float)$row['fixed_fee'];
+            $this->fees['fixed'] = $row->getFloat('fixed_fee');
         } else {
-            Log::write('system', Log::ERROR, __METHOD__ . ': Error ' . var_dump($row, true));
+            Log::write('system', Log::ERROR, __METHOD__ . ': Error ' . var_export($row, true));
         }
+        return $this;
     }
 
 
@@ -348,8 +344,7 @@ class Plan
             $db = Database::getInstance();
             try {
                 $row = $db->conn->executeQuery(
-                    "SELECT * FROM {$_TABLES['membership_plans']}
-                    WHERE plan_id = ?",
+                    "SELECT * FROM {$_TABLES['membership_plans']} WHERE plan_id = ?",
                     array($id),
                     array(Database::STRING)
                 )->fetch(Database::ASSOCIATIVE);
@@ -480,26 +475,16 @@ class Plan
     /**
      * Delete a plan record from the database.
      *
-     * @param   string  $id     Optional plan ID, current object if empty
      * @param   string  $xfer_plan  Plan to transfer members to, if any
      * @return  boolean         True on success, False on failure
      */
-    public function Delete($id = '', $xfer_plan='')
+    public function Delete(string $xfer_plan='') : bool
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
-        if ($id == '' && is_object($this)) {
-            $id = $this->plan_id;
-            $this->plan_id = '';
-        }
-        if (empty($id)) {
-            COM_setMsg($LANG_MEMBERSHIP['msg_missing_id'], 'error');
-            return false;
-        }
-
-        if (self::hasMembers($id)) {
+        if ($this->hasMembers()) {
             if (!empty($xfer_plan)) {
-                if (!Membership::Transfer($id, $xfer_plan)) {
+                if (!Membership::Transfer($this->plan_id, $xfer_plan)) {
                     COM_setMsg($LANG_MEMBERSHIP['msg_unable_xfer_members']);
                     return false;
                 }
@@ -509,11 +494,18 @@ class Plan
             }
         }
         $db = Database::getInstance();
-        $db->conn->delete(
-            $_TABLES['membership_plans'],
-            array('plan_id'),
-            array($id)
-        );
+        try {
+            $db->conn->delete(
+                $_TABLES['membership_plans'],
+                array('plan_id'),
+                array($this->plan_id)
+            );
+            $this->plan_id = '';
+            $this->isNew = true;
+        } catch (\Throwable $e) {
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            return false;
+        }
         Cache::clear();     // clear all since this might affect memberships
         COM_setMsg($LANG_MEMBERSHIP['msg_plan_deleted']);
         return true;
@@ -525,7 +517,7 @@ class Plan
      *
      * @return  boolean     True if ok, False when first test fails.
      */
-    public function isValidRecord()
+    public function isValidRecord() : bool
     {
         global $LANG_MEMBERSHIP;
 
@@ -549,7 +541,7 @@ class Plan
      *
      * @return  string          HTML for edit form
      */
-    public function Edit()
+    public function Edit() : string
     {
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP,
                 $LANG24, $LANG_postmodes, $LANG_configselects, $LANG_MONTH;
@@ -671,7 +663,7 @@ class Plan
      *
      * @return  string      HTML for product detail
      */
-    public function Detail()
+    public function Detail() : string
     {
         global $_TABLES, $_CONF, $_USER, $LANG_MEMBERSHIP;
 
@@ -733,7 +725,7 @@ class Plan
      * @param   integer $id         ID number of element to modify
      * @return         New value, or old value upon failure
      */
-    public static function toggleEnabled($oldvalue, $id)
+    public static function toggleEnabled(int $oldvalue, int $id) : int
     {
         $id = COM_sanitizeID($id);
         return self::_toggle($oldvalue, 'enabled', $id);
@@ -747,7 +739,7 @@ class Plan
      *
      * @return  boolean True if used, False if not
      */
-    public function hasMembers()
+    public function hasMembers() : bool
     {
         global $_TABLES;
 
@@ -773,7 +765,7 @@ class Plan
      * @param   string  $text   Text to display
      * @return  string      Formatted error messages.
      */
-    public function PrintErrors($text = '')
+    public function PrintErrors(string $text = '') : string
     {
         $retval = '<span class="alert">';
         if ($text != '') {
@@ -792,7 +784,7 @@ class Plan
      *
      * @return  boolean     True if Errors[] is not empty, false if it is.
      */
-    public function hasErrors()
+    public function hasErrors() : bool
     {
         return (!empty($this->Errors));
     }
@@ -807,7 +799,7 @@ class Plan
      * @param   string  $return Optional return URL after purchase
      * @return  string      Button code
      */
-    public function MakeButton($price, $isnew = false, $return='')
+    public function MakeButton(float $price, bool $isnew = false, string $return='') : string
     {
         $retval = array();
         $is_renewal = $isnew ? 'new' : 'renewal';
@@ -862,7 +854,7 @@ class Plan
      * @param   string  $ptype  Price type. "total", "actual", or "fee".
      * @return  float       Current price
      */
-    public function Price($isNew = true, $ptype = 'total')
+    public function Price(bool $isNew = true, string $ptype = 'total') : float
     {
         if ($ptype == 'fee') {      // Get the processing fee only
             $price = $this->Fee();
@@ -893,7 +885,7 @@ class Plan
      *
      * @return  string  Currency type, "USD" by default.
      */
-    public static function getCurrency()
+    public static function getCurrency() : string
     {
         return Shop::getCurrency();
     }
@@ -955,7 +947,7 @@ class Plan
      * @param   string  $show_plan      A single plan_id to show (selected on app)
      * @return  string      HTML for product catalog.
      */
-    public static function listPlans(?string $show_plan = NULL) : string
+    public static function listPlans(?string $show_plan=NULL) : string
     {
         global $_TABLES, $_CONF, $LANG_MEMBERSHIP, $_USER;
 
@@ -1110,7 +1102,7 @@ class Plan
      * @param   array   $options    Additional options
      * @return  array       Array of fieldname=>value
      */
-    public function getItemInfo($what, $options = array())
+    public function getItemInfo(array $what, array $options=array()) : array
     {
         $retval = array();
         foreach ($what as $fld) {
@@ -1154,7 +1146,7 @@ class Plan
      *
      * @return  string  HTML for the list
      */
-    public static function adminList()
+    public static function adminList() : string
     {
         global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_MEMBERSHIP;
 
@@ -1225,7 +1217,7 @@ class Plan
      * @param   array   $icon_arr   Array of system icons
      * @return  string              HTML for the field cell
      */
-    public static function getAdminField($fieldname, $fieldvalue, $A, $icon_arr)
+    public static function getAdminField(string $fieldname, $fieldvalue, array $A, array $icon_arr) : string
     {
         global $_CONF, $LANG_ACCESS, $LANG_MEMBERSHIP;
 
@@ -1295,23 +1287,5 @@ class Plan
             $where
         );
     }
-/*                    $args = array(
-                        'custom'    => array('uid'   => $row['mem_uid']),
-                        'amount' => $P->Price(false),
-                        'item_number' => Config::PI_NAME . ':' . $P->getPlanID() .
-                            ':renewal',
-                        'item_name' => $P->getName(),
-                        'btn_type' => 'buy_now',
-                    );
-                    $status = PLG_callFunctionForOnePlugin(
-                        'service_genButton_shop',
-                        array(
-                            1 => $args,
-                            2 => &$output,
-                            3 => &$msg,
-                        )
-                    );
-                    $button = ($status == PLG_RET_OK) ? $output[0] : '';
- */
 
 }
