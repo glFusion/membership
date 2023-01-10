@@ -678,7 +678,7 @@ class Plan
         if ($M->CanPurchase()) {
             $price = $this->Price($M->isNew());
             $price_txt = COM_numberFormat($price, 2);
-            $buttons = implode('&nbsp;&nbsp;', $this->MakeButton($price, $M->isNew()));
+            $buttons = implode('&nbsp;&nbsp;', $this->makeButton($price, $M->isNew()));
         } else {
             $buttons = '';
             $price_txt = '';
@@ -799,7 +799,7 @@ class Plan
      * @param   string  $return Optional return URL after purchase
      * @return  string      Button code
      */
-    public function MakeButton(float $price, bool $isnew = false, string $return='') : string
+    public function makeButton(float $price, bool $isnew = false, string $return='') : array
     {
         $retval = array();
         $is_renewal = $isnew ? 'new' : 'renewal';
@@ -1055,7 +1055,7 @@ class Plan
                 $exp_ts = strtotime($M->getExpires());
                 $exp_format = strftime($_CONF['shortdate'], $exp_ts);
                 if ($have_app) {
-                    $output = $P->MakeButton(
+                    $output = $P->makeButton(
                         $price_total,
                         $M->isNew(),
                         Config::get('redir_after_purchase')
