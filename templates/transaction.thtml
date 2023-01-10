@@ -1,0 +1,77 @@
+{# begin {templatelocation} #}
+<script src="{site_url}/javascript/addons/datetime/jquery.datetimepicker.full.min.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{site_url}/javascript/addons/datetime/jquery.datetimepicker.min.css"/ >
+<script src="{site_url}/javascript/addons/datetime/datetimepicker.js" type="text/javascript"></script>
+<h2>{$LANG_MEMBERSHIP['edit_txn']}</h2>
+<form method="post" class="uk-form uk-form-horizontal" action="{site_url}/admin/plugins/membership/index.php">
+	<input type="hidden" name="tx_by" value="{tx_by}" />
+	<input type="hidden" name="tx_id" value="{tx_id}" />
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['member_name']}:
+			<span id="mem_uid" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<select class="uk-select" name="tx_uid">
+				<option value="0">-- {$LANG_MEMBERSHIP['select']} --</option>
+				{mem_select}
+			</select>
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_amount']}:
+			<span id="amtpaid" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<input class="uk-input" type="number" name="tx_amt" value="{tx_amt}" />
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_date']}:
+			<span id="dtpaid" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<input class="uk-input uk-form-width-medium popupcal" type="text"
+				id="f_dtpaid" name="tx_dt" value="{tx_dt}" />
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_method']}:
+			<span id="method" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<select id="pmttype" name="tx_gw">
+				<option value="" selected="selected">--{$LANG_MEMBERSHIP['select']}--</option>
+<!-- BEGIN pmttype_block -->
+				<option value="{pmt_key}">{pmt_name}</option>
+<!-- END pmttype_block -->
+			</select>
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_desc']}:
+			<span id="comment" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<input id="pmt_desc" type="text" name="tx_txn_id" size="30" value="{tx_txn_id}" />
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['renewal']}:
+			<span id="comment" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<input type="checkbox" class="uk-checkbox" value="1" name="renewing" />
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<button type="submit" class="uk-button uk-button-success" name="tx_save" value="1">{$LANG_ADMIN['submit']}</button>
+		<button type="reset" class="uk-button uk-button-primary" name="reset">{$LANG_ADMIN['reset']}</button>
+		<a href="{site_url}/admin/plugins/membership/index.php?listtrans" class="uk-button">{$LANG_ADMIN['cancel']}</a>
+	</div>
+</form>

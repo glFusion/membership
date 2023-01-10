@@ -211,6 +211,15 @@
 			</div>
 
 			<div class="uk-form-row uk-margin">
+				<label class="uk-form-label">{$LANG_MEMBERSHIP['not_renewal']}:
+					<span id="hlp_norenew" class="tooltip_cfg tooltipstered"></span>
+				</label>
+				<div class="uk-form-controls">
+					<input id="pmt_norenew" type="checkbox" name="mem_pmtnorenew" value="1" />
+				</div>
+			</div>
+
+			<div class="uk-form-row uk-margin">
 				<button type="submit" class="uk-button uk-button-success" name="quickrenew" value="1">{$LANG_MEMBERSHIP['renew']}</button>
 				<button type="reset" class="uk-button uk-button-primary" name="reset" value="{$LANG_MEMBERSHIP['reset']}">{$LANG_MEMBERSHIP['reset']}</button>
 				<button type="reset" class="uk-button uk-button-default uk-modal-close">{$LANG_MEMBERSHIP['cancel']}</button>

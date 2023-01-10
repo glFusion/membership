@@ -55,6 +55,8 @@ $LANG_MEMBERSHIP = array(
 'return_to_edit' => "To update your application, click <a href=\"{$_CONF['site_url']}/membership/index.php?editapp\">here</a>.",
 'err_name'      => 'Invalid Plan Name',
 'err_plan_id'   => 'Invalid Plan ID',
+'err_mem_uid'   => 'Invalid Member ID',
+'err_gw'        => 'Invalid Payment Method',
 'admin_title'   => 'Membership Administration',
 'error_saving'  => 'Errors encountered while saving the record:',
 'submit'    => 'Submit',
@@ -235,6 +237,8 @@ $LANG_MEMBERSHIP = array(
 'import_from' => 'Import From',
 'txn_dscp_imported' => 'Imported From',
 'manual_entry' => 'Manual Entry',
+'edit_txn' => 'Edit Transaction',
+'new_item' => 'New Item',
 );
 $LANG_MEMBERSHIP_PMTTYPES = array(
     'check' => 'Check',

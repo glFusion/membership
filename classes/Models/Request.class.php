@@ -62,5 +62,37 @@ class Request extends DataArray
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
     }
 
+
+    /**
+     * Get the action and action value from the parameters.
+     *
+     * @param   array   $expected   Array of expected options
+     * @return  array       Array of (action, actionvalue)
+     */
+    public function getAction(array $expected, string $defaction='') : array
+    {
+        $action = $defaction;
+        $actionval = '';
+        foreach($expected as $provided) {
+            if (isset($this[$provided])) {
+                $action = $provided;
+                $actionval = $this->getString($provided);
+                break;
+            }
+        }
+        return array($action, $actionval);
+    }
+
+
+    /**
+     * Get the HTTP query string. Useful for debugging.
+     *
+     * @return  string      HTTP query string (a=x&b=7...)
+     */
+    public function asQueryString() : string
+    {
+        return http_build_query($this->properties);
+    }
+
 }
 

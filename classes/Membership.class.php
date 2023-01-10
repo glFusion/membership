@@ -125,12 +125,13 @@ class Membership
     {
         global $_USER;
 
-        if (!empty($uid)) {
+        if (empty($uid)) {
             $uid = $_USER['uid'];
         }
         if ($uid > 1) {
             $cache_key = 'member_' . $uid;
             $retval = Cache::get($cache_key);
+            $retval = NULL;
             if ($retval === NULL) {
                 $retval = new self($uid);
                 if (!$retval->isNew()) {
@@ -1022,26 +1023,19 @@ class Membership
             if (Config::get('use_mem_number') && SEC_hasRights('membership.admin')) {
                 $mem_number = $this->mem_number;
             }
-            $db = Database::getInstance();
-            try {
-                $data = $db->conn->executeQuery(
-                    "SELECT descr FROM {$_TABLES['membership_positions']}
-                    WHERE uid = ?",
-                    array($uid),
-                        array(Database::INTEGER)
-                )->fetchAllAssociative();
-            } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
-                $data = false;
-            }
-            if (is_array($data)) {
-                foreach ($data as $A) {
-                    $positions[] = $A['descr'];
+            $Positions = Position::getByMember($uid);
+            if (!empty($Positions)) {
+                foreach ($Positions as $Position) {
+                    $pos[] = $Position->getDscp();
                 }
+                $position = implode(',', $pos);
+            } else {
+                $position = '';
             }
         }
         $position = implode(', ', $positions);
-        if (!$this->isNew &&
+        if (
+            !$this->isNew &&
             App::isRequired() > App::DISABLED &&
             App::getInstance($uid)->Exists()
         ) {
@@ -1268,9 +1262,9 @@ class Membership
         global $_TABLES, $_PLUGINS;
 
         // No change in status just return OK
-        if ($old_status == $new_status) {
+        /*if ($old_status == $new_status) {
             return;
-        }
+        }*/
 
         foreach ($uids as $uid) {
             PLG_itemSaved('membership:' . $uid, Config::PI_NAME);
@@ -2106,6 +2100,39 @@ class Membership
             sprintf($LANG_MEMBERSHIP['log_purged'], $rows, $days)
         );
         return $rows;
+    }
+
+
+    /**
+     * Create the options for a membership selection dropdown.
+     *
+     * @param   integer $sel    ID of selected option
+     * @return  string      HTML for option components
+     */
+    public static function optionList(int $sel = 0) : string
+    {
+        global $_TABLES;
+
+        $opts = '';
+        try {
+            $db = Database::getInstance();
+            $data = $db->conn->executeQuery(
+                "SELECT u.uid, u.username, u.fullname FROM {$_TABLES['users']} u
+                LEFT JOIN {$_TABLES['membership_members']} m
+                ON u.uid = m.mem_uid WHERE m.mem_uid IS NOT NULL"
+            )->fetchAllAssociative();
+        } catch (\Exception $e) {
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $data = false;
+        }
+        if (!empty($data)) {
+            foreach ($data as $A) {
+                $selected = $A['uid'] == $sel ? 'selected="selected"' : '';
+                $opts .= '<option value="' . $A['uid'] . '" ' . $selected . '>' .
+                    $A['fullname'] . ' (' . $A['username'] . ')</option>' . LB;
+            }
+        }
+        return $opts;
     }
 
 }

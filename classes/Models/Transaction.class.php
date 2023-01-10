@@ -12,9 +12,12 @@
  * @filesource
  */
 namespace Membership\Models;
-use Membership\Config;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
+use Membership\Config;
+use Membership\Membership;
+use Membership\Models\DataArray;
+use Membership\FieldList;
 
 
 /**
@@ -59,6 +62,10 @@ class Transaction
      * @var string */
     private $tx_txn_id = '';
 
+    /** Holder for error messages during validation.
+     * @var array */
+    private $_errors = array();
+
 
     /**
      * Crate a transaction object, optionally reading from the database.
@@ -96,7 +103,7 @@ class Transaction
             $data = false;
         }
         if (is_array($data)) {
-            $this->setVars($data);
+            $this->setVars(new DataArray($data));
         }
         return $this;
     }
@@ -108,17 +115,17 @@ class Transaction
      * @param   array   $A      Database record array
      * @return  object  $this
      */
-    public function setVars(array $A) : self
+    public function setVars(DataArray $A) : self
     {
-        $this->tx_id = (int)$A['tx_id'];
-        $this->tx_dt = $A['tx_dt'];
-        $this->tx_by = (int)$A['tx_by'];
-        $this->tx_uid = (int)$A['tx_uid'];
-        $this->tx_planid = $A['tx_planid'];
-        $this->tx_gw = $A['tx_gw'];
-        $this->tx_amt = (float)$A['tx_amt'];
-        $this->tx_exp = $A['tx_exp'];
-        $this->tx_txn_id = $A['tx_txn_id'];
+        $this->tx_id = $A->getInt('tx_id');
+        $this->tx_dt = $A->getString('tx_dt');
+        $this->tx_by = $A->getInt('tx_by');
+        $this->tx_uid = $A->getInt('tx_uid');
+        $this->tx_planid = $A->getString('tx_planid');
+        $this->tx_gw = $A->getString('tx_gw');
+        $this->tx_amt = $A->getFloat('tx_amt');
+        $this->tx_exp = $A->getString('tx_exp');
+        $this->tx_txn_id = $A->getString('tx_txn_id');
         return $this;
     }
 
@@ -213,6 +220,17 @@ class Transaction
 
 
     /**
+     * Get the member's user ID.
+     *
+     * @return  integer     User ID
+     */
+    public function getMemUid() : int
+    {
+        return $this->tx_uid;
+    }
+
+
+    /**
      * Set the payment gateway description.
      *
      * @param   string  $gw     Payment gateway name or other description
@@ -256,38 +274,101 @@ class Transaction
      *
      * @return  boolean     True on success, False on error
      */
-    public function save() : bool
+    public function save(?DataArray $A=NULL) : bool
     {
         global $_TABLES;
 
+        if ($A) {
+            $this->setVars($A);
+        }
+
+        // Get the plan ID from the membership record, if possible.
+        if (empty($this->tx_planid) && !empty($this->tx_uid)) {
+            $M = new Membership($this->tx_uid);
+            if (!$M->isNew()) {
+                $this->tx_planid = $M->getPlanID();
+            }
+        }
+
+        if (!$this->validate()) {
+            return false;
+        }
+
         $db = Database::getInstance();
-        $qb = $db->conn->createQueryBuilder();
-        try {
-            $qb->insert($_TABLES['membership_trans'])
-               ->setValue('tx_date', ':tx_date')
-               ->setValue('tx_uid', ':tx_by')
-               ->setValue('tx_uid', ':tx_uid')
-               ->setValue('tx_planid', ':tx_planid')
-               ->setValue('tx_gw', ':tx_gw')
-               ->setValue('tx_amt', ':tx_amt')
-               ->setValue('tx_exp', ':tx_exp')
-               ->setValue('tx_txn_id', ':tx_txn_id')
-               ->setValue('tx_by', ':tx_by')
-               ->setParameter('tx_date', $this->tx_dt, Database::STRING)
-               ->setParameter('tx_by', $this->tx_by, Database::INTEGER)
-               ->setParameter('tx_uid', $this->tx_uid, Database::INTEGER)
-               ->setParameter('tx_planid', $this->tx_planid, Database::STRING)
-               ->setParameter('tx_gw', $this->tx_gw, Database::STRING)
-               ->setParameter('tx_amt', $this->tx_amt, Database::INTEGER)
-               ->setParameter('tx_exp', $this->tx_exp, Database::STRING)
-               ->setParameter('tx_txn_id', $this->tx_txn_id, Database::STRING)
-               ->setParameter('tx_by', $this->tx_by, Database::INTEGER)
-               ->execute();
+        $values = array(
+            'tx_date' => $this->tx_dt,
+            'tx_by' => $this->tx_by,
+            'tx_uid' => $this->tx_uid,
+            'tx_planid' => $this->tx_planid,
+            'tx_gw' => $this->tx_gw,
+            'tx_amt' => $this->tx_amt,
+            'tx_exp' => $this->tx_exp,
+            'tx_txn_id' => $this->tx_txn_id,
+            'tx_by' => $this->tx_by,
+        );
+        $types = array(
+            Database::STRING,
+            Database::INTEGER,
+            Database::INTEGER,
+            Database::STRING,
+            Database::STRING,
+            Database::INTEGER,
+            Database::STRING,
+            Database::STRING,
+            Database::INTEGER,
+        );
+         try {
+             if ($this->tx_id == 0) {
+                 $db->conn->insert($_TABLES['membership_trans'], $values, $types);
+                 $this->tx_id = $db->conn->lastInsertId();
+             } else {
+                 $types[] = Database::INTEGER;  // for tx_id
+                 $db->conn->update(
+                     $_TABLES['membership_trans'],
+                     $values, array('tx_id' => $this->tx_id),
+                     $types
+                 );
+             }
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             return false;
         }
         return true;
+    }
+
+
+    /**
+     * Create the editing form for a transaction.
+     *
+     * @return  string      HTML form for editing
+     */
+    public function edit() : string
+    {
+        global $LANG_MEMBERSHIP_PMTTYPES;
+
+        $T = new \Template(Config::get('pi_path') . '/templates');
+        $T->set_file('form', 'transaction.thtml');
+        $T->set_var(array(
+            'tx_amt' => $this->tx_amt,
+            'tx_dt' => $this->tx_dt,
+            'tx_gw' => $this->tx_gw,
+            'tx_txn_id' => $this->tx_txn_id,
+            'tx_by' => $this->tx_by,
+            'tx_id' => $this->tx_id,
+            'tx_uid' => $this->tx_uid,
+            'mem_select' => Membership::optionList($this->tx_uid),
+        ) );
+        $T->set_block('form', 'pmttype_block', 'pt_blk');
+        foreach ($LANG_MEMBERSHIP_PMTTYPES as $key=>$val) {
+            $T->set_var(array(
+                'pmt_key' => $key,
+                'pmt_name' => $val,
+            ) );
+            $T->parse('pt_blk', 'pmttype_block', true);
+        }
+
+        $T->parse('output', 'form');
+        return $T->finish($T->get_var('output'));
     }
 
 
@@ -340,7 +421,12 @@ class Transaction
             'has_extras' => true,
             'form_url'  => Config::get('admin_url') . '/index.php?listtrans',
         );
-        $filter = $LANG_MEMBERSHIP['from'] .
+        $filter = FieldList::buttonLink(array(
+            'text' => $LANG_MEMBERSHIP['new_item'],
+            'url' => Config::get('admin_url') . '/index.php?tx_edit',
+            'style' => 'success',
+        ) );
+        $filter .= $LANG_MEMBERSHIP['from'] .
             ': <input id="f_tx_from" type="text" size="10" name="tx_from" data-uk-datepicker value="' . $tx_from . '" />&nbsp;' .
             $LANG_MEMBERSHIP['to'] .
             ': <input id="f_tx_to" type="text" size="10" name="tx_to" data-uk-datepicker value="' . $tx_to . '" />';
@@ -436,7 +522,7 @@ class Transaction
                 $status = PLG_callFunctionForOnePlugin(
                     'service_getUrl_shop',
                     array(
-                        1 => array('id' => $fieldvalue, 'type' => 'order'),
+                        1 => array('id' => $fieldvalue, 'type' => 'payment'),
                         2 => &$output,
                         3 => &$svc_msg,
                     )
@@ -456,6 +542,45 @@ class Transaction
 
         }
         return $retval;
+    }
+
+
+    /**
+     * Verify that the transaction record is complete.
+     * Saves error messages in the _errors array.
+     *
+     * @return  boolean     True if valid, False if not
+     */
+    public function validate() : bool
+    {
+        global $LANG_MEMBERSHIP;
+
+        if ($this->tx_uid < 2) {
+            $this->_errors[] = $LANG_MEMBERSHIP['err_mem_uid'];
+        }
+        if (empty($this->tx_planid)) {
+            $this->_errors[] = $LANG_MEMBERSHIP['err_plan_id'];
+        }
+        if (empty($this->tx_gw)) {
+            $this->_errors[] = $LANG_MEMBERSHIP['err_gw'];
+        }
+        return empty($this->errors);
+    }
+
+
+    /**
+     * Get the errors that were recorded earlier.
+     *
+     * @param   boolean $format     True for a formatted list, False for the raw array
+     * @return  array|string    Formatted unnumbered list, or array of strings
+     */
+    public function getErrors(bool $format = false)
+    {
+        if ($format) {
+            return '<ul><li>' . implode('</li><li>' , $this->_errors) . '</li></ul>';
+        } else {
+            return $this->_errors;
+        }
     }
 
 }

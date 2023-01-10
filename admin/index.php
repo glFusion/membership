@@ -56,20 +56,14 @@ $expected = array(
     'savepg', 'delpg', 'notify', 'quickrenew',
     'renewbutton', 'deletebutton', 'regenbutton',
     'reorderpos', 'importusers', 'genmembernum', 'regenbutton_x',
-    'reorderpg', 'deletepos', 'deletepg',
+    'reorderpg', 'deletepos', 'deletepg', 'tx_save',
     // Views to display
     'editplan', 'listplans', 'listmembers', 'editmember', 'stats',
     'listtrans', 'positions', 'editpos',
-    'posgroups', 'editpg',
+    'posgroups', 'editpg', 'tx_edit',
     'importform',
 );
-foreach($expected as $provided) {
-    if (isset($Request[$provided])) {
-        $action = $provided;
-        $actionval = $Request[$provided];
-        break;
-    }
-}
+list($action, $actionval) = $Request->getAction($expected, Config::get('adm_def_view'));
 
 switch ($action) {
 case 'notify':      // Force-send expiration reminders
@@ -109,6 +103,25 @@ case 'importusers':
     echo COM_refresh(Config::get('admin_url') . '/index.php?importform');
     break;
 
+case 'tx_save':
+    $Txn = new Transaction($Request->getInt('tx_id'));
+    if ($Txn->save($Request)) {
+        if ($Request->getInt('renewing')) {
+            $M = new Membership($Txn->getMemUid());
+            if (!$M->isNew()) {
+                $M->Renew($Txn);
+            }
+        }
+        echo COM_refresh(Config::get('admin_url') . '/index.php?listtrans');
+    } else {
+        // Failed validation, re-display the editing form.
+        COM_setMsg($Txn->getErrors(true), 'error', true);
+        $content .= Menu::Admin('listtrans');
+        $content .= $Txn->edit();
+        $view = 'none';
+    }
+    break;
+
 case 'quickrenew':
     $uid = $Request->getInt('mem_uid');
     if ($uid > 1) {
@@ -121,7 +134,15 @@ case 'quickrenew':
                 ->withPlanId($Request->getString('mem_planid', $M->getPlanID()))
                 ->withAmount($Request->getFloat('mem_pmtamt', 0))
                 ->withTxnId($Request->getString('mem_pmtdesc'));
-            $status = $M->Renew($Txn);
+            // If a quickrenewal form is submitted, but the "not a renewal"
+            //  checkbox is // checked, then this is just a manual transaction
+            //  to be saved.
+            if ($Request->getInt('mem_pmtnorenew')) {
+                $Txn->withExpiration($M->getExpires()); // no change to expiration
+                $status = $Txn->Save();
+            } else {
+                $status = $M->Renew($Txn);
+            }
         }
     }
     echo COM_refresh(Config::get('admin_url') . '/index.php?editmember=' . $uid);
@@ -294,6 +315,12 @@ case 'importform':
     $content .= $LT->finish($LT->get_var('import_form'));
     break;
 
+case 'tx_edit':
+    $Txn = new Transaction((int)$actionval);
+    $content .= Menu::Admin('listtrans');
+    $content .= $Txn->edit();
+    break;
+
 case 'editmember':
     $M = new Membership($actionval);
     $showexp = isset($Request['showexp']) ? '?showexp' : '';
@@ -368,6 +395,10 @@ case 'positions':
     $content .= Menu::Admin($view);
     $content .= Menu::adminPositions($view);
     $content .= Position::adminList();
+    break;
+
+case 'none':
+    // when content is set by the action
     break;
 
 case 'listplans':

@@ -8,7 +8,8 @@ Release TBD
 - Deprecate import from Subscription plugin.
 - Include the final expiration count in notifycount.
 - Log transactions created via quick renewal.
-- Don't change the expiration from the form value when creating a new menber.
+- Don't change the expiration from the form value when creating a new member.
+- Enable adding transactions without changing the expiration.
 
 ## 0.3.1
 Release 2022-01-05
