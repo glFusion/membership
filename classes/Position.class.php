@@ -110,6 +110,17 @@ class Position
 
 
     /**
+     * Get the position description.
+     *
+     * @return  string      Description of position
+     */
+    public function getDscp() : string
+    {
+        return $this->dscp;
+    }
+
+
+    /**
      * Get the group ID associated with this position.
      *
      * @return  integer     Group ID
@@ -292,11 +303,10 @@ class Position
         $db = Database::getInstance();
         try {
             $data = $db->conn->executeQuery(
-                "SELECT * FROM {$_TABLES['membership_positions']}
-                WHERE uid = ?",
+                "SELECT * FROM {$_TABLES['membership_positions']} WHERE uid = ?",
                 array($uid),
                 array(Database::INTEGER)
-            )->fetchAll(Database::ASSOCIATIVE);
+            )->fetchAllAssociative();
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
             $data = false;
