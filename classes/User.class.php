@@ -121,7 +121,7 @@ class User
                     array(Database::INTEGER)
                 )->fetchAssociative();
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
                 $A = array();
             }
             //Cache::set($cache_key, $A, 'users');

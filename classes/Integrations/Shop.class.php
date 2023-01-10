@@ -16,7 +16,7 @@ use Membership\Config;
 
 
 /**
- * Class to describe the shop-enabled config flag
+ * Class to describe the shop-enabled config flag.
  * @package membership
  */
 class Shop
