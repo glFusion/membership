@@ -156,4 +156,42 @@ class FieldList extends \glFusion\FieldList
         return $t->finish($t->get_var('output'));
     }
 
+
+    public static function buttonLink($args)
+    {
+        $def_args = array(
+            'url' => '!#',
+            'size' => '',   // mini
+            'style' => 'default',  // success, danger, etc.
+            'type' => '',   // submit, reset, etc.
+            'class' => '',  // additional classes
+        );
+        $args = array_merge($def_args, $args);
+
+        $t = self::init();
+        $t->set_block('field','field-buttonlink');
+
+        $t->set_var(array(
+            'url' => $args['url'],
+            'size' => $args['size'],
+            'style' => $args['style'],
+            'type' => $args['type'],
+            'other_cls' => $args['class'],
+            'text' => $args['text'],
+        ) );
+
+        if (isset($args['attr']) && is_array($args['attr'])) {
+            $t->set_block('field-button','attr','attributes');
+            foreach($args['attr'] AS $name => $value) {
+                $t->set_var(array(
+                    'name' => $name,
+                    'value' => $value)
+                );
+                $t->parse('attributes','attr',true);
+            }
+        }
+        $t->parse('output','field-buttonlink',true);
+        return $t->finish($t->get_var('output'));
+    }
+
 }
