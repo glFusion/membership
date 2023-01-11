@@ -41,7 +41,7 @@ class MemberNumber
         } else {
             $fmt = Config::get('mem_num_fmt');
             if (empty($fmt)) {
-                $fmt = '%04d';
+                $fmt = '%d';
             }
             $retval = sprintf($fmt, $uid);
         }
@@ -49,6 +49,11 @@ class MemberNumber
     }
 
 
+    /**
+     * Recreate membership numbers for all the given user IDs.
+     *
+     * @param   array   $uids   Array of user IDs
+     */
     public static function regen(array $uids) : void
     {
         global $_TABLES;
@@ -63,12 +68,13 @@ class MemberNumber
                 array(Database::PARAM_INT_ARRAY)
             )->fetchAll();
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             $data = array();
         }
         foreach ($data as $A) {
             $new_mem_num = self::create((int)$A['mem_uid']);
             if ($new_mem_num != $A['mem_number']) {
+                // Update DB only if changed
                 try {
                     $db->conn->update(
                         $_TABLES['membership_members'],
@@ -77,7 +83,7 @@ class MemberNumber
                         array(Database::STRING, Database::INTEGER)
                     );
                 } catch (\Throwable $e) {
-                    Log::write('system', Log::ERROR, $e->getMessage());
+                    Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
                     $data = array();
                 }
             }
