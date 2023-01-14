@@ -275,14 +275,16 @@ function plugin_autouninstall_membership ()
  */
 function phpblock_membership_memberinfo()
 {
-    global $_GROUPS;
+    global $_GROUPS, $LANG_MEMBERSHIP;
 
     $retval = '';
 
-    $curr = MEMBERSHIP_currentMembership();
-    if (in_array($_GROUPS, Config::get('member_group'))) {
-        $retval .= sprinf($LANG_MEMBERSHIP['blk_member_info'],
-            $curr->plan_id, $curr->expires);
+    $M = Membership\Membership::getCurrent();
+    if (!$M->isNew()) {
+        $retval .= sprintf(
+            $LANG_MEMBERSHIP['blk_member_info'],
+            $M->getPlan()->getShortName(), $M->getExpires()
+        );
     } else {
         $retval .= $LANG_MEMBERSHIP['blk_join_now'];
     }
@@ -915,21 +917,4 @@ function plugin_templateSetVars_membership($templatename, &$template)
             $template->set_var('info_block', $info_block);
         }
     }
-}
-
-
-/**
- * Get the membership info for the current user.
- * Uses a static variable for efficiency.
- *
- * @return  object  Membership object
- */
-function MEMBERSHIP_currentMembership()
-{
-    static $current = NULL;
-
-    if ($current === NULL) {
-        $current = Membership\Membership::getInstance();
-    }
-    return $current;
 }
