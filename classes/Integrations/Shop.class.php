@@ -25,12 +25,13 @@ class Shop
     const BUY_NOW = 1;
     const CART = 2;
 
+
     /**
      * Determine if the Shop plugin is installed and integration is enabled.
      *
      * @return  boolean     Integration setting if enabled, 0 otherwise.
      */
-    public static function isEnabled() : int
+    public static function isEnabled() : bool
     {
         global $_PLUGINS;
 
