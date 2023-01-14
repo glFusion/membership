@@ -249,16 +249,16 @@ class App
      * This is a wrapper around other functions; at the moment only
      * saving the user profile is supported.
      *
-     * @param   DataArray   $A  Array of form data
+     * @param   array   $A  Array of form data
      * @return  integer     Status from PLG_invokeService()
      */
-    public function Save(DataArray $A=NULL) : int
+    public function Save(?DataArray $A=NULL) : int
     {
         global $_TABLES, $_CONF, $_USER, $LANG_MEMBERSHIP;
 
         $uid = $A->getInt('mem_uid');
 
-        if ($Request->getInt('terms_accept') > 0) {
+        if ($A->getInt('terms_accept') > 0) {
             // Update the terms-accepted checkbox first since it will
             // be checked in Validate()
             $dt = $_CONF['_now']->toMySQL(false);
@@ -294,14 +294,14 @@ class App
             }
         }
 
-        if ($this->Validate($A->XX)) {
+        if ($this->Validate($A)) {
             $status = $this->_Save();   // call plugin-specific save function
 
             if ($status == PLG_RET_OK) {
                 // Save and log the terms and conditions acceptance.
                 // Subscribe the user to the default mailing list
                 // if selected
-                if ($Request->getInt('maillist_subscribe')) {
+                if ($A->getInt('maillist_subscribe')) {
                     PLG_invokeService('mailer', 'subscribe',
                         array(
                             'uid'=> $uid,
