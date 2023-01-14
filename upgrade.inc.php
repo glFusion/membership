@@ -178,6 +178,27 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
                 SET mem_notified = mem_notified + 1
                 WHERE mem_notified > 0";
         }
+
+        $has_int_plan_id = MEMB_tableHasColumn('membership_plans', 'short_name');
+        if (!$has_int_plan_id) {
+            $_UPGRADE_SQL[$current_ver][] = "ALTER TABLE {$_TABLES['membership_plans']} DROP PRIMARY KEY";
+            $_UPGRADE_SQL[$current_ver][] = "ALTER TABLE {$_TABLES['membership_plans']}
+                CHANGE name long_name varchar(255)";
+            $_UPGRADE_SQL[$current_ver][] = "ALTER TABLE {$_TABLES['membership_plans']}
+                CHANGE plan_id short_name varchar(40)";
+            $_UPGRADE_SQL[$current_ver][] = "ALTER TABLE {$_TABLES['membership_plans']}
+                ADD plan_id mediumint unsigned auto_increment primary key first";
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_members']} m
+                LEFT JOIN {$_TABLES['membership_plans']} p ON m.mem_plan_id = p.short_name
+                SET m.mem_plan_id = p.plan_id";
+            $_UPGRADE_SQL[$current_ver][] = "ALTER TABLE {$_TABLES['membership_members']}
+                CHANGE mem_plan_id mem_plan_id mediumint unsigned";
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['membership_trans']} t
+                LEFT JOIN {$_TABLES['membership_plans']} p ON t.tx_planid = p.short_name
+                SET t.tx_planid = p.plan_id";
+            $_UPGRADE_SQL[$current_ver][] = "ALTER TABLE {$_TABLES['membership_trans']}
+                CHANGE tx_planid tx_planid mediumint unsigned";
+        }
         if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }
@@ -374,4 +395,30 @@ function _MEMB_remove_old_files()
             }
         }
     }
+}
+
+
+/**
+ * Check if a column exists in a table
+ *
+ * @param   string  $table      Table Key, defined in shop.php
+ * @param   string  $col_name   Column name to check
+ * @return  boolean     True if the column exists, False if not
+ */
+function MEMB_tableHasColumn(string $table, string $col_name) : bool
+{
+    global $_TABLES;
+
+    $db = Database::getInstance();
+    try {
+        $count = $db->conn->executeQuery(
+            "SHOW COLUMNS FROM {$_TABLES[$table]} LIKE ?",
+            array($col_name),
+            array(Database::STRING)
+        )->rowCount();
+    } catch (\Exception $e) {
+        Log::write('system', Log::ERROR, __FUNCTION__ . ': ' . $e->getMessage());
+        $count = 0;
+    }
+    return $count > 0;
 }

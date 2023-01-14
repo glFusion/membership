@@ -26,19 +26,8 @@ $expected = array(
     'saveapp', 'cancelapp',
     'prt', 'app', 'view', 'editapp', 'list', 'list1', 'pmtform', 'detail',
 );
-$action = '';
 $Request = Request::getInstance();
-foreach($expected as $provided) {
-    if (isset($Request[$provided])) {
-        $action = $provided;
-        $actionval = $Request->getString($provided);
-        break;
-    }
-}
-
-if (empty($action)) {
-    $action = 'list';
-}
+list($action, $actionval) = $Request->getAction($expected, 'list');
 
 if (isset($Request['uid']) && MEMBERSHIP_isManager()) {
     $uid = $Request->getInt('uid');
@@ -61,7 +50,7 @@ case 'saveapp':
         COM_setMsg($LANG_MEMBERSHIP['your_info_updated'], 'success');
         if ($Request->getInt('mem_uid') == $_USER['uid'] && !empty($purch_url)) {
             if (!empty($Request->getString('app_membership_type'))) {
-                $url_extra = '&amp;plan_id=' . urlencode($Request->getString('app_membership_type'));
+                $url_extra = '&amp;plan_id=' . $Request->getInt('app_membership_type');
             } else {
                 $url_extra = '';
             }
@@ -92,8 +81,8 @@ default:
 
 switch ($view) {
 case 'detail':
-    if (!empty($Request->getString('plan_id'))) {
-        $P = new Membership\Plan($Request->getString('plan_id'));
+    if (!empty($Request->getInt('plan_id'))) {
+        $P = new Membership\Plan($Request->getInt('plan_id'));
         if ($P->getPlanID() == '') {
             $content .= COM_showMessageText($LANG_MEMBERSHIP['err_plan_id']);
             $content .= Membership\Plan::listPlans();
@@ -148,7 +137,7 @@ case 'prt':
 
 case 'pmtform':
     $M = Membership\Membership::getInstance();
-    $P = Membership\Plan::getInstance($Request->getString('plan_id'));
+    $P = Membership\Plan::getInstance($Request->getInt('plan_id'));
     if (!$P->isNew() && $P->canPurchase()) {
         $T = new Template(Config::get('pi_path') . 'templates');
         $T->set_file('pmt', 'pmt_form.thtml');
@@ -165,7 +154,7 @@ case 'pmtform':
             'member_name'   => COM_getDisplayName($uid),
             'member_username' => $_USER['username'],
             'mem_number'    => $M->getMemNumber(),
-            'plan_name'     => $P->getName(),
+            'plan_name'     => $P->getShortName(),
             'price_total'   => sprintf('%4.2f', $price_total),
             'price_actual'  => sprintf('%4.2f', $price_actual),
             'pmt_fee'       => $fee > 0 ? sprintf('%4.2f', $fee) : '',
@@ -192,7 +181,7 @@ case 'pmtform':
 
 case 'list1':
     // Show the plan list when coming from the app submission
-    $show_plan = $Request->getString('plan_id');
+    $show_plan = $Request->getInt('plan_id');
     $content .= Membership\Plan::listPlans($show_plan);
     break;
 

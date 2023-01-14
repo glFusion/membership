@@ -29,21 +29,22 @@ $result = array(
     'status' => 0,
     'statusMessage' => 'Undefined',
 );
+
 switch ($Request->getString('action')) {
 case 'toggle':
     $component = $Request->getString('component');
+    $type = $Request->getString('type');
+    $oldval = $Request->getInt('oldval');
     switch ($component) {
     case 'enabled':
         switch ($Request->getString('type')) {
         case 'plan':
-            $id = $Request->getString('id');
-            $oldval = $Request->getString('oldval');
+            $id = $Request->getInt('id');
             $newval = Plan::toggleEnabled($oldval, $id);
             break;
 
         case 'position':
             $id = $Request->getInt('id');
-            $oldval = $Request->getInt('oldval');
             $newval = Position::toggle($oldval, $component, $id);
             break;
 
@@ -54,7 +55,6 @@ case 'toggle':
 
     case 'show_vacant':
         $id = $Request->getInt('id');
-        $oldval = $Request->getInt('oldval');
         $newval = Position::toggle($oldval, $component, $id);
         break;
 

@@ -46,8 +46,8 @@ class Membership
     const MSG_EXPIRED_CODE = 'memb_msg_expired';
 
     /** Plan ID.
-     * @var string */
-    private $plan_id = '';
+     * @var integer */
+    private $plan_id = 0;
 
     /** Flag indicating the member has been notified of impending renewal.
      * @var boolean */
@@ -248,7 +248,7 @@ class Membership
      * @param   string  $id     Plan ID
      * @return  object  $this
      */
-    public function setPlan(string $id) : self
+    public function setPlan(int $id) : self
     {
         $this->plan_id = $id;
         $this->Plan = new Plan($this->plan_id);
@@ -516,7 +516,7 @@ class Membership
             $T->set_var(array(
                 'plan_sel'  => $sel,
                 'plan_id'   => $P->getPlanID(),
-                'plan_name' => $P->getName(),
+                'plan_name' => $P->getLongName(),
             ) );
             $T->parse('planrow', 'PlanBlock', true);
             if ($P->isFamily()== 1) {
@@ -616,6 +616,7 @@ class Membership
         if ($this->Plan->getPlanID() == '') {
             return false;
         }
+
         // Now see if we're changing from a Family plan to Non-Family.
         // For this we need to reset the guid to effectively emancipate
         // this member while leaving all other family members alone.
@@ -736,10 +737,10 @@ class Membership
                         "Member {$key} " . COM_getDisplayName($key) . " updated by {$_USER['username']}."
                     );
                 } catch (\Throwable $e) {
-                    Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
-                } 
+                    Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+                }
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             }
 
             // Add the member to the groups if the status has changed,
@@ -815,7 +816,7 @@ class Membership
                     array(Database::INTEGER, Database::PARAM_INT_ARRAY)
                 );
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             }
             self::updatePlugins($update_keys, $old_status, $new_status);
         }
@@ -859,7 +860,7 @@ class Membership
             }
             $db->conn->update($_TABLES['membership_members'], $values, $where, $types);
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
         }
         $this->Expire($cancel_relatives, false);
     }
@@ -935,20 +936,17 @@ class Membership
      * Used by Shop processing to automatically add or update a membership.
      *
      * @uses    self::Save()
-     * @param   integer $uid        User ID
-     * @param   string  $plan_id    Plan item ID
-     * @param   integer $exp        Expiration date
-     * @param   integer $joined     Date joined
-     * @return  mixed       Expiration date, or false in case of error
+     * @param   boolean $calc_exp   True to update the expiration date
+     * @return  boolean     True on success, False on error
      */
     public function Add(Transaction $Txn, bool $calc_exp=true) : bool
     {
-        if ($this->getPlan()->getPlanID() == '') {
+        if ($this->getPlan()->getPlanID() == 0) {
             return false;       // invalid plan requested
         }
 
         $this->notified = 0;
-        $this->status = Status::ACTIVE;
+        //$this->status = Status::ACTIVE;
         if ($this->expires == '')  {
             $this->expires = Dates::Today();
         }
@@ -959,6 +957,7 @@ class Membership
         if ($this->joined == '') {
             $this->joined = Dates::Today();
         }
+
         if ($this->Save()) {
             $Txn->withExpiration($this->expires)
                 ->withUid($this->uid)
@@ -1006,7 +1005,6 @@ class Membership
             $joined = $LANG_MEMBERSHIP['na'];
             $expires = $LANG_MEMBERSHIP['na'];
             $plan_name = $LANG_MEMBERSHIP['na'];
-            $plan_id = $LANG_MEMBERSHIP['na'];
             $plan_dscp = $LANG_MEMBERSHIP['na'];
             $relatives = array();
         } else {
@@ -1015,9 +1013,8 @@ class Membership
             // to get the highlighting based on status.
             $expires = membership_profilefield_expires('', $this->expires,
                     array(), '', '');
-            $plan_name = $this->Plan->getName();
             $plan_dscp = $this->Plan->getDscp();
-            $plan_id = $this->Plan->getPlanID();
+            $plan_name = $this->Plan->getShortName();
             $relatives = $this->getLinks();
             //$relatives = Link::getRelatives($this->uid);
             if (Config::get('use_mem_number') && SEC_hasRights('membership.admin')) {
@@ -1052,7 +1049,7 @@ class Membership
             'expires'   => $expires,
             'plan_name' => $plan_name,
             'plan_description' => $plan_dscp,
-            'plan_id'   => $plan_id,
+            'plan_name' => $plan_name,
             'app_link'  => $app_link,
             'my_uid'    => $uid,
             'panel'     => $panel ? 'true' : '',
@@ -1081,36 +1078,24 @@ class Membership
      * Transfer a membership from one plan to another.
      * This can be done on a per-member basis, or as part of a plan deletion.
      *
-     * @param   string  $old_plan   Original Plan ID
-     * @param   string  $new_plan   New Plan ID
+     * @param   integer $old_plan   Original Plan ID
+     * @param   integer $new_plan   New Plan ID
      * @return  boolean     True on success, False on error or invalid new_plan
      */
-    public static function Transfer(string $old_plan, string $new_plan) : bool
+    public static function Transfer(int $old_plan, int $new_plan) : bool
     {
         global $_TABLES;
 
         $db = Database::getInstance();
-        // Verify that the new plan exists
-        if (empty($old_plan) || empty($new_plan) ||
-            $db->getCount(
-                $_TABLES['membership_plans'],
-                array('plan_id'),
-                array($new_plan),
-                array(Database::STRING)
-            ) == 0) {
-            return false;
-        }
-
         try {
-            $db->conn->executeStatement(
-                "UPDATE {$_TABLES['membership_members']}
-                SET mem_plan_id = ?
-                WHERE mem_plan_id = ?",
-                array($new_plan, $old_plan),
-                array(Database::STRING, Database::STRING)
+            $db->conn->update(
+                $_TABLES['membership_members'],
+                array('mem_plan_id' => $new_plan),
+                array('mem_plan_id' => $old_plan),
+                array(Database::INTEGER, Database::INTEGER)
             );
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             return false;
         }
         return true;
@@ -1243,7 +1228,7 @@ class Membership
                 array(Database::INTEGER)
             );
         } catch (\Exception $e) {
-            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
         }
         Cache::clear('members');     // Make sure members and links are cleared
         $this->_disableAccount();
@@ -1317,10 +1302,10 @@ class Membership
                                     array(Database::INTEGER, Database::INTEGER)
                                 );
                             } catch (\Exception $e) {
-                                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+                                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
                             }
                         } catch (\Exception $e) {
-                            Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+                            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
                         }
                     }
                 }
@@ -1375,7 +1360,7 @@ class Membership
                     array(Database::INTEGER, Database::INTEGER)
                 );
             } catch (\Throwable $e) {
-                Log::write('system', Log::ERROR, __METHOD__ . '(): ' . $e->getMessage());
+                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             }
         }
     }
@@ -1461,10 +1446,10 @@ class Membership
         global $_TABLES;
 
         if ($this->isNew()) {
-            Log::write('system', Log::ERROR, __METHOD__ . "(): Cannot link user $uid2 to nonexistant membership for $uid1");
+            Log::write('system', Log::ERROR, __METHOD__ . ": Cannot link user $uid2 to nonexistant membership for $uid1");
             return false;
         } elseif (!$this->getPlan()->isFamily()) {
-            Log::write('system', Log::ERROR, __METHOD__ . "(): Cannot link $uid2 to a non-family plan");
+            Log::write('system', Log::ERROR, __METHOD__ . ": Cannot link $uid2 to a non-family plan");
             return false;
         }
 
@@ -1606,12 +1591,13 @@ class Membership
         global $_TABLES;
 
         // The brute-force way to get summary stats.  There must be a better way.
-        $sql = "SELECT mem_plan_id,
-            sum(case when mem_status = ? then 1 else 0 end) as active,
-            sum(case when mem_status = ? then 1 else 0 end) as arrears
-            FROM {$_TABLES['membership_members']}
-            WHERE mem_expires > ? 
-            GROUP BY mem_plan_id";
+        $sql = "SELECT m.mem_plan_id, p.short_name,
+            sum(case when m.mem_status = ? then 1 else 0 end) as active,
+            sum(case when m.mem_status = ? then 1 else 0 end) as arrears
+            FROM {$_TABLES['membership_members']} m
+            LEFT JOIN {$_TABLES['membership_plans']} p ON p.plan_id = m.mem_plan_id
+            WHERE m.mem_expires > ?
+            GROUP BY m.mem_plan_id";
         $db = Database::getInstance();
         try {
             $rAll = $db->conn->executeQuery(
@@ -1638,7 +1624,7 @@ class Membership
                 $tot_arrears += $A['arrears'];
                 $gtotal += $linetotal;
                 $T->set_var(array(
-                    'plan'          => $A['mem_plan_id'],
+                    'plan'          => $A['short_name'],
                     'plan_url'      => Config::get('admin_url') .
                         '/index.php?listmembers&plan=' . $A['mem_plan_id'],
                     'num_current'   => $A['active'],
@@ -1758,11 +1744,9 @@ class Membership
                 Dates::expGraceEnded()
             );
         }
-        if (isset($Request['plan']) && !empty($Request['plan'])) {
-            $sel_plan = DB_escapeString($Request['plan']);
-            $exp_query .= " AND plan_id = '$sel_plan'";
-        } else {
-            $sel_plan = '';
+        $sel_plan = $Request->getInt('plan');
+        if ($sel_plan > 0) {
+            $exp_query .= " AND plan_id = $sel_plan";
         }
 
         $fullname = "IF (u.fullname = '' OR u.fullname IS NULL,
@@ -1776,7 +1760,7 @@ class Membership
             SUBSTRING_INDEX(u.fullname,'',1) AS fname";
         $query_arr = array(
             'table' => 'membership_members',
-            'sql' => "SELECT m.*, u.username, $fullname, p.name as plan
+            'sql' => "SELECT m.*, u.username, $fullname, p.short_name as plan
                 FROM {$_TABLES['membership_members']} m
                 LEFT JOIN {$_TABLES['users']} u
                     ON u.uid = m.mem_uid
@@ -1797,11 +1781,7 @@ class Membership
         $T->set_file('filter', 'memb_filter.thtml');
         $T->set_var(array(
             'exp_chk' => $frmchk,
-            'plan_opts' => COM_optionList(
-                $_TABLES['membership_plans'],
-                'plan_id,plan_id',
-                $sel_plan
-            ),
+            'plan_opts' => Plan::optionList($sel_plan),
         ) );
         $T->parse('output', 'filter');
         $filter = $T->finish($T->get_var('output'));
@@ -2133,6 +2113,22 @@ class Membership
             }
         }
         return $opts;
+    }
+
+    /**
+     * Get the membership info for the current user.
+     * Uses a static variable for efficiency.
+     *
+     * @return  object  Membership object
+     */
+    public static function getCurrent() : self
+    {
+        static $current = NULL;
+
+        if ($current === NULL) {
+            $current = self::getInstance();
+        }
+        return $current;
     }
 
 }

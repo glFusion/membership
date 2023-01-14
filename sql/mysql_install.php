@@ -3,9 +3,9 @@
  * Table definitions for the Membership plugin.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2012-2021 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2012-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.1
+ * @version     v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php 
  *              GNU Public License v2 or later
  * @filesource
@@ -17,29 +17,30 @@ $_SQL = array();
 
 $_SQL['membership_members'] = "CREATE TABLE {$_TABLES['membership_members']} (
   `mem_uid` mediumint(8) unsigned NOT NULL,
-  `mem_plan_id` varchar(40) NOT NULL,
+  `mem_plan_id` mediumint(8) unsigned DEFAULT NULL,
   `mem_joined` date DEFAULT NULL,
   `mem_expires` date DEFAULT NULL,
-  `mem_notified` int(1) NOT NULL DEFAULT '0',
-  `mem_status` int(1) unsigned NOT NULL DEFAULT '1',
+  `mem_notified` int(1) NOT NULL DEFAULT 0,
+  `mem_status` int(1) unsigned NOT NULL DEFAULT 1,
   `mem_guid` varchar(40) DEFAULT NULL,
   `mem_number` varchar(40) DEFAULT '',
-  `mem_istrial` tinyint(1) DEFAULT '0',
+  `mem_istrial` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`mem_uid`),
   KEY `plan_guid` (`mem_plan_id`,`mem_guid`),
   KEY `mem_guid` (`mem_guid`)
 ) ENGINE=MyISAM";
 
 $_SQL['membership_plans'] = "CREATE TABLE `{$_TABLES['membership_plans']}` (
-  `plan_id` varchar(40) NOT NULL,
-  `name` varchar(40) NOT NULL,
-  `description` text,
-  `period_start` tinyint(2) NOT NULL DEFAULT '0',
-  `fees` text,
-  `enabled` tinyint(1) DEFAULT '1',
-  `upd_links` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `notify_exp` tinyint(1) unsigned NOT NULL DEFAULT '1',
-  `grp_access` int(11) unsigned NOT NULL DEFAULT '2',
+  `plan_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  `short_name` varchar(40) DEFAULT NULL,
+  `long_name` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `period_start` tinyint(2) NOT NULL DEFAULT 0,
+  `fees` text DEFAULT NULL,
+  `enabled` tinyint(1) DEFAULT 1,
+  `upd_links` tinyint(1) unsigned NOT NULL DEFAULT 0,
+  `notify_exp` tinyint(1) unsigned NOT NULL DEFAULT 1,
+  `grp_access` int(11) unsigned NOT NULL DEFAULT 2,
   PRIMARY KEY (`plan_id`)
 ) ENGINE=MyISAM";
 
@@ -169,7 +170,7 @@ $_UPGRADE_SQL = array(
             CHANGE access grp_access int(11) unsigned not null default 2",
     ),
     '0.2.0' => array(
-        "ALTER TABLE {$_TABLES['membership_members']} ADD KEY (mem_guid)",
+        "ALTER TABLE {$_TABLES['membership_members']} ADD KEY `mem_guid` (`mem_guid`)",
         "CREATE TABLE `{$_TABLES['membership_users']}` (
             `uid` int(11) unsigned NOT NULL,
             `terms_accept` int(11) unsigned NOT NULL DEFAULT '0',
@@ -237,4 +238,3 @@ $_MEMBERSHIP_SAMPLEDATA = array(
         (0, 1, 30, 'Secretary'),
         (0, 1, 40, 'Treasurer')",
 );
-

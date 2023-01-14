@@ -69,8 +69,8 @@ function service_productinfo_membership($A, &$output, &$svc_msg)
     $P = new Plan($plan_id);
     if ($P->getPlanID() != '') {
         $isnew = $plan_mod == 'renewal' ? false : true;
-        $output['short_description'] = $P->getName();
-        $output['short_dscp'] = $P->getName();
+        $output['short_description'] = $P->getLongName();
+        $output['short_dscp'] = $P->getLongName();
         $output['name'] = 'Membership, ' . $P->getPlanID();
         $output['description'] = $P->getDscp();
         $output['dscp'] = $P->getDscp();
@@ -167,9 +167,9 @@ function service_handlePurchase_membership($args, &$output, &$svc_msg)
     // Initialize the return array
     $output = new ProductInfo(array(
         'product_id' => implode(':', $id),
-        'name' => $M->getPlan()->getName(),
-        'short_description' => $M->getPlan()->getName(),
-        'description' => $M->getPlan()->getName(),
+        'name' => $M->getPlan()->getShortName(),
+        'short_description' => $M->getPlan()->getLongName(),
+        'description' => $M->getPlan()->getLongName(),
         'price' =>  $amount,
     ));
 
@@ -246,16 +246,17 @@ function service_profilefilter_membership($args, &$output, &$svc_msg)
     } else {
         // Use the default setting if no other options received
         $exp_stat = array();
-        if (Config::get('prflist_current') == 1) {
+        /*if (Config::get('prflist_current') == 1) {
             $exp_stat[] = Status::ACTIVE;
         }
         if (Config::get('prflist_arrears') == 1) {
             $exp_stat[] = Status::ARREARS;
         }
-        //if (Config::get('prflist_expired') == 1) {
-        //    $exp_stat[] = Status::EXPIRED;
-        //}
+        if (Config::get('prflist_expired') == 1) {
+            $exp_stat[] = Status::EXPIRED;
+        }*/
     }
+
     if (!is_array($exp_stat)) {
         $exp_stat = array();
     }
@@ -299,9 +300,8 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
     $plans = $_TABLES['membership_plans'];
     $members = $_TABLES['membership_members'];
     $positions = $_TABLES['membership_positions'];
-    $where = " $members.mem_expires IS NOT NULL ";  // get only membership records
-    $where .= " AND $members.mem_status < " . Status::DROPPED;
-    $exp_stat = array(1, 2);        // Current and Arrears checked by default
+    $wheres = array();
+    //$exp_stat = array(1, 2);        // Current and Arrears checked by default
     $incl_exp_stat = 0;
 
     // Does not support remote web services, must be local only.
@@ -363,11 +363,12 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                 $exp_arr[] = "$members.mem_expires < '" . Dates::expGraceEnded() . "'";
             }
             if (!empty($exp_arr)) {
-                $where .= " AND $members.mem_expires > '0000-00-00' AND (" .
-                        implode(' OR ', $exp_arr) . ')';
+                $wheres[] = "$members.mem_expires > '0000-00-00'";
+                $wheres[] = '(' . implode(' OR ', $exp_arr) . ')';
             }
         }
     }
+    $where = implode(' AND ', $wheres);
 
     $output = array(
         'names' => array(
@@ -386,7 +387,7 @@ function service_profilefields_membership($args, &$output, &$svc_msg)
                 'perm'  => '2',
             ),
             $pi . '_membertype' => array(
-                'field' => $members . '.mem_plan_id',
+                'field' => $plans . '.short_name',
                 'title' => $LANG_MEMBERSHIP['plan'],
             ),
             $pi . '_position' => array(
@@ -494,7 +495,7 @@ function service_status_membership($args, &$output, &$svc_msg)
             }
             $info[$uid]['joined'] = $Mem->getJoined();
             $info[$uid]['expires'] = $Mem->getExpires();
-            $info[$uid]['plan'] = $Mem->getPlan()->getName();
+            $info[$uid]['plan'] = $Mem->getPlan()->getShortName();
         }
     }
 
@@ -616,4 +617,3 @@ function service_getDetailPage_membership($args, &$output, &$svc_msg)
     $output = Plan::listPlans($item_info[1]);
     return PLG_RET_OK;
 }
-

@@ -1,28 +1,28 @@
 {# begin {templatelocation} #}
 <form action="{site_admin_url}/plugins/membership/index.php" method="post"
     class="uk-form uk-form-horizontal" id="planform">
-    <input type=hidden name="old_plan_id" value="{old_plan_id}" />
+    <input type=hidden name="plan_id" value="{plan_id}" />
 
     <fieldset>
     <legend>{$LANG_MEMBERSHIP['plan_info']}</legend>
     <div class="uk-form-row uk-margin">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['plan_id']}
-            <span id="plan_id" class="tooltip_cfg tooltipstered"></span>
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
+            <span id="short_name" class="tooltip_cfg tooltipstered"></span>
         </label>
         <div class="uk-form-controls">
             <input required class="uk-input uk-form-width-small"
-				type="text" name="plan_id" value="{plan_id}" id="f_plan_id" />
+				type="text" name="short_name" value="{short_name}" id="f_short_name" />
             <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip"
                 title="{$LANG_MEMBERSHIP['required']}"></i>
         </div>
     </div>
 
     <div class="uk-form-row uk-margin">
-        <label class="uk-form-label">{$LANG_MEMBERSHIP['short_name']}
-            <span id="short_name" class="tooltip_cfg tooltipstered"></span>
+        <label class="uk-form-label">{$LANG_MEMBERSHIP['long_name']}
+            <span id="long_name" class="tooltip_cfg tooltipstered"></span>
         </label>
         <div class="uk-form-controls">
-            <input required class="uk-input uk-form-width-medium" type="text" name="name" value="{name}" id="f_name" />
+            <input required class="uk-input uk-form-width-medium" type="text" name="long_name" value="{long_name}" id="f_long_name" />
             <i class="uk-icon uk-icon-exclamation-triangle uk-text-danger tooltip"
                 title="{$LANG_MEMBERSHIP['required']}"></i>
         </div>

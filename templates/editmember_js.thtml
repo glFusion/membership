@@ -45,7 +45,7 @@ function memUpdateLinkText(selid)
 	var text = "{$LANG_MEMBERSHIP['no_upd_links']}";
 	var show_family = false;
 
-	if (plan_id == '') {
+	if (plan_id == 0) {
 		text = '';
 	} else {
 		for (var i=0; i<family_ids.length; i++) {

@@ -31,7 +31,9 @@ function upd_imp_type(rad)
 		</label>
 		<div class="uk-form-controls" id="sel_imp_type">
 			<input type="radio" class="uk-radio imp_type_sel" name="import_type" value="glfusion" checked="checked" onclick="upd_imp_type(this);" />&nbsp;glFusion groups&nbsp;&nbsp;&nbsp;	
+{!if subscription_opts}
 			<input type="radio" class="uk-radio imp_type_sel" name="import_type" value="subscription" onclick="upd_imp_type(this);" />&nbsp;Subscription Plugin
+{!endif}
 		</div>
 	</div>
 
@@ -52,10 +54,14 @@ function upd_imp_type(rad)
 			<span id="hlp_import_sub" class="tooltip_cfg tooltipstered"></span>
 		</label>
 		<div class="uk-form-controls">
+{!if subscription_opts}
 			<select class="uk-select" id="from_subscription" name="from_subscription">
 				<option value="">-- Select --</option>
 				{subscription_opts}
 			</select>
+{!else}
+			Not Installed
+{!endif}
 		</div>
 	</div>
 

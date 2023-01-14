@@ -10,6 +10,7 @@ Release TBD
 - Log transactions created via quick renewal.
 - Don't change the expiration from the form value when creating a new member.
 - Enable adding transactions without changing the expiration.
+- Change to unique integer record ID for plans.
 
 ## 0.3.1
 Release 2022-01-05

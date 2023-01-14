@@ -88,12 +88,16 @@ default:
         'tips' => '../tooltipster.thtml',
     ) );
     $T->set_var(array(
-        'plan_sel' => COM_optionList($_TABLES['membership_plans'], 'plan_id,name', '', 1),
+        'plan_sel' => COM_optionList($_TABLES['membership_plans'], 'plan_id,short_name', '', 1),
         'glfusion_opts' => COM_optionList($_TABLES['groups'], 'grp_id,grp_name', '', 1),
-        'subscription_opts' => COM_optionList($_TABLES['subscr_products'], 'item_id,short_description', '', 1),
         'doc_url' => MEMBERSHIP_getDocURL('import.html', $_CONF['language']),
         'output_text' => $txt,
     ) );
+    if (isset($_PLUGIN_INFO['subscription'])) {
+        $T->set_var(array(
+            'subscription_opts' => COM_optionList($_TABLES['subscr_products'], 'item_id,short_description', '', 1),
+        ) );
+    }
     $T->parse('tooltipster_js', 'tips');
     $T->parse('output', 'form');
     $content .= $T->finish ($T->get_var('output'));

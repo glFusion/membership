@@ -118,7 +118,7 @@ class Expiration extends \Membership\BaseNotifier
                         'amount' => $P->Price(false),
                         'item_number' => Config::PI_NAME . ':' . $P->getPlanID() .
                             ':renewal',
-                        'item_name' => $P->getName(),
+                        'item_name' => $P->getLongName(),
                         'btn_type' => 'buy_now',
                     );
                     $status = PLG_callFunctionForOnePlugin(

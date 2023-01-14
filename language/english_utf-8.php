@@ -53,7 +53,7 @@ $LANG_MEMBERSHIP = array(
 'must_login'    => 'Please <a href="' . $_CONF['site_url'] . '/users.php?mode=new">register</a> or <a href="' . $_CONF['site_url'] .
         '/users.php?mode=login" data-uk-modal="{target:\'#modalOpen\'}">log in</a> to update your profile and purchase memberships.',
 'return_to_edit' => "To update your application, click <a href=\"{$_CONF['site_url']}/membership/index.php?editapp\">here</a>.",
-'err_name'      => 'Invalid Plan Name',
+'err_name'      => 'Invalid or Duplicate Plan Name',
 'err_plan_id'   => 'Invalid Plan ID',
 'err_mem_uid'   => 'Invalid Member ID',
 'err_gw'        => 'Invalid Payment Method',

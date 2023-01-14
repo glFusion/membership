@@ -23,13 +23,9 @@ use Membership\Models\DataArray;
  */
 class Plan
 {
-    /** Flag to indicate that this is a new record.
-     * @var boolean */
-    private $isNew = true;
-
     /** Membership plan ID.
      * @var string */
-    private $plan_id = '';
+    private $plan_id = 0;
 
     /** Group ID allowed to buy the membership.
      * Default = logged-in users.
@@ -40,9 +36,13 @@ class Plan
      * @var float */
     private $price = 0;
 
+    /** Short name of plan, e.g. "Single".
+     * @var string */
+    private $short_name = '';
+
     /** Name or short description of plan.
      * @var string */
-    private $name = '';
+    private $long_name = '';
 
     /** Full text description of plan.
      * @var string */
@@ -71,20 +71,19 @@ class Plan
 
 
     /**
-     * Constructor.
-     * Reads in the specified class, if $id is set.  If $id is zero,
-     * then a new entry is being created.
+     * Loads data for the plan if `$id` is not zero.
+     * If reading the data fails, e.g. not found, the plan ID is reset to 0.
      *
      * @param   string  $id  Optional plan ID
      */
-    public function __construct(string $id = '')
+    public function __construct(?int $id=NULL)
     {
         global $LANG_MEMBERSHIP;
 
-        $this->plan_id = $id;
-        if ($this->plan_id != '') {
-            if (!$this->Read($this->plan_id)) {
-                $this->plan_id = '';
+        if ($id) {
+            $this->plan_id = $id;
+            if (!$this->Read()) {
+                $this->plan_id = 0;
             }
         }
     }
@@ -96,9 +95,9 @@ class Plan
      * @param   string  $id     Plan ID
      * @return  object  $this
      */
-    private function setPlanID(string $id) : self
+    private function setPlanID(int $id) : self
     {
-        $this->plan_id = COM_sanitizeID($value, false);
+        $this->plan_id = $id;
         return $this;
     }
 
@@ -163,14 +162,38 @@ class Plan
 
 
     /**
+     * Set the short name of the plan.
+     *
+     * @param   string  $dscp   Short name
+     * @return  object  $this
+     */
+    private function setShortName(string $dscp) : self
+    {
+        $this->short_name = $dscp;
+        return $this;
+    }
+
+
+    /**
+     * Get the short name of the plan.
+     *
+     * @return  string      Sort description (name)
+     */
+    public function getShortName() : string
+    {
+        return $this->short_name;
+    }
+
+
+    /**
      * Set the short description of the plan.
      *
      * @param   string  $dscp   Short description
      * @return  object  $this
      */
-    private function setName(string $dscp) : self
+    private function setLongName(string $dscp) : self
     {
-        $this->name = $dscp;
+        $this->long_name = $dscp;
         return $this;
     }
 
@@ -180,9 +203,9 @@ class Plan
      *
      * @return  string      Sort description (name)
      */
-    public function getName() : string
+    public function getLongName() : string
     {
-        return $this->name;
+        return $this->long_name;
     }
 
 
@@ -250,11 +273,11 @@ class Plan
     /**
      * Check if this is a new record. Also indicates whether a record was read.
      *
-     * @return  integer     1 if new, 0 if existing
+     * @return  boolean     True if a new record, False if not
      */
     public function isNew() : int
     {
-        return $this->isNew ? 1 : 0;
+        return $this->plan_id == 0;
     }
 
 
@@ -289,8 +312,9 @@ class Plan
      */
     public function setVars(DataArray $row, ?bool $fromDB=false) : self
     {
-        $this->plan_id = $row->getString('plan_id');
-        $this->name = $row->getString('name');
+        $this->plan_id = $row->getInt('plan_id');
+        $this->short_name = $row->getString('short_name');
+        $this->long_name = $row->getString('long_name');
         $this->dscp = $row->getString('description');
         $this->grp_access = $row->getInt('grp_access');
         $this->enabled = $row->getInt('enabled');
@@ -323,21 +347,13 @@ class Plan
     /**
      * Read a specific record and populate the local values.
      *
-     * @param  integer $id Optional ID.  Current ID is used if zero.
      * @return boolean     True if a record was read, False on failure
      */
-    public function Read(?string $id=NULL) : bool
+    public function Read() : bool
     {
         global $_TABLES;
 
-        $id = COM_sanitizeID($id, false);
-        if ($id == '') $id = $this->plan_id;
-        if ($id == '') {
-            $this->error = 'Invalid ID in Read()';
-            return false;
-        }
-
-        $cache_key = 'plan_' . $id;
+        $cache_key = 'plan_' . $this->plan_id;
         $row = Cache::get($cache_key);
         $row = NULL;
         if ($row === NULL) {
@@ -345,7 +361,7 @@ class Plan
             try {
                 $row = $db->conn->executeQuery(
                     "SELECT * FROM {$_TABLES['membership_plans']} WHERE plan_id = ?",
-                    array($id),
+                    array($this->plan_id),
                     array(Database::STRING)
                 )->fetch(Database::ASSOCIATIVE);
             } catch (\Throwable $e) {
@@ -355,7 +371,6 @@ class Plan
             Cache::set($cache_key, $row, 'plans');
         }
         $this->setVars(new DataArray($row), true);
-        $this->isNew = false;
         return true;
     }
 
@@ -363,10 +378,10 @@ class Plan
     /**
      * Get an instance of a specific membership plan.
      *
-     * @param   string  $plan_id    Plan ID to retrieve
+     * @param   integer $plan_id    Plan ID to retrieve
      * @return  object      Plan object
      */
-    public static function getInstance(string $plan_id) : self
+    public static function getInstance(int $plan_id) : self
     {
         static $plans = array();
 
@@ -388,15 +403,9 @@ class Plan
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
-        $old_plan_id = $this->plan_id;
         if ($A) {
             $this->setVars($A);
         }
-
-        if ($this->plan_id == '') {
-            $this->plan_id = COM_makeSid();
-        }
-
         // Make sure the record has all necessary fields.
         if (!$this->isValidRecord()) {
             return false;
@@ -404,60 +413,48 @@ class Plan
 
         $db = Database::getInstance();
         $qb = $db->conn->createQueryBuilder();
+        $values = array(
+            'short_name' => $this->short_name,
+            'long_name' => $this->long_name,
+            'description' => $this->dscp,
+            'fees' => @serialize($this->fees),
+            'enabled' => $this->enabled,
+            'upd_links' => $this->upd_links,
+            'notify_exp' =>  $this->notify_exp,
+            'grp_access' => $this->grp_access,
+        );
+        $types = array(
+            Database::STRING,
+            Database::STRING,
+            Database::STRING,
+            Database::STRING,
+            Database::INTEGER,
+            Database::INTEGER,
+            Database::INTEGER,
+            Database::INTEGER,
+        );
         // Insert or update the record, as appropriate
-        if ($this->isNew) {
-            Log::write(Config::PI_NAME, Log::DEBUG, 'Preparing to save a new product.');
-            $qb->insert($_TABLES['membership_plans']);
-        } else {
-            // Updating a plan.  Make sure that if the plan_id is changed it
-            // isn't changed to an existing value
-            if (
-                $this->plan_id != $old_plan_id &&
-                $db->getCount(
-                    $_TABLES['membership_plans'],
-                    array('plan_id'),
-                    array($this->plan_id),
-                    array(Database::STRING)
-                ) > 0
-            ) {
-               return false;
-            }
-            $qb->update($_TABLES['membership_plans'])
-               ->where('plan_id = :old_plan_id')
-               ->setParameter('old_plan_id', $old_plan_id, Database::STRING);
-            Log::write(Config::PI_NAME, Log::DEBUG, 'Preparing to update product id ' . $this->plan_id);
-        }
-
-        $price = number_format($this->price, 2, '.', '');
         try {
-            $qb->set('plan_id', ':plan_id')
-               ->set('name', ':name')
-               ->set('description', ':dscp')
-               ->set('fees', ':fees')
-               ->set('enabled', ':enabled')
-               ->set('upd_links', ':upd_links')
-               ->set('notify_exp', ':notify_exp')
-               ->set('grp_access', ':grp_access')
-               ->setParameter('plan_id', $this->plan_id, Database::STRING)
-               ->setParameter('name', $this->name, Database::STRING)
-               ->setParameter('description', $this->dscp, Database::STRING)
-               ->setParameter('fees', @serialize($this->fees), Database::STRING)
-               ->setParameter('enabled', $this->enabled, Database::INTEGER)
-               ->setParameter('upd_links', $this->upd_links, Database::INTEGER)
-               ->setParameter('notify_exp', $this->notify_exp, Database::INTEGER)
-               ->setParameter('grp_access', $this->grp_access, Database::INTEGER)
-               ->execute();
-            if ($this->plan_id != $old_plan_id) {
-                Membership::Transfer($old_plan_id, $this->plan_id);
+            if ($this->isNew()) {
+                $db->conn->insert($_TABLES['membership_plans'], $values, $types);
+                $this->plan_id = $db->conn->lastInsertId();
+            } else {
+                $types[] = Database::INTEGER;   // for plan_id
+                $db->conn->update(
+                    $_TABLES['membership_plans'],
+                    $values,
+                    array('plan_id' => $this->plan_id),
+                    $types
+                );
             }
-            $status = 'OK';
+        //} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+        //    May use this if a unique plan name is required.
+        //    $this->Errors[] = $LANG_MEMBERSHIP['err_plan_name'];
         } catch (\Throwable $e) {
-            Log::write('system', Log::ERROR, __METHOD__ . "(): " . $e->getMessage());
-            $status = 'Error Saving';
+            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
+            $this->Errors[] = $LANG_MEMBERSHIP['err_saving'];
         }
-
-        Log::write(Config::PI_NAME, Log::DEBUG, 'Status of last update: ' . print_r($status,true));
-        $msg = $LANG_MEMBERSHIP['update_of_plan'] . ' ' . $this->plan_id . ' ';
+        $msg = $LANG_MEMBERSHIP['update_of_plan'] . ' ' . $this->short_name . ' ';
         if (!$this->hasErrors()) {
             $retval = true;
             $msg .= $LANG_MEMBERSHIP['succeeded'];
@@ -478,7 +475,7 @@ class Plan
      * @param   string  $xfer_plan  Plan to transfer members to, if any
      * @return  boolean         True on success, False on failure
      */
-    public function Delete(string $xfer_plan='') : bool
+    public function Delete(int $xfer_plan=0) : bool
     {
         global $_TABLES, $LANG_MEMBERSHIP;
 
@@ -500,8 +497,7 @@ class Plan
                 array('plan_id'),
                 array($this->plan_id)
             );
-            $this->plan_id = '';
-            $this->isNew = true;
+            $this->plan_id = 0;
         } catch (\Throwable $e) {
             Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
             return false;
@@ -522,12 +518,15 @@ class Plan
         global $LANG_MEMBERSHIP;
 
         // Check that basic required fields are filled in
-        if ($this->name == '') {
+        if ($this->short_name == '') {
+            $this->Errors[] = $LANG_MEMBERSHIP['err_plan_id'];
+        }
+        if ($this->long_name == '') {
             $this->Errors[] = $LANG_MEMBERSHIP['err_name'];
         }
 
         if ($this->hasErrors()) {
-            Log::write(Config::PI_NAME, Log::DEBUG, __METHOD__ . ': Errors encountered: ' . print_r($this->Errors,true));
+            Log::write(Config::PI_NAME, Log::ERROR, __METHOD__ . ': Errors encountered: ' . print_r($this->Errors,true));
             return false;
         } else {
             Log::write(Config::PI_NAME, Log::DEBUG, __METHOD__ . ': No errors');
@@ -548,17 +547,17 @@ class Plan
 
         $T = new \Template(Config::get('pi_path') . 'templates');
         $T->set_file('product', 'plan_form.thtml');
-        if ($this->plan_id != '') {
+        if ($this->short_name != '') {
             $T->set_var('plan_id', $this->plan_id);
-            $retval = COM_startBlock($LANG_MEMBERSHIP['edit'] . ': ' . $this->name);
+            $retval = COM_startBlock($LANG_MEMBERSHIP['edit'] . ': ' . $this->long_name);
         } else {
             $retval = COM_startBlock($LANG_MEMBERSHIP['new_plan']);
         }
 
         $T->set_var(array(
             'plan_id'       => $this->plan_id,
-            'old_plan_id'   => $this->plan_id,
-            'name'          => $this->name,
+            'short_name'    => $this->short_name,
+            'long_name'     => $this->long_name,
             'description'   => $this->dscp,
             'pi_admin_url'  => Config::get('admin_url'),
             'pi_url'        => Config::get('url'),
@@ -612,7 +611,7 @@ class Plan
 
         if ($this->hasMembers()) {
             // Add a selection to transfer members to another plan.
-            $T->set_var('xfer_plan_select', self::optionList(NULL, $this->plan_id));
+            $T->set_var('xfer_plan_select', self::optionList(NULL, $this->short_name));
         }
 
         $retval .= $T->parse('output', 'product');
@@ -688,7 +687,8 @@ class Plan
             'pi_url'        => Config::get('url'),
             'user_id'       => $_USER['uid'],
             'plan_id'       => $this->plan_id,
-            'name'          => $this->name,
+            'short_name'     => $this->short_name,
+            'long_name'     => $this->long_name,
             'description'   => PLG_replacetags($this->dscp),
             'encrypted'     => '',
             'price'         => $price_txt,
@@ -699,7 +699,7 @@ class Plan
             // Anonymous must log in to purchase
             $T->set_var('you_expire', $LANG_MEMBERSHIP['must_login']);
             $T->set_var('exp_msg_class', 'alert');
-        } elseif ($M->getPlanID() == $this->plan_id) {
+        } elseif ($M->getPlanID() == $this->short_name) {
             if ($M->getExpires() >= Dates::Today()) {
                 $T->set_var(
                     'you_expire',
@@ -743,13 +743,13 @@ class Plan
     {
         global $_TABLES;
 
-        if (empty($this->plan_id)) return false;
+        if (empty($this->short_name)) return false;
 
         $db = Database::getInstance();
         if ($db->getCount(
             $_TABLES['membership_members'],
             array('mem_plan_id'),
-            array($this->plan_id),
+            array($this->short_name),
             array(Database::STRING)
         ) > 0) {
             return true;
@@ -808,8 +808,8 @@ class Plan
             $vars = array(
                 'item_number'   => 'membership:' . $this->plan_id .
                             ':' . $is_renewal,
-                'item_name'     => $this->name,
-                'short_description' => $this->name,
+                'item_name'     => $this->short_name,
+                'short_description' => $this->long_name,
                 'amount'        => sprintf("%5.2f", $price),
                 'no_shipping'   => 1,
                 'quantity'      => 1,
@@ -1032,7 +1032,7 @@ class Plan
         foreach ($Plans as $P) {
             $description = $P->getDscp();
             if ($M->getPlanID() == $P->getPlanID()) {
-                if ($M->getExpires()< Dates::Today()) {
+                if ($M->getExpires() < Dates::Today()) {
                     $T->set_var(
                         'cur_plan_msg',
                         sprintf($LANG_MEMBERSHIP['curr_plan_expired'], $M->getExpires())
@@ -1077,7 +1077,7 @@ class Plan
             }
             $T->set_var(array(
                 'plan_id'   => $P->plan_id,
-                'name'      => $P->name,
+                'name'      => $P->long_name,
                 'description' => PLG_replacetags($description),
                 'exp_date'  => $exp_format,
                 'price'     => COM_numberFormat($price_total, 2),
@@ -1111,7 +1111,7 @@ class Plan
                 $retval[$fld] = $this->plan_id;
                 break;
             case 'short_description':
-                $retval[$fld] = $this->name;
+                $retval[$fld] = $this->long_name;
                 break;
             case 'description':
                 $retval[$fld] = $this->dscp;
@@ -1166,7 +1166,7 @@ class Plan
             ),
             array(
                 'text' => $LANG_MEMBERSHIP['short_name'],
-                'field' => 'name',
+                'field' => 'short_name',
                 'sort' => true,
             ),
             array(
@@ -1192,7 +1192,7 @@ class Plan
         $form_arr = array();
         $retval .= COM_createLink(
             $LANG_MEMBERSHIP['new_plan'],
-            Config::get('admin_url') . '/index.php?editplan=x',
+            Config::get('admin_url') . '/index.php?editplan=0',
             array(
                 'class' => 'uk-button uk-button-success',
                 'style' => 'float:left',
@@ -1227,7 +1227,7 @@ class Plan
         switch($fieldname) {
         case 'edit':
             $retval = FieldList::edit(array(
-                'url' => Config::get('admin_url') . '/index.php?editplan=x&amp;plan_id=' . $A['plan_id']
+                'url' => Config::get('admin_url') . '/index.php?editplan=' . $A['plan_id']
             ) );
             break;
 
@@ -1270,18 +1270,18 @@ class Plan
      * @param   string  $sel    Optional selected plan
      * @return  string      Option elements
      */
-    public static function optionList(?string $sel=NULL, ?string $exclude=NULL) : string
+    public static function optionList(?int $sel=NULL, ?int $exclude=NULL) : string
     {
         global $_TABLES;
 
         if (!empty($exclude)) {
-            $where = "plan_id <> '" . DB_escapeString($exclude) . "'";
+            $where = "plan_id <> $exclude";
         } else {
             $where = '';
         }
         return COM_optionList(
             $_TABLES['membership_plans'],
-            'plan_id,name',
+            'plan_id,short_name',
             $sel,
             1,
             $where

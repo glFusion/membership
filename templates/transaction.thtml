@@ -19,6 +19,18 @@
 	</div>
 
 	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['plan']}:
+			<span id="mem_uid" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<select class="uk-select" name="tx_planid">
+				<option value="0">-- {$LANG_MEMBERSHIP['select']} --</option>
+				{plan_select}
+			</select>
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
 		<label class="uk-form-label">{$LANG_MEMBERSHIP['pmt_amount']}:
 			<span id="amtpaid" class="tooltip_cfg tooltipstered"></span>
 		</label>
@@ -34,6 +46,16 @@
 		<div class="uk-form-controls">
 			<input class="uk-input uk-form-width-medium popupcal" type="text"
 				id="f_dtpaid" name="tx_dt" value="{tx_dt}" />
+		</div>
+	</div>
+
+	<div class="uk-form-row uk-margin">
+		<label class="uk-form-label">{$LANG_MEMBERSHIP['expires']}:
+			<span id="tx_exp" class="tooltip_cfg tooltipstered"></span>
+		</label>
+		<div class="uk-form-controls">
+			<input class="uk-input uk-form-width-medium datepicker" type="text"
+				id="f_tx_exp" name="tx_exp" value="{tx_exp}" />
 		</div>
 	</div>
 

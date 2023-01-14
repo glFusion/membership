@@ -93,7 +93,7 @@ case 'importusers':
     if (isset($Request['frm_group'])) {
         $msg = Membership\Util\Importers\glFusion::do_import(
             $Request->getInt('frm_group'),
-            $Request->getString('plan_id'),
+            $Request->getInt('plan_id'),
             $Request->getString('exp')
         );
     } else {
@@ -171,7 +171,7 @@ case 'createmember':
         $Txn->withGateway($Request->getString('mem_pmttype', $LANG_MEMBERSHIP['manual_entry']))
             ->withUid($Request->getInt('mem_uid'))
             ->withAmount($Request->getFloat('mem_pmtamt'))
-            ->withPlanId($Request->getString('mem_plan_id'))
+            ->withPlanId($Request->getInt('mem_plan_id'))
             ->withExpiration($Request->getString('mem_expires'))
             ->withTxnId($Request->getString('pmt_pmtdesc', $LANG_MEMBERSHIP['manual_entry']))
             ->Save();
@@ -202,8 +202,8 @@ case 'renewbutton':
     break;
 
 case 'deleteplan':
-    $plan_id = $Request->getString('plan_id');
-    $xfer_plan = $Request->getString('xfer_plan');
+    $plan_id = $Request->getInt('plan_id');
+    $xfer_plan = $Request->getInt('xfer_plan');
     if (!empty($plan_id)) {
         Plan::Delete($plan_id, $xfer_plan);
     }
@@ -211,8 +211,7 @@ case 'deleteplan':
     break;
 
 case 'saveplan':
-    $plan_id = $Request->getString('old_plan_id');
-    $P = new Plan($plan_id);
+    $P = new Plan($Request->getInt('plan_id'));
     $status = $P->Save($Request);
     if ($status == true) {
         echo COM_refresh(Config::get('admin_url') . '/index.php?listplans');
@@ -329,7 +328,7 @@ case 'editmember':
     break;
 
 case 'editplan':
-    $P = new Plan($Request->getString('plan_id'));
+    $P = new Plan($actionval);
     $content .= Menu::Admin($view);
     $content .= $P->Edit();
     break;

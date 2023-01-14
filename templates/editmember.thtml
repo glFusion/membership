@@ -29,7 +29,7 @@
 			<div class="uk-form-controls">
 				<input type="hidden" name="mem_plan_id_orig" value="{plan_id_orig}" />
 				<select id="mem_plan_id" name="mem_plan_id" onchange="memUpdateLinkText(this);">
-					<option value="">--{$LANG_MEMBERSHIP['select']}--</option>
+					<option value="0">--{$LANG_MEMBERSHIP['select']}--</option>
 <!-- BEGIN PlanBlock -->
 					<option value="{plan_id}" {plan_sel}>{plan_name}</option>
 <!-- END PlanBlock -->

@@ -15,6 +15,7 @@ namespace Membership\Models;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 use Membership\Config;
+use Membership\Plan;
 use Membership\Membership;
 use Membership\Models\DataArray;
 use Membership\FieldList;
@@ -43,8 +44,8 @@ class Transaction
     private $tx_uid = 0;
 
     /** Membership plan ID.
-     * @var string */
-    private $tx_planid = '';
+     * @var integer */
+    private $tx_planid = 0;
 
     /** Payment gateway or description.
      * @var string */
@@ -93,7 +94,7 @@ class Transaction
         global $_TABLES;
 
         try {
-            $data = $db->conn->executeQuery(
+            $data = Database::getInstance()->conn->executeQuery(
                 "SELECT * FROM {$_TABLES['membership_trans']} WHERE tx_id = ?",
                 array($tx_id),
                 array(Database::INTEGER)
@@ -121,7 +122,7 @@ class Transaction
         $this->tx_dt = $A->getString('tx_dt');
         $this->tx_by = $A->getInt('tx_by');
         $this->tx_uid = $A->getInt('tx_uid');
-        $this->tx_planid = $A->getString('tx_planid');
+        $this->tx_planid = $A->getInt('tx_planid');
         $this->tx_gw = $A->getString('tx_gw');
         $this->tx_amt = $A->getFloat('tx_amt');
         $this->tx_exp = $A->getString('tx_exp');
@@ -197,10 +198,10 @@ class Transaction
     /**
      * Set the membership plan ID paid by this transaction.
      *
-     * @param   string  $plan_id    Plan ID
+     * @param   intger  $plan_id    Plan ID
      * @return  object  $this
      */
-    public function withPlanId(string $plan_id) : self
+    public function withPlanId(int $plan_id) : self
     {
         $this->tx_planid = $plan_id;
         return $this;
@@ -213,7 +214,7 @@ class Transaction
      *
      * @return  string      New plan ID
      */
-    public function getPlanId() : string
+    public function getPlanId() : int
     {
         return $this->tx_planid;
     }
@@ -357,6 +358,7 @@ class Transaction
             'tx_id' => $this->tx_id,
             'tx_uid' => $this->tx_uid,
             'mem_select' => Membership::optionList($this->tx_uid),
+            'plan_select' => Plan::optionList($this->tx_planid),
         ) );
         $T->set_block('form', 'pmttype_block', 'pt_blk');
         foreach ($LANG_MEMBERSHIP_PMTTYPES as $key=>$val) {
@@ -405,8 +407,9 @@ class Transaction
 
         $query_arr = array(
             'table' => 'membership_trans',
-            'sql' => "SELECT tx.*, u.fullname as tx_fullname
+            'sql' => "SELECT tx.*, u.fullname as tx_fullname, p.short_name
                 FROM {$_TABLES['membership_trans']} tx
+                LEFT JOIN {$_TABLES['membership_plans']} p ON p.plan_id = tx.tx_planid
                 LEFT JOIN {$_TABLES['users']} u
                     ON u.uid = tx.tx_uid
                 WHERE 1=1 $from_sql $to_sql $user_sql",
@@ -448,7 +451,7 @@ class Transaction
             ),
             array(
                 'text' => $LANG_MEMBERSHIP['plan'],
-                'field' => 'tx_planid',
+                'field' => 'short_name',
                 'sort' => true,
             ),
             array(
