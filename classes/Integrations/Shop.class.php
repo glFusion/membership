@@ -19,34 +19,13 @@ use Membership\Config;
  * Class to describe the shop-enabled config flag.
  * @package membership
  */
-class Shop
+class Shop extends \Membership\Integration
 {
     const NONE = 0;
     const BUY_NOW = 1;
     const CART = 2;
 
-
-    /**
-     * Determine if the Shop plugin is installed and integration is enabled.
-     *
-     * @return  boolean     Integration setting if enabled, 0 otherwise.
-     */
-    public static function isEnabled() : bool
-    {
-        global $_PLUGINS;
-
-        static $enabled = NULL;
-
-        if ($enabled !== NULL) {
-            return $enabled;
-        }
-        if (!is_array($_PLUGINS) || !in_array('shop', $_PLUGINS)) {
-            $enabled = 0;
-        } else {
-            $enabled = Config::get('enable_shop');
-        }
-        return $enabled;
-    }
+    static $pi_name = 'shop';
 
 
     /**

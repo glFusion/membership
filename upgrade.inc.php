@@ -198,7 +198,12 @@ function MEMBERSHIP_do_upgrade($dvlp=false)
                 SET t.tx_planid = p.plan_id";
             $_UPGRADE_SQL[$current_ver][] = "ALTER TABLE {$_TABLES['membership_trans']}
                 CHANGE tx_planid tx_planid mediumint unsigned";
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['conf_values']} SET name = 'enable_mailer'
+                WHERE group_name = 'membership' AND name = 'update_maillist'";
+            $_UPGRADE_SQL[$current_ver][] = "UPDATE {$_TABLES['conf_values']} SET name = 'enable_mediagallery'
+                WHERE group_name = 'membership' AND name = 'manage_mg_quota'";
         }
+
         if (!MEMBERSHIP_do_upgrade_sql($current_ver, $dvlp)) return false;
         if (!MEMBERSHIP_do_set_version($current_ver, $dvlp)) return false;
     }

@@ -439,7 +439,7 @@ $membershipConfigData = array(
     ),
     // Update Mailer segment?
     array(
-        'name' => 'update_maillist',
+        'name' => 'enable_mailer',
         'default_value' => 0,
         'type' => 'select',
         'subgroup' => 10,
@@ -520,7 +520,7 @@ $membershipConfigData = array(
     ),
     // Should the Mediagallery quota be updated with membership changes?
     array(
-        'name' => 'manage_mg_quota',
+        'name' => 'enable_mediagallery',
         'default_value' => 0,
         'type' => 'select',
         'subgroup' => 10,

@@ -1244,73 +1244,16 @@ class Membership
      */
     public static function updatePlugins(array $uids, int $old_status, int $new_status) : void
     {
-        global $_TABLES, $_PLUGINS;
-
         // No change in status just return OK
-        /*if ($old_status == $new_status) {
+        if ($old_status == $new_status) {
             return;
-        }*/
+        }
 
         foreach ($uids as $uid) {
             PLG_itemSaved('membership:' . $uid, Config::PI_NAME);
         }
 
-        // Update the image quota in mediagallery.
-        // Mediagallery doesn't have a service function, have to update the
-        // database directly. Don't update users with unlimited quotas.
-        if (
-            Config::get('manage_mg_quota')  &&
-            in_array('mediagallery', $_PLUGINS)
-        ) {
-            $db = Database::getInstance();
-            $quota = $db->getItem(
-                $_TABLES['mg_userprefs'],
-                'quota',
-                array('uid' => $uid)
-            );
-            if ($quota > 0) {
-                $max = (int)Config::get('mg_quota_member');
-                $min = (int)Config::get('mg_quota_nonmember');
-                // sanity checking. Min must be positive to have an effect,
-                // zero is unlimited. Max can be zero but otherwise must be > min
-                if ($min < 1) $min = 1;
-                if ($max == 0 || $min < $max) {
-                    switch ($mem_status) {
-                    case Status::ACTIVE:
-                    case Status::ARREARS:
-                        $size = $max * 1048576;
-                        break;
-                    default:
-                        $size = $min * 1048576;
-                        break;
-                    }
-                    if ($size != $quota) {
-                        // Update the MG uerpref table with the new quota.
-                        // Ignore errors, nothing to be done about them here.
-                        try {
-                            $db->conn->insert(
-                                $_TABLES['mg_userprefs'],
-                                array(`uid` => $uid, 'quota' => $size),
-                                array(Database::INTEGER, Database::INTEGER)
-                            );
-                        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $k) {
-                            try {
-                                $db->conn->update(
-                                    $_TABLES['mg_userprefs'],
-                                    array('quota' => $size),
-                                    array('uid' => $uid),
-                                    array(Database::INTEGER, Database::INTEGER)
-                                );
-                            } catch (\Exception $e) {
-                                Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
-                            }
-                        } catch (\Exception $e) {
-                            Log::write('system', Log::ERROR, __METHOD__ . ': ' . $e->getMessage());
-                        }
-                    }
-                }
-            }
-        }
+        Integrations\Mediagallery::manageQuota($uid, $new_status);
     }
 
 
