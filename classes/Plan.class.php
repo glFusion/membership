@@ -819,6 +819,10 @@ class Plan
                 //'_ret_url'      => $return,
                 'unique'        => true,
             );
+            if (Config::get('redir_after_purchase') != '') {
+                $vars['return_url'] = Config::get('redir_after_purchase');
+                $vars['cancel_url'] = Config::get('redir_after_purchase');
+            }
             $status = PLG_callFunctionForOnePlugin(
                 'service_genButton_shop',
                 array(
