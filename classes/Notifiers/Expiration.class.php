@@ -3,7 +3,7 @@
  * Class to handle expiration notifications.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2022 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2022-2023 Lee Garner <lee@leegarner.com>
  * @package     membership
  * @version     v1.0.0
  * @since       v1.0.0
@@ -55,7 +55,7 @@ class Expiration extends \Membership\BaseNotifier
             $qb->select(
                 'm.mem_uid', 'm.mem_notified', 'm.mem_expires', 'm.mem_plan_id',
                 'u.email', 'u.username', 'u.fullname', 'u.language',
-                'p.name', 'p.description'
+                'p.long_name', 'p.description'
             )
                ->from($_TABLES['membership_members'], 'm')
                ->leftJoin('m', $_TABLES['membership_plans'], 'p', 'p.plan_id=m.mem_plan_id')
@@ -149,7 +149,7 @@ class Expiration extends \Membership\BaseNotifier
                     'username'      => $username,
                     'pi_name'       => Config::PI_NAME,
                     'plan_id'       => $row['mem_plan_id'],
-                    'plan_name'     => $row['name'],
+                    'plan_name'     => $row['long_name'],
                     'plan_dscp'     => $row['description'],
                     'detail_url'    => Config::get('url') .
                         '/index.php?detail=x&amp;plan_id=' .
