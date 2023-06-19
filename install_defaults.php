@@ -266,6 +266,18 @@ $membershipConfigData = array(
         'set' => true,
         'group' => 'membership',
     ),
+    // Display a message at first login?
+    array(
+        'name' => 'first_login_msg',
+        'default_value' => 0,
+        'type' => 'select',
+        'subgroup' => 0,
+        'fieldset' => 0,
+        'selection_array' => 3,
+        'sort' => 190,
+        'set' => true,
+        'group' => 'membership',
+    ),
 
     // Profile list options
     // Select the default member types to show in member listings

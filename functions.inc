@@ -637,7 +637,7 @@ function plugin_runScheduledTask_membership()
  * @param   integer $uid    Member user ID
  * @return  array       Array of name=>value pairs
  */
-function plugin_getMergeFields_membership($uid)
+function plugin_getMergeFields_membership(int $uid, string $email=NULL)
 {
     $properties = array(
         'id',
@@ -760,7 +760,6 @@ function MEMBERSHIP_isAdmin()
  * Actions to perform when a user account is created.
  * Sets a message to be displayed at first login encouraging a new user
  * to join the organization.
- * To disable, make $LANG_MEMBERSHIP['new_acct_msg'] empty.
  *
  * @param   integer $uid    ID of new user
  */
@@ -768,13 +767,13 @@ function plugin_user_create_membership($uid)
 {
     global $LANG_MEMBERSHIP;
 
-    $uid = (int)$uid;
-    if (empty($LANG_MEMBERSHIP['new_acct_msg']) || $uid < 3) return;
-    $Msg = new Membership\Notifiers\Popup;
-    $Msg->withUid($uid)
-        ->withMessage($LANG_MEMBERSHIP['new_acct_msg'])
-        ->withPersists(true)
-        ->send();
+    if (Config::get('first_login_msg') && !empty($LANG_MEMBERSHIP['new_acct_msg'])) {
+        $Msg = new Membership\Notifiers\Popup;
+        $Msg->withUid((int)$uid)
+            ->withMessage($LANG_MEMBERSHIP['new_acct_msg'])
+            ->withPersists(true)
+            ->send();
+    }
 }
 
 

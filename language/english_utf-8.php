@@ -323,6 +323,7 @@ $LANG_confignames['membership'] = array(
     'expires_eom' => 'Memberships expire at end of month?',
     'notifycount' => 'Number of notifications to send',
     'merge_fldname' => 'Merge Field Name',
+    'first_login_msg' => 'Enable message at first login?',
 );
 
 $LANG_configSelect['membership'] = array(
