@@ -3,9 +3,9 @@
  * Define member statuses.
  *
  * @author      Lee Garner <lee@leegarner.com>
- * @copyright   Copyright (c) 2020 Lee Garner <lee@leegarner.com>
+ * @copyright   Copyright (c) 2020-2022 Lee Garner <lee@leegarner.com>
  * @package     membership
- * @version     v0.3.0
+ * @version     v0.4.0
  * @since       v0.3.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -33,6 +33,10 @@ class Status
      */
     public const EXPIRED = 4;
 
+    /** Membership has been cancelled. Can still renew.
+     */
+    public const CANCELED = 16;
+
     /** Member has been dropped and can no longer renew.
      */
     public const DROPPED = 128;
@@ -42,9 +46,10 @@ class Status
      * Used with Mailer integration to set the group (segment) in the list.
      * The strings must match segments (groups) set up in Mailer.
      *
+     * @param   integer $status     Status flag value
      * @return  string      List segment matching the membership status
      */
-    public static function getSegment($status)
+    public static function getSegment(int $status)
     {
         $retval = '';
         switch ($status) {
@@ -58,6 +63,7 @@ class Status
             $retval = Config::get('segment_expired');
             break;
         case self::DROPPED:
+        case self::CANCELED:
             $retval = Config::get('segment_dropped');
             break;
         }
@@ -91,7 +97,7 @@ class Status
      * @param   integer $status     Membership status
      * @return  array       Array of merge field or tag values
      */
-    public static function getMergeFields($status)
+    public static function getMergeFields(int $status) : array
     {
         $retval = array();
         $segment = self::getSegment($status);
@@ -113,7 +119,7 @@ class Status
      * @param   string  $exp_date   Expiration date YYYY-MM-DD
      * @return  integer         Membership status value
      */
-    public static function fromExpiration($exp_date)
+    public static function fromExpiration(string $exp_date) : int
     {
         if ($exp_date >= Dates::Today()) {
             $retval = self::ACTIVE;
