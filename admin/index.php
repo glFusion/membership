@@ -23,6 +23,7 @@ use Membership\PosGroup;
 use Membership\Models\Transaction;
 use Membership\Models\MemberNumber;
 use Membership\Models\Request;
+use Membership\Notifiers\Expiration;
 use glFusion\Database\Database;
 use glFusion\Log\Log;
 
@@ -68,7 +69,10 @@ list($action, $actionval) = $Request->getAction($expected, Config::get('adm_def_
 switch ($action) {
 case 'notify':      // Force-send expiration reminders
     if (!empty($Request->getArray('delitem'))) {
-        Membership::notifyExpiration($Request->getArray('delitem'), true);
+        $Notifier = new Membership\Notifiers\Expiration;
+        $Notifier->withUids($Request->getArray('delitem'))
+                 ->withManual(true)
+                 ->Notify();
     }
     echo COM_refresh(Config::get('admin_url') . '/index.php?listmembers');
     break;
